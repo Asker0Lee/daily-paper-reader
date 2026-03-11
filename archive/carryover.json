@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-11T07:31:14.009620+00:00",
+  "generated_at": "2026-03-11T07:42:00.436257+00:00",
   "updated_date": "20260302-20260311",
   "carryover_days": 9,
   "items": [
@@ -22,13 +22,13 @@
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "vocabulary trimming for faster speculative decoding",
-      "llm_evidence_cn": "词表裁剪加速投机采样",
-      "llm_evidence": "词表裁剪加速投机采样",
-      "canonical_evidence": "词表裁剪加速投机采样",
-      "llm_tldr_en": "Optimizes draft model vocabulary to balance coverage and latency in speculative decoding for faster LLM inference.",
-      "llm_tldr_cn": "通过裁剪草稿模型词表来平衡覆盖率和延迟，从而加速大语言模型的投机采样推理。",
-      "llm_tldr": "通过裁剪草稿模型词表来平衡覆盖率和延迟，从而加速大语言模型的投机采样推理。",
+      "llm_evidence_en": "Multi-grained context compression for LLM inference",
+      "llm_evidence_cn": "用于LLM推理的多粒度上下文压缩",
+      "llm_evidence": "用于LLM推理的多粒度上下文压缩",
+      "canonical_evidence": "用于LLM推理的多粒度上下文压缩",
+      "llm_tldr_en": "A framework using a short-context LLM as a compressor to extend context windows via multi-grained representations.",
+      "llm_tldr_cn": "该框架利用短上下文LLM作为压缩器，通过多粒度表示扩展大模型的上下文窗口。",
+      "llm_tldr": "该框架利用短上下文LLM作为压缩器，通过多粒度表示扩展大模型的上下文窗口。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -63,13 +63,13 @@
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "efficient inference via token selection and temporal sparsity",
-      "llm_evidence_cn": "通过标记选择和时间稀疏性实现高效推理",
-      "llm_evidence": "通过标记选择和时间稀疏性实现高效推理",
-      "canonical_evidence": "通过标记选择和时间稀疏性实现高效推理",
-      "llm_tldr_en": "Accelerates Diffusion LLM inference by selectively computing only salient tokens based on temporal sparsity.",
-      "llm_tldr_cn": "通过基于时间稀疏性选择性计算显著标记，加速扩散大语言模型的推理。",
-      "llm_tldr": "通过基于时间稀疏性选择性计算显著标记，加速扩散大语言模型的推理。",
+      "llm_evidence_en": "Pruning decoder layers in SpeechLLMs",
+      "llm_evidence_cn": "语音大模型解码器层剪枝",
+      "llm_evidence": "语音大模型解码器层剪枝",
+      "canonical_evidence": "语音大模型解码器层剪枝",
+      "llm_tldr_en": "Analyzes redundancy in SpeechLLM decoders and demonstrates performance retention after pruning 40% of layers.",
+      "llm_tldr_cn": "分析语音大模型解码器的冗余性，证明剪掉40%的层后仍能保持良好的语音识别性能。",
+      "llm_tldr": "分析语音大模型解码器的冗余性，证明剪掉40%的层后仍能保持良好的语音识别性能。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -77,130 +77,125 @@
       "matched_query_text": "Efficient inference for large language models via compression",
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.08026v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.08173v1",
-      "title": "Evolution Strategy-Based Calibration for Low-Bit Quantization of Speech Models",
-      "abstract": "Quantization has become essential for the efficient deployment of speech processing systems. Although widely studied, most existing quantization methods were developed for vision and NLP architectures, while the specific challenges of audio signals remain largely overlooked. In particular, we show that audio activations can exhibit large calibration ranges, leading to significant information loss when standard calibration techniques are applied. To address this, we propose ESC, an Evolution Strategy-based Calibration method that formulates activation scaling as an optimization problem and solves it using a two-step local-global scheme driven by an evolution strategy. ESC enables unaltered performance under full INT8 quantization and is the first calibration method to achieve near-lossless performance for full INT4 quantization across multiple speech tasks. Integrating ESC with PTQ methods further reduces performance loss, achieving a 1% relative accuracy degradation on the AST model.",
-      "authors": [
-        "Lucas Rakotoarivony"
-      ],
-      "primary_category": "cs.SD",
-      "categories": [
-        "cs.SD",
-        "cs.AI"
-      ],
-      "published": "2026-03-09T09:53:05+00:00",
-      "link": "https://arxiv.org/pdf/2603.08173v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Evolution strategy-based calibration for low-bit quantization of speech models",
-      "llm_evidence_cn": "基于进化策略的语音模型低比特量化校准",
-      "llm_evidence": "基于进化策略的语音模型低比特量化校准",
-      "canonical_evidence": "基于进化策略的语音模型低比特量化校准",
-      "llm_tldr_en": "ESC uses evolution strategies to optimize activation scaling for INT8 quantization in speech processing.",
-      "llm_tldr_cn": "提出ESC校准方法，利用进化策略优化语音模型在INT8量化下的激活缩放。",
-      "llm_tldr": "提出ESC校准方法，利用进化策略优化语音模型在INT8量化下的激活缩放。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Recent advances in LLM quantization and pruning research",
-      "matched_requirement_id": "req-10",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.08173v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.05353v1",
-      "title": "InfoFlow KV: Information-Flow-Aware KV Recomputation for Long Context",
-      "abstract": "Retrieval-augmented generation (RAG) for long-context question answering is bottlenecked by inference-time prefilling over large retrieved contexts. A common strategy is to precompute key-value (KV) caches for individual documents and selectively recompute a small subset of tokens to restore global causal dependencies, but existing methods rely on heuristics or representation discrepancies without modeling whether selected tokens can effectively influence generation. We cast selective KV recomputation as an information flow problem and show that a simple attention-norm signal from the query reliably identifies tokens that are both semantically relevant and structurally positioned to propagate information, when computed under an inference-consistent RoPE geometry. We therefore reconstruct global positional assignments for retrieved chunks and introduce an information-flow-guided chunk reordering strategy. Experiments on LLM and VLM benchmarks demonstrate consistent gains over prior methods under comparable efficiency budgets.",
-      "authors": [
-        "Xin Teng",
-        "Canyu Zhang",
-        "Shaoyi Zheng",
-        "Danyang Zhuo",
-        "Tianyi Zhou",
-        "Shengjie Wang"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-03-05T16:33:20+00:00",
-      "link": "https://arxiv.org/pdf/2603.05353v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Selective KV recomputation for efficient long-context inference",
-      "llm_evidence_cn": "用于高效长文本推理的选择性KV重计算",
-      "llm_evidence": "用于高效长文本推理的选择性KV重计算",
-      "canonical_evidence": "用于高效长文本推理的选择性KV重计算",
-      "llm_tldr_en": "Uses information-flow analysis to selectively recompute KV caches, improving long-context LLM inference efficiency.",
-      "llm_tldr_cn": "利用信息流分析选择性重计算KV缓存，提升了长文本LLM的推理效率。",
-      "llm_tldr": "利用信息流分析选择性重计算KV缓存，提升了长文本LLM的推理效率。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Efficient inference for large language models via compression",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.05353v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.08453v1",
-      "title": "LycheeCluster: Efficient Long-Context Inference with Structure-Aware Chunking and Hierarchical KV Indexing",
-      "abstract": "The quadratic complexity of the attention mechanism and the substantial memory footprint of the Key-Value (KV) cache present severe computational and memory challenges for Large Language Models (LLMs) processing long contexts. Existing retrieval-based methods often compromise semantic integrity through fixed-size chunking and suffer from inefficient linear scanning. In this paper, we propose LycheeCluster, a novel method for efficient KV cache management. LycheeCluster preserves local semantic coherence via boundary-aware chunking and constructs a recursive hierarchical index rooted in the triangle inequality. This design transforms cache retrieval from a linear scan into a theoretically bounded, logarithmic-time pruning process, while a lazy update strategy supports efficient streaming generation. Experiments demonstrate that LycheeCluster achieves up to a 3.6x end-to-end inference speedup with negligible degradation in model performance, outperforming state-of-the-art KV cache management methods (e.g., Quest, ClusterKV). We will release our code and kernels after publication.",
-      "authors": [
-        "Dongfang Li",
-        "Zixuan Liu",
-        "Gang Lin",
-        "Baotian Hu",
-        "Min Zhang"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI",
-        "cs.CL"
-      ],
-      "published": "2026-03-09T14:50:35+00:00",
-      "link": "https://arxiv.org/pdf/2603.08453v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Efficient KV cache management via hierarchical indexing and pruning",
-      "llm_evidence_cn": "通过分层索引和剪枝实现高效KV缓存管理",
-      "llm_evidence": "通过分层索引和剪枝实现高效KV缓存管理",
-      "canonical_evidence": "通过分层索引和剪枝实现高效KV缓存管理",
-      "llm_tldr_en": "Optimizes long-context LLM inference through structure-aware chunking and logarithmic-time cache pruning.",
-      "llm_tldr_cn": "通过结构感知分块和对数时间缓存剪枝优化长文本LLM推理。",
-      "llm_tldr": "通过结构感知分块和对数时间缓存剪枝优化长文本LLM推理。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Efficient inference for large language models via compression",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.08453v1",
+      "paper_id": "2603.05121v1",
       "carry_days": 1
     },
     {
       "id": "2603.09480v1",
       "title": "Prune Redundancy, Preserve Essence: Vision Token Compression in VLMs via Synergistic Importance-Diversity",
       "abstract": "Vision-language models (VLMs) face significant computational inefficiencies caused by excessive generation of visual tokens. While prior work shows that a large fraction of visual tokens are redundant, existing compression methods struggle to balance importance preservation and information diversity. To address this, we propose PruneSID, a training-free Synergistic Importance-Diversity approach featuring a two-stage pipeline: (1) Principal Semantic Components Analysis (PSCA) for clustering tokens into semantically coherent groups, ensuring comprehensive concept coverage, and (2) Intra-group Non-Maximum Suppression (NMS) for pruning redundant tokens while preserving key representative tokens within each group. Additionally, PruneSID incorporates an information-aware dynamic compression ratio mechanism that optimizes token compression rates based on image complexity, enabling more effective average information preservation across diverse scenes. Extensive experiments demonstrate state-of-the-art performance, achieving 96.3% accuracy on LLaVA-1.5 with only 11.1% token retention, and 92.8% accuracy at extreme compression rates (5.6%) on LLaVA-NeXT, outperforming prior methods by 2.5% with 7.8 $\\times$ faster prefilling speed compared to the original model. Our framework generalizes across diverse VLMs and both image and video modalities, showcasing strong cross-modal versatility. Code is available at https://github.com/ZhengyaoFang/PruneSID}{https://github.com/ZhengyaoFang/PruneSID.",
+      "authors": [
+        "Zhengyao Fang",
+        "Pengyuan Lyu",
+        "Chengquan Zhang",
+        "Guangming Lu",
+        "Jun Yu",
+        "Wenjie Pei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T10:31:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.09480v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Vision token compression and pruning in VLMs",
+      "llm_evidence_cn": "多模态大模型中的视觉Token压缩与剪枝",
+      "llm_evidence": "多模态大模型中的视觉Token压缩与剪枝",
+      "canonical_evidence": "多模态大模型中的视觉Token压缩与剪枝",
+      "llm_tldr_en": "Introduces PruneSID to prune redundant visual tokens in VLMs while preserving semantic diversity and importance.",
+      "llm_tldr_cn": "提出PruneSID方法，在保持语义多样性的同时剪枝多模态大模型中的冗余视觉Token。",
+      "llm_tldr": "提出PruneSID方法，在保持语义多样性的同时剪枝多模态大模型中的冗余视觉Token。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09480v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.07135v1",
+      "title": "The Model Knows Which Tokens Matter: Automatic Token Selection via Noise Gating",
+      "abstract": "Visual tokens dominate inference cost in vision-language models (VLMs), yet many carry redundant information. Existing pruning methods alleviate this but typically rely on attention magnitude or similarity scores. We reformulate visual token pruning as capacity constrained communication: given a fixed budget K, the model must allocate limited bandwidth to maximally preserve visual information. We propose AutoSelect, which attaches a lightweight Scorer and Denoiser to a frozen VLM and trains with only the standard next token prediction loss, without auxiliary objectives or extra annotations. During training, a variance preserving noise gate modulates each token's information flow according to its predicted importance so that gradients propagate through all tokens; a diagonal attention Denoiser then recovers the perturbed representations. At inference, only the Scorer and a hard top-K selection remain, adding negligible latency. On ten VLM benchmarks, AutoSelect retains 96.5% of full model accuracy while accelerating LLM prefill by 2.85x with only 0.69 ms overhead, and transfers to different VLM backbones without architecture-specific tuning. Code is available at https://github.com/MedHK23/AutoSelect.",
+      "authors": [
+        "Landi He",
+        "Xiaoyu Yang",
+        "Lijian Xu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-07T09:57:35+00:00",
+      "link": "https://arxiv.org/pdf/2603.07135v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Automatic visual token selection and pruning via noise gating",
+      "llm_evidence_cn": "通过噪声门控进行自动视觉Token选择与剪枝",
+      "llm_evidence": "通过噪声门控进行自动视觉Token选择与剪枝",
+      "canonical_evidence": "通过噪声门控进行自动视觉Token选择与剪枝",
+      "llm_tldr_en": "AutoSelect reformulates token pruning as capacity-constrained communication to reduce VLM inference costs.",
+      "llm_tldr_cn": "AutoSelect将Token剪枝重新定义为容量受限通信，以降低视觉语言模型推理成本。",
+      "llm_tldr": "AutoSelect将Token剪枝重新定义为容量受限通信，以降低视觉语言模型推理成本。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.07135v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.08343v1",
+      "title": "Rethinking Attention Output Projection: Structured Hadamard Transforms for Efficient Transformers",
+      "abstract": "The dense output projection in multi-head attention scales quadratically with model dimension, contributing significantly to parameter count, memory footprint, and inference cost. We propose replacing this projection with a fixed, parameter-free Walsh Hadamard Transform followed by a lightweight learnable affine rescaling, eliminating approximately 25 percent of attention parameters per block while preserving global cross head interaction through an orthogonal, norm-preserving transformation. Across different model sizes, we demonstrate that this structured substitution maintains comparable or slightly superior downstream task performance on standard benchmarks, while achieving up to 7 percent aggregate parameter reduction, 8.9 percent peak memory savings, and 6.6 percent throughput improvement at scale, with efficiency gains growing monotonically with model size, batch size, and sequence length. Interestingly, we observe that structured Hadamard-based models exhibit a steeper validation loss curve relative to training FLOPs compared to their dense counterparts, suggesting more favorable compute utilization during training.",
+      "authors": [
+        "Shubham Aggarwal",
+        "Lokendra Kumar"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-03-09T13:05:08+00:00",
+      "link": "https://arxiv.org/pdf/2603.08343v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Structured Hadamard Transforms for parameter reduction in Transformers",
+      "llm_evidence_cn": "用于Transformer参数减少的结构化Hadamard变换",
+      "llm_evidence": "用于Transformer参数减少的结构化Hadamard变换",
+      "canonical_evidence": "用于Transformer参数减少的结构化Hadamard变换",
+      "llm_tldr_en": "Replaces attention projections with fixed Hadamard transforms to reduce parameters by 25% per block.",
+      "llm_tldr_cn": "通过固定的Hadamard变换替换注意力投影，每块可减少约25%的参数。",
+      "llm_tldr": "通过固定的Hadamard变换替换注意力投影，每块可减少约25%的参数。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Large language model compression techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.08343v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.08026v1",
+      "title": "DyLLM: Efficient Diffusion LLM Inference via Saliency-based Token Selection and Partial Attention",
+      "abstract": "Masked Diffusion Language Models (MDLMs) enable parallel token decoding, providing a promising alternative to the sequential nature of autoregressive generation. However, their iterative denoising process remains computationally expensive because it repeatedly processes the entire sequence at every step. We observe that across these diffusion steps, most token representations remain stable; only a small subset, which we term salient tokens, contributes meaningfully to the next update. Leveraging this temporal sparsity, we present DyLLM, a training-free inference framework that accelerates decoding by selectively computing only these salient tokens. DyLLM identifies saliency by measuring the cosine similarity of attention contexts between adjacent denoising steps. It recomputes feed-forward and attention operations only for salient tokens while reusing cached activations for the remainder. Across diverse reasoning and code-generation benchmarks, DyLLM achieves up to 9.6x higher throughput while largely preserving the baseline accuracy of state-of-the-art models like LLaDA and Dream.",
       "authors": [
         "Zhengyao Fang",
         "Pengyuan Lyu",
@@ -254,17 +249,16 @@
       "published": "2026-03-10T05:44:20+00:00",
       "link": "https://arxiv.org/pdf/2603.09222v1",
       "tags": [
-        "keyword:LLM CP",
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Query-aware context pruning for efficient LLM inference",
-      "llm_evidence_cn": "针对高效大模型推理的查询感知上下文剪枝",
-      "llm_evidence": "针对高效大模型推理的查询感知上下文剪枝",
-      "canonical_evidence": "针对高效大模型推理的查询感知上下文剪枝",
-      "llm_tldr_en": "Proposes a leave-one-out strategy for query-driven context pruning to reduce LLM reader costs.",
-      "llm_tldr_cn": "提出了一种留一法策略，用于查询驱动的上下文剪枝，以降低大模型读取成本。",
-      "llm_tldr": "提出了一种留一法策略，用于查询驱动的上下文剪枝，以降低大模型读取成本。",
+      "llm_evidence_en": "Saliency-based token selection for efficient diffusion LLM inference",
+      "llm_evidence_cn": "基于显著性标记选择的高效扩散大模型推理",
+      "llm_evidence": "基于显著性标记选择的高效扩散大模型推理",
+      "canonical_evidence": "基于显著性标记选择的高效扩散大模型推理",
+      "llm_tldr_en": "Accelerates diffusion LLM decoding by selectively computing only salient tokens during denoising.",
+      "llm_tldr_cn": "通过在去噪过程中选择性计算显著标记，加速扩散大模型的解码推理。",
+      "llm_tldr": "通过在去噪过程中选择性计算显著标记，加速扩散大模型的解码推理。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -272,7 +266,82 @@
       "matched_query_text": "Efficient inference for large language models via compression",
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
+      "paper_id": "2603.08026v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.09222v1",
+      "title": "LooComp: Leverage Leave-One-Out Strategy to Encoder-only Transformer for Efficient Query-aware Context Compression",
+      "abstract": "Efficient context compression is crucial for improving the accuracy and scalability of question answering. For the efficiency of Retrieval Augmented Generation, context should be delivered fast, compact, and precise to ensure clue sufficiency and budget-friendly LLM reader cost. We propose a margin-based framework for query-driven context pruning, which identifies sentences that are critical for answering a query by measuring changes in clue richness when they are omitted. The model is trained with a composite ranking loss that enforces large margins for critical sentences while keeping non-critical ones near neutral. Built on a lightweight encoder-only Transformer, our approach generally achieves strong exact-match and F1 scores with high-throughput inference and lower memory requirements than those of major baselines. In addition to efficiency, our method yields effective compression ratios without degrading answering performance, demonstrating its potential as a lightweight and practical alternative for retrieval-augmented tasks.",
+      "authors": [
+        "Thao Do",
+        "Dinh Phu Tran",
+        "An Vo",
+        "Seon Kwon Kim",
+        "Daeyoung Kim"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-10T05:44:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.09222v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "query-driven context pruning for efficient LLM reader cost",
+      "llm_evidence_cn": "针对降低LLM阅读成本的查询驱动上下文剪枝",
+      "llm_evidence": "针对降低LLM阅读成本的查询驱动上下文剪枝",
+      "canonical_evidence": "针对降低LLM阅读成本的查询驱动上下文剪枝",
+      "llm_tldr_en": "LooComp uses a leave-one-out strategy for context pruning to improve LLM inference efficiency in RAG tasks.",
+      "llm_tldr_cn": "LooComp采用留一法策略进行上下文剪枝，以提高RAG任务中LLM的推理效率。",
+      "llm_tldr": "LooComp采用留一法策略进行上下文剪枝，以提高RAG任务中LLM的推理效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
       "paper_id": "2603.09222v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.04460v1",
+      "title": "VSPrefill: Vertical-Slash Sparse Attention with Lightweight Indexing for Long-Context Prefilling",
+      "abstract": "The quadratic complexity of self-attention during the prefill phase impedes long-context inference in large language models. Existing sparse attention methods face a trade-off among context adaptivity, sampling overhead, and fine-tuning costs. We propose VSPrefill, a mechanism requiring lightweight training that uses the vertical-slash structural pattern in attention distributions. Our compact VSIndexer module predicts context-aware importance scores for vertical columns and slash diagonals from key-value representations augmented with RoPE. This approach constructs sparse masks with linear complexity without modifying the backbone parameters. During inference, an adaptive cumulative-threshold strategy allocates sparsity budgets per layer, while a fused kernel executes attention with on-the-fly index merging. Evaluated on Qwen3-4B-Instruct and LLaMA-3.1-8B-Instruct across the LongBench and RULER benchmarks, VSPrefill preserves 98.35% of the full attention accuracy while delivering a 4.95x average speedup at a context length of 128k. These results establish a new Pareto frontier in the trade-off between accuracy and efficiency.",
+      "authors": [
+        "Chen Guanzhong"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T09:24:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.04460v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Sparse attention for long-context prefilling efficiency",
+      "llm_evidence_cn": "稀疏注意力提升长上下文预填充效率",
+      "llm_evidence": "稀疏注意力提升长上下文预填充效率",
+      "canonical_evidence": "稀疏注意力提升长上下文预填充效率",
+      "llm_tldr_en": "Introduces VSPrefill, a sparse attention mechanism to reduce the quadratic complexity of LLM prefilling.",
+      "llm_tldr_cn": "提出VSPrefill稀疏注意力机制，旨在降低大模型预填充阶段的二次方复杂度。",
+      "llm_tldr": "提出VSPrefill稀疏注意力机制，旨在降低大模型预填充阶段的二次方复杂度。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.04460v1",
       "carry_days": 1
     }
   ]
