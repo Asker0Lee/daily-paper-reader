@@ -1,16 +1,1032 @@
 {
   "mode": "standard",
-  "generated_at": "2026-03-11T06:21:13.925570+00:00",
+  "generated_at": "2026-03-11T07:22:37.825731+00:00",
   "stats": {
     "mode": "standard",
-    "tag_count": 0,
-    "deep_divecandidates": 0,
-    "deep_cap": null,
-    "deep_selected": 0,
-    "quick_candidates": 0,
-    "quick_skim_target": 10,
-    "quick_selected": 0
+    "tag_count": 1,
+    "deep_divecandidates": 29,
+    "deep_cap": 6,
+    "deep_selected": 15,
+    "quick_candidates": 25,
+    "quick_skim_target": 11,
+    "quick_selected": 11
   },
-  "deep_dive": [],
-  "quick_skim": []
+  "deep_dive": [
+    {
+      "id": "2603.01376v1",
+      "title": "3BASiL: An Algorithmic Framework for Sparse plus Low-Rank Compression of LLMs",
+      "abstract": "Sparse plus Low-Rank $(\\mathbf{S} + \\mathbf{LR})$ decomposition of Large Language Models (LLMs) has emerged as a promising direction in model compression, aiming to decompose pre-trained model weights into a sum of sparse and low-rank matrices $(\\mathbf{W} \\approx \\mathbf{S} + \\mathbf{LR})$. Despite recent progress, existing methods often suffer from substantial performance degradation compared to dense models. In this work, we introduce 3BASiL-TM, an efficient one-shot post-training method for $(\\mathbf{S} + \\mathbf{LR})$ decomposition of LLMs that addresses this gap. Our approach first introduces a novel 3-Block Alternating Direction Method of Multipliers (ADMM) method, termed 3BASiL, to minimize the layer-wise reconstruction error with convergence guarantees. We then design an efficient transformer-matching (TM) refinement step that jointly optimizes the sparse and low-rank components across transformer layers. This step minimizes a novel memory-efficient loss that aligns outputs at the transformer level. Notably, the TM procedure is universal as it can enhance any $(\\mathbf{S} + \\mathbf{LR})$ decomposition, including pure sparsity. Our numerical experiments show that 3BASiL-TM reduces the WikiText2 perplexity gap relative to dense LLaMA-8B model by over 30% under a (2:4 Sparse + 64 LR) configuration, compared to prior methods. Moreover, our method achieves over 2.5x faster compression runtime on an A100 GPU compared to SOTA $(\\mathbf{S} + \\mathbf{LR})$ method. Our code is available at https://github.com/mazumder-lab/3BASiL.",
+      "authors": [
+        "Mehdi Makni",
+        "Xiang Meng",
+        "Rahul Mazumder"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "published": "2026-03-02T02:16:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.01376v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Sparse plus low-rank decomposition for LLM compression",
+      "llm_evidence_cn": "大语言模型的稀疏加低秩分解压缩",
+      "llm_evidence": "大语言模型的稀疏加低秩分解压缩",
+      "canonical_evidence": "大语言模型的稀疏加低秩分解压缩",
+      "llm_tldr_en": "Introduces 3BASiL, an ADMM-based framework for efficient sparse plus low-rank LLM weight decomposition.",
+      "llm_tldr_cn": "提出3BASiL框架，利用ADMM算法实现大模型权重的稀疏与低秩分解压缩。",
+      "llm_tldr": "提出3BASiL框架，利用ADMM算法实现大模型权重的稀疏与低秩分解压缩。",
+      "llm_tags": [
+        "query:llm-cp:composite"
+      ],
+      "matched_query_tag": "query:llm-cp:composite",
+      "matched_query_text": "Papers central to 最新的大模型压缩领域论文检索, especially work that connects or combines: q; s; L; u; Large language model compression techniques; Post-training quantization and quantization-aware training for LLMs; Structured and unstructured pruning for large language models; Latest paper on large model compression; State of the art methods in large language model compression; Recent advances in LLM quantization and pruning research.",
+      "matched_requirement_id": "req-composite-llm-cp",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01776v1",
+      "title": "FreeAct: Freeing Activations for LLM Quantization",
+      "abstract": "Quantization is pivotal for mitigating the significant memory and computational overhead of Large Language Models (LLMs). While emerging transformation-based methods have successfully enhanced quantization by projecting feature spaces onto smoother manifolds using orthogonal matrices, they typically enforce a rigid one-to-one transformation constraint. This static approach fails to account for the dynamic patterns inherent in input activations, particularly within diffusion LLMs (dLLMs) and Multimodal LLMs (MLLMs), where varying token types exhibit distinct distributions. To advance this, we propose FreeAct, a novel quantization framework that relaxes the static one-to-one constraint to accommodate dynamic activation disparities. Theoretically, we leverage the rank-deficient nature of activations to derive a solution space that extends beyond simple inverse matrices, enabling the decoupling of activation transformations from weights. Methodologically, FreeAct identifies token-specific dynamics (i.e., vision v.s. text, or masked tokens) and allocates distinct transformation matrices to the activation side, while maintaining a unified, static transformation for the weights. Extensive experiments across dLLMs and MLLMs demonstrate that FreeAct significantly outperforms baselines, up to 5.3% performance improvement, with in-depth analyses. Our code will be publicly released.",
+      "authors": [
+        "Xiaohao Liu",
+        "Xiaobo Xia",
+        "Manyi Zhang",
+        "Ji-Fu Li",
+        "Xianzhi Yu",
+        "Fei Shen",
+        "Xiu Su",
+        "See-Kiong Ng",
+        "Tat-Seng Chua"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-03-02T12:02:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.01776v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Dynamic activation quantization for LLMs and MLLMs",
+      "llm_evidence_cn": "针对LLM和多模态LLM的动态激活量化",
+      "llm_evidence": "针对LLM和多模态LLM的动态激活量化",
+      "canonical_evidence": "针对LLM和多模态LLM的动态激活量化",
+      "llm_tldr_en": "Introduces FreeAct to handle dynamic activation disparities in LLM and Multimodal LLM quantization.",
+      "llm_tldr_cn": "提出FreeAct量化框架，通过放宽静态约束来解决多模态大模型中激活分布不均的量化难题。",
+      "llm_tldr": "提出FreeAct量化框架，通过放宽静态约束来解决多模态大模型中激活分布不均的量化难题。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04800v1",
+      "title": "MASQuant: Modality-Aware Smoothing Quantization for Multimodal Large Language Models",
+      "abstract": "Post-training quantization (PTQ) with computational invariance for Large Language Models~(LLMs) have demonstrated remarkable advances, however, their application to Multimodal Large Language Models~(MLLMs) presents substantial challenges. In this paper, we analyze SmoothQuant as a case study and identify two critical issues: Smoothing Misalignment and Cross-Modal Computational Invariance. To address these issues, we propose Modality-Aware Smoothing Quantization (MASQuant), a novel framework that introduces (1) Modality-Aware Smoothing (MAS), which learns separate, modality-specific smoothing factors to prevent Smoothing Misalignment, and (2) Cross-Modal Compensation (CMC), which addresses Cross-modal Computational Invariance by using SVD whitening to transform multi-modal activation differences into low-rank forms, enabling unified quantization across modalities. MASQuant demonstrates stable quantization performance across both dual-modal and tri-modal MLLMs. Experimental results show that MASQuant is competitive among the state-of-the-art PTQ algorithms. Source code: https://github.com/alibaba/EfficientAI.",
+      "authors": [
+        "Lulu Hu",
+        "Wenhu Xiao",
+        "Xin Chen",
+        "Xinhua Xu",
+        "Bowen Xu",
+        "Kun Li",
+        "Yongliang Tao"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-05T04:41:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.04800v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Post-training quantization (PTQ) for Multimodal Large Language Models",
+      "llm_evidence_cn": "多模态大语言模型的训练后量化 (PTQ)",
+      "llm_evidence": "多模态大语言模型的训练后量化 (PTQ)",
+      "canonical_evidence": "多模态大语言模型的训练后量化 (PTQ)",
+      "llm_tldr_en": "MASQuant addresses smoothing misalignment in multimodal LLM quantization using modality-aware factors.",
+      "llm_tldr_cn": "MASQuant通过模态感知因子解决了多模态大模型量化中的平滑失配问题。",
+      "llm_tldr": "MASQuant通过模态感知因子解决了多模态大模型量化中的平滑失配问题。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04956v1",
+      "title": "WaterSIC: information-theoretically (near) optimal linear layer quantization",
+      "abstract": "This paper considers the problem of converting a given dense linear layer to low precision. The tradeoff between compressed length and output discrepancy is analyzed information theoretically (IT). It is shown that a popular GPTQ algorithm may have an arbitrarily large gap to the IT limit. To alleviate this problem, a novel algorithm, termed ''WaterSIC'', is proposed and is shown to be within a rate gap of 0.255 bits to the IT limit, uniformly over all possible covariance matrices of input activations. The key innovation of WaterSIC's is to allocate different quantization rates to different columns (in-features) of the weight matrix, mimicking the classical IT solution known as ''waterfilling''. Applying WaterSIC to the Llama and Qwen family of LLMs establishes new state-of-the-art performance for all quantization rates from 1 to 4 bits.",
+      "authors": [
+        "Egor Lifar",
+        "Semyon Savkin",
+        "Or Ordentlich",
+        "Yury Polyanskiy"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.IT"
+      ],
+      "published": "2026-03-05T08:50:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.04956v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Optimal linear layer quantization for Llama and Qwen models",
+      "llm_evidence_cn": "针对Llama和Qwen模型的线性层最优量化",
+      "llm_evidence": "针对Llama和Qwen模型的线性层最优量化",
+      "canonical_evidence": "针对Llama和Qwen模型的线性层最优量化",
+      "llm_tldr_en": "Proposes WaterSIC, an information-theoretically optimal quantization algorithm for LLM linear layers.",
+      "llm_tldr_cn": "提出WaterSIC算法，通过信息论最优的率失真权衡实现LLM线性层的高效量化。",
+      "llm_tldr": "提出WaterSIC算法，通过信息论最优的率失真权衡实现LLM线性层的高效量化。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05168v1",
+      "title": "Sparse-BitNet: 1.58-bit LLMs are Naturally Friendly to Semi-Structured Sparsity",
+      "abstract": "Semi-structured N:M sparsity and low-bit quantization (e.g., 1.58-bit BitNet) are two promising approaches for improving the efficiency of large language models (LLMs), yet they have largely been studied in isolation. In this work, we investigate their interaction and show that 1.58-bit BitNet is naturally more compatible with N:M sparsity than full-precision models. To study this effect, we propose Sparse-BitNet, a unified framework that jointly applies 1.58-bit quantization and dynamic N:M sparsification while ensuring stable training for the first time. Across multiple model scales and training regimes (sparse pretraining and dense-to-sparse schedules), 1.58-bit BitNet consistently exhibits smaller performance degradation than full-precision baselines at the same sparsity levels and can tolerate higher structured sparsity before accuracy collapse. Moreover, using our custom sparse tensor core, Sparse-BitNet achieves substantial speedups in both training and inference, reaching up to 1.30X. These results highlight that combining extremely low-bit quantization with semi-structured N:M sparsity is a promising direction for efficient LLMs. Code available at https://github.com/AAzdi/Sparse-BitNet",
+      "authors": [
+        "Di Zhang",
+        "Xun Wu",
+        "Shaohan Huang",
+        "Yudong Wang",
+        "Hanyong Shao",
+        "Yingbo Hao",
+        "Zewen Chi",
+        "Li Dong",
+        "Ting Song",
+        "Yan Xia",
+        "Zhifang Sui",
+        "Furu Wei"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-05T13:37:50+00:00",
+      "link": "https://arxiv.org/pdf/2603.05168v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "jointly applies 1.58-bit quantization and dynamic N:M sparsification",
+      "llm_evidence_cn": "结合了1.58比特量化与动态N:M稀疏化",
+      "llm_evidence": "结合了1.58比特量化与动态N:M稀疏化",
+      "canonical_evidence": "结合了1.58比特量化与动态N:M稀疏化",
+      "llm_tldr_en": "Proposes Sparse-BitNet, a framework combining low-bit quantization and semi-structured sparsity for efficient LLMs.",
+      "llm_tldr_cn": "提出Sparse-BitNet框架，将低比特量化与半结构化稀疏结合以提升大模型效率。",
+      "llm_tldr": "提出Sparse-BitNet框架，将低比特量化与半结构化稀疏结合以提升大模型效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Recent advances in LLM quantization and pruning research",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.05232v1",
+      "title": "SlideSparse: Fast and Flexible (2N-2):2N Structured Sparsity",
+      "abstract": "NVIDIA's 2:4 Sparse Tensor Cores deliver 2x throughput but demand strict 50% pruning -- a ratio that collapses LLM reasoning accuracy (Qwen3: 54% to 15%). Milder $(2N-2):2N$ patterns (e.g., 6:8, 25% pruning) preserve accuracy yet receive no hardware support, falling back to dense execution without any benefit from sparsity. We present SlideSparse, the first system to unlock Sparse Tensor Core acceleration for the $(2N-2):2N$ model family on commodity GPUs. Our Sliding Window Decomposition reconstructs any $(2N-2):2N$ weight block into $N-1$ overlapping 2:4-compliant windows without any accuracy loss; Activation Lifting fuses the corresponding activation rearrangement into per-token quantization at near-zero cost. Integrated into vLLM, SlideSparse is evaluated across various GPUs (A100, H100, B200, RTX 4090, RTX 5080, DGX-spark), precisions (FP4, INT8, FP8, BF16, FP16), and model families (Llama, Qwen, BitNet). On compute-bound workloads, the measured speedup ratio (1.33x) approaches the theoretical upper-bound $N/(N-1)=4/3$ at 6:8 weight sparsity in Qwen2.5-7B, establishing $(2N-2):2N$ as a practical path to accuracy-preserving LLM acceleration. Code available at https://github.com/bcacdwk/vllmbench.",
+      "authors": [
+        "Hanyong Shao",
+        "Yingbo Hao",
+        "Ting Song",
+        "Yan Xia",
+        "Di Zhang",
+        "Shaohan Huang",
+        "Xun Wu",
+        "Songchen Xu",
+        "Le Xu",
+        "Li Dong",
+        "Zewen Chi",
+        "Yi Zou",
+        "Furu Wei"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-05T14:49:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.05232v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Structured sparsity for LLMs with hardware acceleration",
+      "llm_evidence_cn": "具有硬件加速的大模型结构化稀疏",
+      "llm_evidence": "具有硬件加速的大模型结构化稀疏",
+      "canonical_evidence": "具有硬件加速的大模型结构化稀疏",
+      "llm_tldr_en": "Introduces SlideSparse to enable hardware acceleration for flexible structured pruning patterns in LLMs.",
+      "llm_tldr_cn": "推出SlideSparse系统，首次在通用GPU上实现了对LLM灵活结构化剪枝模式的硬件加速。",
+      "llm_tldr": "推出SlideSparse系统，首次在通用GPU上实现了对LLM灵活结构化剪枝模式的硬件加速。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08065v1",
+      "title": "Deterministic Differentiable Structured Pruning for Large Language Models",
+      "abstract": "Structured pruning reduces LLM inference cost by removing low-importance architectural components. This can be viewed as learning a multiplicative gate for each component under an l0 sparsity constraint. Due to the discreteness of the l0 norm, prior work typically adopts stochastic hard-concrete relaxations to enable differentiable optimization; however, this stochasticity can introduce a train--test mismatch when sampled masks are discretized for deployment and restricts masks to a bounded, near-binary range. To address this, we propose Deterministic Differentiable Pruning (DDP), a mask-only optimization method that eliminates stochasticity by directly optimizing a deterministic soft surrogate of the discrete l0 objective. Compared with prior approaches, DDP offers greater expressiveness, reduced train--test mismatch, and faster convergence. We apply our method to several dense and MoE models, including Qwen3-32B and Qwen3-30B-A3B, achieving a performance loss as small as 1% on downstream tasks while outperforming previous methods at 20% sparsity. We further demonstrate end-to-end inference speedups in realistic deployment settings with vLLM.",
+      "authors": [
+        "Weiyu Huang",
+        "Pengle Zhang",
+        "Xiaolu Zhang",
+        "Jun Zhou",
+        "Jun Zhu",
+        "Jianfei Chen"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "published": "2026-03-09T07:59:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.08065v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "deterministic differentiable structured pruning for LLMs",
+      "llm_evidence_cn": "大模型的确定性可微结构化剪枝",
+      "llm_evidence": "大模型的确定性可微结构化剪枝",
+      "canonical_evidence": "大模型的确定性可微结构化剪枝",
+      "llm_tldr_en": "Develops a deterministic differentiable pruning method to reduce LLM inference costs via structured pruning.",
+      "llm_tldr_cn": "开发了一种确定性可微剪枝方法，通过结构化剪枝降低大模型推理成本。",
+      "llm_tldr": "开发了一种确定性可微剪枝方法，通过结构化剪枝降低大模型推理成本。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.08185v1",
+      "title": "SERQ: Saliency-Aware Low-Rank Error Reconstruction for LLM Quantization",
+      "abstract": "Post-training quantization (PTQ) has emerged as a prevailing technique for deploying large language models (LLMs) efficiently in terms of both memory and computation, across edge devices and server platforms. Existing PTQ methods primarily aim to reduce precision in weights and activations by mitigating quantization errors caused by channel-wise outlier activations (e.g., pre-quantization scaling, online transformations, or low-rank error reconstruction). Among these approaches, error reconstruction with low-rank adaptation (LoRA) has proven particularly effective, as it introduces a lightweight auxiliary computation path without requiring heavy optimization or additional online layers. However, prior studies reveal severe accuracy degradation under W4A4 settings, and conventional low-rank adaptations rely on two sequential factors, necessitating intermediate quantization during inference and thereby limiting low-precision efficiency. In this work, we propose SERQ, a saliency-aware error reconstruction method for low-bit LLM inference that employs a single low-rank compensation matrix. SERQ preserves efficient 4-bit matrix multiplication in linear layers by jointly mitigating quantization errors arising from both activation and weight saliency through three stages: (1) static activation flattening, (2) saliency-aware error reconstruction, and (3) offline weight permutation. The method incurs additional computation only for low-rank error reconstruction via a single decomposition, while all other operations are performed offline, thereby keeping latency overhead minimal. Empirically, SERQ outperforms prior error reconstruction methods under both W4A8 and W4A4 settings, and achieves higher accuracy than state-of-the-art rotation-based W4A4 approaches, while substantially reducing calibration complexity.",
+      "authors": [
+        "Yeonsik Park",
+        "Hyeonseong Kim",
+        "Seungkyu Choi"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-09T10:04:12+00:00",
+      "link": "https://arxiv.org/pdf/2603.08185v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "post-training quantization with low-rank error reconstruction",
+      "llm_evidence_cn": "带有低秩误差重构的训练后量化",
+      "llm_evidence": "带有低秩误差重构的训练后量化",
+      "canonical_evidence": "带有低秩误差重构的训练后量化",
+      "llm_tldr_en": "Proposes a saliency-aware low-rank error reconstruction method to improve LLM post-training quantization.",
+      "llm_tldr_cn": "提出一种显著性感知的低秩误差重构方法，提升大模型训练后量化精度。",
+      "llm_tldr": "提出一种显著性感知的低秩误差重构方法，提升大模型训练后量化精度。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01400v1",
+      "title": "Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models",
+      "abstract": "Video Large Language Models (VLLMs) demonstrate strong video understanding but suffer from inefficiency due to redundant visual tokens. Existing pruning primary targets intra-frame spatial redundancy or prunes inside the LLM with shallow-layer overhead, yielding suboptimal spatiotemporal reduction and underutilizing long-context compressibility. All of them often discard subtle yet informative context from merged or pruned tokens. In this paper, we propose a new perspective that elaborates token \\textbf{A}nchors within intra-frame and inter-frame to comprehensively aggregate the informative contexts via local-global \\textbf{O}ptimal \\textbf{T}ransport (\\textbf{AOT}). Specifically, we first establish local- and global-aware token anchors within each frame under the attention guidance, which then optimal transport aggregates the informative contexts from pruned tokens, constructing intra-frame token anchors. Then, building on the temporal frame clips, the first frame within each clip will be considered as the keyframe anchors to ensemble similar information from consecutive frames through optimal transport, while keeping distinct tokens to represent temporal dynamics, leading to efficient token reduction in a training-free manner. Extensive evaluations show that our proposed AOT obtains competitive performances across various short- and long-video benchmarks on leading video LLMs, obtaining substantial computational efficiency while preserving temporal and visual fidelity. Project webpage: \\href{https://tyroneli.github.io/AOT}{AOT}.",
+      "authors": [
+        "Jinlong Li",
+        "Liyuan Jiang",
+        "Haonan Zhang",
+        "Nicu Sebe"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-02T03:06:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.01400v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Token reduction and pruning for video large language models",
+      "llm_evidence_cn": "视频大语言模型的Token削减与剪枝",
+      "llm_evidence": "视频大语言模型的Token削减与剪枝",
+      "canonical_evidence": "视频大语言模型的Token削减与剪枝",
+      "llm_tldr_en": "Proposes AOT for spatiotemporal token reduction in Video LLMs to improve inference efficiency.",
+      "llm_tldr_cn": "提出AOT方法，通过时空维度的Token削减提升视频大语言模型的推理效率。",
+      "llm_tldr": "提出AOT方法，通过时空维度的Token削减提升视频大语言模型的推理效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01426v1",
+      "title": "Understanding the Physics of Key-Value Cache Compression for LLMs through Attention Dynamics",
+      "abstract": "As context windows in LLMs scale to 100K+ tokens, the key-value (KV) cache becomes the dominant memory bottleneck, with recent methods claiming 80-90% savings and minimal benchmark degradation. We argue these evaluations miss a structural issue: attention is not just storage but routing, and retaining KV pairs does not guarantee semantic accessibility. We propose a physics-inspired view of KV compression as a controlled perturbation of token-level routing, distinguishing retention, accessibility, and utilization. Using synthetic tasks probing multi-entity tracking, disambiguation, coreference, and multi-hop reasoning, we find that moderate compression degrades internal representations with little accuracy loss, revealing redundancy; all models exhibit a sharp hallucination safety cliff near 90% compression, correlated with spikes in Global Eviction Ratio (GER), suggesting a phase transition in semantic reachability; and architectures differ in routing dynamics, with LLaMA showing early consensus and late diversification, and Qwen showing funnel-like late convergence, leading to distinct resilience profiles. Beyond erasure, we identify representational rigidity, where excessive head-level consensus collapses routing flexibility despite token survival. These results suggest sparse token-route structures govern compression tolerance, reframing KV compression as a structural probe of attention geometry and linking long-context scalability to sparsity and the lottery ticket hypothesis in self-attention.",
+      "authors": [
+        "Samhruth Ananthanarayanan",
+        "Ayan Sengupta",
+        "Tanmoy Chakraborty"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-02T04:16:36+00:00",
+      "link": "https://arxiv.org/pdf/2603.01426v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "KV cache compression for efficient LLM inference",
+      "llm_evidence_cn": "用于高效LLM推理的KV缓存压缩",
+      "llm_evidence": "用于高效LLM推理的KV缓存压缩",
+      "canonical_evidence": "用于高效LLM推理的KV缓存压缩",
+      "llm_tldr_en": "Analyzes the impact of KV cache compression on LLM attention dynamics and semantic accessibility.",
+      "llm_tldr_cn": "从物理视角分析KV缓存压缩对LLM注意力机制和语义访问能力的影响。",
+      "llm_tldr": "从物理视角分析KV缓存压缩对LLM注意力机制和语义访问能力的影响。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.01776v2",
+      "title": "FreeAct: Freeing Activations for LLM Quantization",
+      "abstract": "Quantization is pivotal for mitigating the significant memory and computational overhead of Large Language Models (LLMs). While emerging transformation-based methods have successfully enhanced quantization by projecting feature spaces onto smoother manifolds using orthogonal matrices, they typically enforce a rigid one-to-one transformation constraint. This static approach fails to account for the dynamic patterns inherent in input activations, particularly within diffusion LLMs (dLLMs) and Multimodal LLMs (MLLMs), where varying token types exhibit distinct distributions. To advance this, we propose FreeAct, a novel quantization framework that relaxes the static one-to-one constraint to accommodate dynamic activation disparities. Theoretically, we leverage the rank-deficient nature of activations to derive a solution space that extends beyond simple inverse matrices, enabling the decoupling of activation transformations from weights. Methodologically, FreeAct identifies token-specific dynamics (i.e., vision v.s. text, or masked tokens) and allocates distinct transformation matrices to the activation side, while maintaining a unified, static transformation for the weights. Extensive experiments across dLLMs and MLLMs demonstrate that FreeAct significantly outperforms baselines, up to 5.3% performance improvement, with in-depth analyses. Our code will be publicly released.",
+      "authors": [
+        "Xiaohao Liu",
+        "Xiaobo Xia",
+        "Manyi Zhang",
+        "Ji-Fu Li",
+        "Xianzhi Yu",
+        "Fei Shen",
+        "Xiu Su",
+        "See-Kiong Ng",
+        "Tat-Seng Chua"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-03-02T12:02:17+00:00",
+      "link": "https://arxiv.org/pdf/2603.01776v2",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "quantization framework for dynamic activation disparities",
+      "llm_evidence_cn": "针对动态激活差异的量化框架",
+      "llm_evidence": "针对动态激活差异的量化框架",
+      "canonical_evidence": "针对动态激活差异的量化框架",
+      "llm_tldr_en": "Introduces FreeAct, a quantization framework that accommodates dynamic activation patterns in LLMs and MLLMs.",
+      "llm_tldr_cn": "引入FreeAct量化框架，旨在适应大模型和多模态模型中动态的激活分布差异。",
+      "llm_tldr": "引入FreeAct量化框架，旨在适应大模型和多模态模型中动态的激活分布差异。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.02631v1",
+      "title": "Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models",
+      "abstract": "Prompt length is a major bottleneck in agentic large language model (LLM) workloads, where repeated inference steps and multi-call loops incur substantial prefill cost. Recent work on speculative prefill demonstrates that attention-based token importance estimation can enable training-free prompt compression, but this assumes the existence of a draft model that shares the same tokenizer as the target model. In practice, however, agentic pipelines frequently employ models without any smaller in-family draft model. In this work, we study cross-family speculative prefill, where a lightweight draft model from one model family is used to perform prompt compression for a target model from a different family. Using the same speculative prefill mechanism as prior work, we evaluate a range of cross-family draft-target combinations, including Qwen, LLaMA, and DeepSeek models. Across a broad diversity of tasks, we find that attention-based token importance estimation transfers reliably across different model families despite differences in model architectures and tokenizers between draft and target models. Cross-model prompt compression largely retains 90~100% of full-prompt baseline performance and, in some cases, slightly improves accuracy due to denoising effects, while delivering substantial reductions in time to first token (TTFT). These results suggest that speculative prefill depends mainly on task priors and semantic structure, thus serving as a generalizable prompt compression primitive. We discuss the implications of our findings for agentic systems, where repeated long-context inference and heterogeneous model stacks make cross-model prompt compression both necessary and practical.",
+      "authors": [
+        "Shubhangi Upasani",
+        "Ravi Shanker Raju",
+        "Bo Li",
+        "Mengmeing Ji",
+        "John Long",
+        "Chen Wu",
+        "Urmish Thakker",
+        "Guangtao Wang"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-03T05:59:18+00:00",
+      "link": "https://arxiv.org/pdf/2603.02631v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "training-free prompt compression for efficient inference",
+      "llm_evidence_cn": "无需训练的提示词压缩以实现高效推理",
+      "llm_evidence": "无需训练的提示词压缩以实现高效推理",
+      "canonical_evidence": "无需训练的提示词压缩以实现高效推理",
+      "llm_tldr_en": "Enables cross-family speculative prefill for prompt compression to reduce LLM inference costs.",
+      "llm_tldr_cn": "通过跨家族投机预填实现提示词压缩，降低大模型推理成本。",
+      "llm_tldr": "通过跨家族投机预填实现提示词压缩，降低大模型推理成本。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04359v1",
+      "title": "Dissecting Quantization Error: A Concentration-Alignment Perspective",
+      "abstract": "Quantization can drastically increase the efficiency of large language and vision models, but typically incurs an accuracy drop. Recently, function-preserving transforms (e.g. rotations, Hadamard transform, channel-wise scaling) have been successfully applied to reduce post-training quantization error, yet a principled explanation remains elusive. We analyze linear-layer quantization via the signal-to-quantization-noise ratio (SQNR), showing that for uniform integer quantization at a fixed bit width, SQNR decomposes into (i) the concentration of weights and activations (capturing spread and outliers), and (ii) the alignment of their dominant variation directions. This reveals an actionable insight: beyond concentration - the focus of most prior transforms (e.g. rotations or Hadamard) - improving alignment between weight and activation can further reduce quantization error. Motivated by this, we introduce block Concentration-Alignment Transforms (CAT), a lightweight linear transformation that uses a covariance estimate from a small calibration set to jointly improve concentration and alignment, approximately maximizing SQNR. Experiments across several LLMs show that CAT consistently matches or outperforms prior transform-based quantization methods at 4-bit precision, confirming the insights gained in our framework.",
+      "authors": [
+        "Marco Federici",
+        "Boris van Breugel",
+        "Paul Whatmough",
+        "Markus Nagel"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T18:26:24+00:00",
+      "link": "https://arxiv.org/pdf/2603.04359v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "analysis of post-training quantization error",
+      "llm_evidence_cn": "训练后量化误差分析",
+      "llm_evidence": "训练后量化误差分析",
+      "canonical_evidence": "训练后量化误差分析",
+      "llm_tldr_en": "Provides a theoretical perspective on quantization error to improve LLM efficiency.",
+      "llm_tldr_cn": "从理论角度分析量化误差，旨在提升大模型量化效率。",
+      "llm_tldr": "从理论角度分析量化误差，旨在提升大模型量化效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.04460v1",
+      "title": "VSPrefill: Vertical-Slash Sparse Attention with Lightweight Indexing for Long-Context Prefilling",
+      "abstract": "The quadratic complexity of self-attention during the prefill phase impedes long-context inference in large language models. Existing sparse attention methods face a trade-off among context adaptivity, sampling overhead, and fine-tuning costs. We propose VSPrefill, a mechanism requiring lightweight training that uses the vertical-slash structural pattern in attention distributions. Our compact VSIndexer module predicts context-aware importance scores for vertical columns and slash diagonals from key-value representations augmented with RoPE. This approach constructs sparse masks with linear complexity without modifying the backbone parameters. During inference, an adaptive cumulative-threshold strategy allocates sparsity budgets per layer, while a fused kernel executes attention with on-the-fly index merging. Evaluated on Qwen3-4B-Instruct and LLaMA-3.1-8B-Instruct across the LongBench and RULER benchmarks, VSPrefill preserves 98.35% of the full attention accuracy while delivering a 4.95x average speedup at a context length of 128k. These results establish a new Pareto frontier in the trade-off between accuracy and efficiency.",
+      "authors": [
+        "Chen Guanzhong"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-03T09:24:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.04460v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Sparse attention for long-context LLM inference",
+      "llm_evidence_cn": "用于长文本LLM推理的稀疏注意力",
+      "llm_evidence": "用于长文本LLM推理的稀疏注意力",
+      "canonical_evidence": "用于长文本LLM推理的稀疏注意力",
+      "llm_tldr_en": "Proposes VSPrefill, a lightweight sparse attention mechanism to speed up long-context LLM prefilling.",
+      "llm_tldr_cn": "提出VSPrefill机制，利用结构化稀疏模式加速大模型长文本预填充阶段的推理。",
+      "llm_tldr": "提出VSPrefill机制，利用结构化稀疏模式加速大模型长文本预填充阶段的推理。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2603.09222v1",
+      "title": "LooComp: Leverage Leave-One-Out Strategy to Encoder-only Transformer for Efficient Query-aware Context Compression",
+      "abstract": "Efficient context compression is crucial for improving the accuracy and scalability of question answering. For the efficiency of Retrieval Augmented Generation, context should be delivered fast, compact, and precise to ensure clue sufficiency and budget-friendly LLM reader cost. We propose a margin-based framework for query-driven context pruning, which identifies sentences that are critical for answering a query by measuring changes in clue richness when they are omitted. The model is trained with a composite ranking loss that enforces large margins for critical sentences while keeping non-critical ones near neutral. Built on a lightweight encoder-only Transformer, our approach generally achieves strong exact-match and F1 scores with high-throughput inference and lower memory requirements than those of major baselines. In addition to efficiency, our method yields effective compression ratios without degrading answering performance, demonstrating its potential as a lightweight and practical alternative for retrieval-augmented tasks.",
+      "authors": [
+        "Thao Do",
+        "Dinh Phu Tran",
+        "An Vo",
+        "Seon Kwon Kim",
+        "Daeyoung Kim"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-10T05:44:20+00:00",
+      "link": "https://arxiv.org/pdf/2603.09222v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Query-aware context pruning for efficient LLM inference",
+      "llm_evidence_cn": "基于查询感知的上下文剪枝以实现高效推理",
+      "llm_evidence": "基于查询感知的上下文剪枝以实现高效推理",
+      "canonical_evidence": "基于查询感知的上下文剪枝以实现高效推理",
+      "llm_tldr_en": "Proposes LooComp, a margin-based framework for query-driven context pruning to reduce LLM reader costs.",
+      "llm_tldr_cn": "提出LooComp框架，通过查询驱动的上下文剪枝减少大模型推理时的上下文冗余。",
+      "llm_tldr": "提出LooComp框架，通过查询驱动的上下文剪枝减少大模型推理时的上下文冗余。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2603.01914v1",
+      "title": "AdaPonderLM: Gated Pondering Language Models with Token-Wise Adaptive Depth",
+      "abstract": "Test-time scaling via recurrent/iterative Transformers enables large language models to spend more computation at inference, but most pretrained recurrent LMs run a fixed number of iterations, wasting compute on easy tokens and lacking token-wise adaptivity. Following the core idea of Adaptive Computation Time(ACT) and Early Exit(EE), we propose AdaPonderLM, a self-supervised recurrent language model that learns token-wise early exiting during pretraining without manually tuned per-token/per-layer pruning ratios. AdaPonderLM uses iteration-specific MLP gates with a monotonic halting mask to decide when each token stops recurring, and introduces a KV reuse mechanism that reuses cached key/value states for halted tokens, ensuring train--test consistency and practical acceleration. Across Pythia backbones from 70M to 410M (pretraining) and up to 2.8B (continued pretraining), AdaPonderLM reduces inference compute at about 10% while maintaining comparable language modeling perplexity and competitive downstream accuracy. Our analysis shows the learned gates allocate more computation to high-NLL (hard) tokens, exhibiting adaptive computation time behavior in a fully self-supervised setting. Meanwhile, under iso-FLOPs, the learned halting policy consistently outperforms fixed pruning, showing AdaPonderLM allocates compute to the right tokens rather than just reducing average depth.",
+      "authors": [
+        "Shixiang Song",
+        "He Li",
+        "Zitong Wang",
+        "Boyi Zeng",
+        "Feichen Song",
+        "Yixuan Wang",
+        "Zhiqin John Xu",
+        "Ziwei He",
+        "Zhouhan Lin"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-02T14:28:16+00:00",
+      "link": "https://arxiv.org/pdf/2603.01914v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Token-wise adaptive depth and early exiting for efficient inference",
+      "llm_evidence_cn": "逐标记自适应深度和早期退出以实现高效推理",
+      "llm_evidence": "逐标记自适应深度和早期退出以实现高效推理",
+      "canonical_evidence": "逐标记自适应深度和早期退出以实现高效推理",
+      "llm_tldr_en": "AdaPonderLM uses adaptive depth and early exiting to reduce LLM inference computation without manual pruning.",
+      "llm_tldr_cn": "AdaPonderLM通过自适应深度和早期退出技术减少LLM推理计算量，无需手动调整剪枝率。",
+      "llm_tldr": "AdaPonderLM通过自适应深度和早期退出技术减少LLM推理计算量，无需手动调整剪枝率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.01599v1",
+      "title": "Boosting Entropy with Bell Box Quantization",
+      "abstract": "Quantization-Aware Pre-Training (QAPT) is an effective technique to reduce the compute and memory overhead of Deep Neural Networks while improving their energy efficiency on edge devices. Existing QAPT methods produce models stored in compute-efficient data types (e.g. integers) that are not information theoretically optimal (ITO). On the other hand, existing ITO data types (e.g. Quantile/NormalFloat Quantization) are not compute-efficient. We propose BBQ, the first ITO quantization method that is also compute-efficient. BBQ builds on our key insight that since learning is domain-agnostic, the output of a quantizer does not need to reside in the same domain as its input. BBQ performs ITO quantization in its input domain, and returns its output in a compute-efficient domain where ITO data types are mapped to compute-efficient data types. Without sacrificing compute efficiency, BBQ outperforms prior SOTA QAPT methods by a perplexity reduction of up to 2 points for 4-bit models, up to 4 points for 3-bit models, up to 5 points for 2-bit models, and up to 18 points for 1-bit models. Code is available at https://github.com/1733116199/bbq.",
+      "authors": [
+        "Ningfeng Yang",
+        "Tor M. Aamodt"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-02T08:27:39+00:00",
+      "link": "https://arxiv.org/pdf/2603.01599v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "Quantization-Aware Pre-Training (QAPT) for compute-efficient data types",
+      "llm_evidence_cn": "针对计算高效数据类型的量化感知预训练",
+      "llm_evidence": "针对计算高效数据类型的量化感知预训练",
+      "canonical_evidence": "针对计算高效数据类型的量化感知预训练",
+      "llm_tldr_en": "BBQ introduces an information-theoretically optimal yet compute-efficient quantization method for neural networks.",
+      "llm_tldr_cn": "BBQ提出了一种信息论最优且计算高效的神经网络量化方法。",
+      "llm_tldr": "BBQ提出了一种信息论最优且计算高效的神经网络量化方法。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Post-training quantization and quantization-aware training for LLMs",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.05454v1",
+      "title": "Beyond Scattered Acceptance: Fast and Coherent Inference for DLMs via Longest Stable Prefixes",
+      "abstract": "Diffusion Language Models (DLMs) promise highly parallel text generation, yet their practical inference speed is often bottlenecked by suboptimal decoding schedulers. Standard approaches rely on 'scattered acceptance'-committing high confidence tokens at disjoint positions throughout the sequence. This approach inadvertently fractures the Key-Value (KV) cache, destroys memory locality, and forces the model into costly, repeated repairs across unstable token boundaries. To resolve this, we present the Longest Stable Prefix (LSP) scheduler, a training-free and model-agnostic inference paradigm based on monolithic prefix absorption. In each denoising step, LSP evaluates token stability via a single forward pass, dynamically identifies a contiguous left-aligned block of stable predictions, and snaps its boundary to natural linguistic or structural delimiters before an atomic commitment. This prefix-first topology yields dual benefits: systemically, it converts fragmented KV cache updates into efficient, contiguous appends; algorithmically, it preserves bidirectional lookahead over a geometrically shrinking active suffix, drastically reducing token flip rates and denoiser calls. Extensive evaluations on LLaDA-8B and Dream-7B demonstrate that LSP accelerates inference by up to 3.4x across rigorous benchmarks including mathematical reasoning, code generation, multilingual (CJK) tasks, and creative writing while matching or slightly improving output quality. By fundamentally restructuring the commitment topology, LSP bridges the gap between the theoretical parallelism of DLMs and practical hardware efficiency.",
+      "authors": [
+        "Pengxiang Li",
+        "Joey Tsai",
+        "Hongwei Xue",
+        "Kunyu Shi",
+        "Shilin Yan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-05T18:25:26+00:00",
+      "link": "https://arxiv.org/pdf/2603.05454v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "fast inference for diffusion language models",
+      "llm_evidence_cn": "扩散语言模型的高效推理",
+      "llm_evidence": "扩散语言模型的高效推理",
+      "canonical_evidence": "扩散语言模型的高效推理",
+      "llm_tldr_en": "Optimizes inference speed for diffusion language models via a stable prefix scheduler.",
+      "llm_tldr_cn": "通过稳定前缀调度器优化扩散语言模型的推理速度。",
+      "llm_tldr": "通过稳定前缀调度器优化扩散语言模型的推理速度。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.02188v1",
+      "title": "Multi-Head Low-Rank Attention",
+      "abstract": "Long-context inference in large language models is bottlenecked by Key--Value (KV) cache loading during the decoding stage, where the sequential nature of generation requires repeatedly transferring the KV cache from off-chip High-Bandwidth Memory (HBM) to on-chip Static Random-Access Memory (SRAM) at each step. While Multi-Head Latent Attention (MLA) significantly reduces the total KV cache size, it suffers from a sharding bottleneck during distributed decoding via Tensor Parallelism (TP). Since its single latent head cannot be partitioned, each device is forced to redundantly load the complete KV cache for every token, consuming excessive memory traffic and diminishing TP benefits like weight sharding. In this work, we propose Multi-Head Low-Rank Attention (MLRA), which enables partitionable latent states for efficient 4-way TP decoding. Extensive experiments show that MLRA achieves state-of-the-art perplexity and downstream task performance, while also delivering a 2.8$\\times$ decoding speedup over MLA. Code is available at https://github.com/SongtaoLiu0823/MLRA. Pretrained weights, along with the training and evaluation data, are available at https://huggingface.co/Soughing/MLRA.",
+      "authors": [
+        "Songtao Liu",
+        "Hongwu Peng",
+        "Zhiwei Zhang",
+        "Zhengyu Chen",
+        "Yue Guo"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-02T18:52:38+00:00",
+      "link": "https://arxiv.org/pdf/2603.02188v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "low-rank attention to reduce KV cache size",
+      "llm_evidence_cn": "低秩注意力以减少KV缓存大小",
+      "llm_evidence": "低秩注意力以减少KV缓存大小",
+      "canonical_evidence": "低秩注意力以减少KV缓存大小",
+      "llm_tldr_en": "Proposes Multi-Head Low-Rank Attention to reduce KV cache and enable efficient distributed decoding.",
+      "llm_tldr_cn": "提出多头低秩注意力（MLRA）以减少KV缓存并支持高效的分布式解码。",
+      "llm_tldr": "提出多头低秩注意力（MLRA）以减少KV缓存并支持高效的分布式解码。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.03583v1",
+      "title": "ByteFlow: Language Modeling through Adaptive Byte Compression without a Tokenizer",
+      "abstract": "Modern language models still rely on fixed, pre-defined subword tokenizations. Once a tokenizer is trained, the LM can only operate at this fixed level of granularity, which often leads to brittle and counterintuitive behaviors even in otherwise strong reasoning models. We introduce \\textbf{ByteFlow Net}, a new hierarchical architecture that removes tokenizers entirely and instead enables models to learn their own segmentation of raw byte streams into semantically meaningful units. ByteFlow Net performs compression-driven segmentation based on the coding rate of latent representations, yielding adaptive boundaries \\emph{while preserving a static computation graph via Top-$K$ selection}. Unlike prior self-tokenizing methods that depend on brittle heuristics with human-designed inductive biases, ByteFlow Net adapts its internal representation granularity to the input itself. Experiments demonstrate that this compression-based chunking strategy yields substantial performance gains, with ByteFlow Net outperforming both BPE-based Transformers and previous byte-level architectures. These results suggest that end-to-end, tokenizer-free modeling is not only feasible but also more effective, opening a path toward more adaptive and information-grounded language models.",
+      "authors": [
+        "Chunyuan Deng",
+        "Sanket Lokegaonkar",
+        "Colin Lockard",
+        "Besnik Fetahu",
+        "Nasser Zalmout",
+        "Xian Li"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-03-03T23:20:31+00:00",
+      "link": "https://arxiv.org/pdf/2603.03583v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "compression-driven segmentation without tokenizers",
+      "llm_evidence_cn": "无分词器的压缩驱动分割",
+      "llm_evidence": "无分词器的压缩驱动分割",
+      "canonical_evidence": "无分词器的压缩驱动分割",
+      "llm_tldr_en": "Proposes a tokenizer-free architecture using adaptive byte compression for language modeling.",
+      "llm_tldr_cn": "提出一种利用自适应字节压缩进行语言建模的无分词器架构。",
+      "llm_tldr": "提出一种利用自适应字节压缩进行语言建模的无分词器架构。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Large language model compression techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.07006v1",
+      "title": "Mozart: Modularized and Efficient MoE Training on 3.5D Wafer-Scale Chiplet Architectures",
+      "abstract": "Mixture-of-Experts (MoE) architecture offers enhanced efficiency for Large Language Models (LLMs) with modularized computation, yet its inherent sparsity poses significant hardware deployment challenges, including memory locality issues, communication overhead, and inefficient computing resource utilization. Inspired by the modular organization of the human brain, we propose Mozart, a novel algorithm-hardware co-design framework tailored for efficient training of MoE-based LLMs on 3.5D wafer-scale chiplet architectures. On the algorithm side, Mozart exploits the inherent modularity of chiplets and introduces: (1) an expert allocation strategy that enables efficient on-package all-to-all communication, and (2) a fine-grained scheduling mechanism that improves communication-computation overlap through streaming tokens and experts. On the architecture side, Mozart adaptively co-locates heterogeneous modules on specialized chiplets with a 2.5D NoP-Tree topology and hierarchical memory structure. Evaluation across three popular MoE models demonstrates significant efficiency gains, enabling more effective parallelization and resource utilization for large-scale modularized MoE-LLMs.",
+      "authors": [
+        "Shuqing Luo",
+        "Ye Han",
+        "Pingzhi Li",
+        "Jiayin Qin",
+        "Jie Peng",
+        "Yang",
+        "Zhao",
+        "Yu",
+        "Cao",
+        "Tianlong Chen"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-03-07T02:57:46+00:00",
+      "link": "https://arxiv.org/pdf/2603.07006v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Efficient MoE training for large models",
+      "llm_evidence_cn": "大模型的高效MoE训练",
+      "llm_evidence": "大模型的高效MoE训练",
+      "canonical_evidence": "大模型的高效MoE训练",
+      "llm_tldr_en": "Proposes Mozart, a co-design framework for efficient training of MoE-based LLMs on chiplet architectures.",
+      "llm_tldr_cn": "提出Mozart软硬件协同设计框架，优化MoE架构大模型在芯粒架构上的训练效率。",
+      "llm_tldr": "提出Mozart软硬件协同设计框架，优化MoE架构大模型在芯粒架构上的训练效率。",
+      "llm_tags": [
+        "query:llm-cp:composite"
+      ],
+      "matched_query_tag": "query:llm-cp:composite",
+      "matched_query_text": "Papers central to 最新的大模型压缩领域论文检索, especially work that connects or combines: q; s; L; u; Large language model compression techniques; Post-training quantization and quantization-aware training for LLMs; Structured and unstructured pruning for large language models; Latest paper on large model compression; State of the art methods in large language model compression; Recent advances in LLM quantization and pruning research.",
+      "matched_requirement_id": "req-composite-llm-cp",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.03597v1",
+      "title": "NuMuon: Nuclear-Norm-Constrained Muon for Compressible LLM Training",
+      "abstract": "The rapid progress of large language models (LLMs) is increasingly constrained by memory and deployment costs, motivating compression methods for practical deployment. Many state-of-the-art compression pipelines leverage the low-rank structure of trained weight matrices, a phenomenon often associated with the properties of popular optimizers such as Adam. In this context, Muon is a recently proposed optimizer that improves LLM pretraining via full-rank update steps, but its induced weight-space structure has not been characterized yet. In this work, we report a surprising empirical finding: despite imposing full-rank updates, Muon-trained models exhibit pronounced low-rank structure in their weight matrices and are readily compressible under standard pipelines. Motivated by this insight, we propose NuMuon, which augments Muon with a nuclear-norm constraint on the update direction, further constraining the learned weights toward low-rank structure. Across billion-parameter-scale models, we show that NuMuon increases weight compressibility and improves post-compression model quality under state-of-the-art LLM compression pipelines while retaining Muon's favorable convergence behavior.",
+      "authors": [
+        "Hadi Mohaghegh Dolatabadi",
+        "Thalaiyasingam Ajanthan",
+        "Sameera Ramasinghe",
+        "Chamin P Hewa Koneputugodage",
+        "Shamane Siriwardhana",
+        "Violetta Shevchenko",
+        "Karol Pajak",
+        "James Snewin",
+        "Gil Avraham",
+        "Alexander Long"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-03-04T00:10:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.03597v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Training LLMs to be more compressible via low-rank structure",
+      "llm_evidence_cn": "通过低秩结构训练使大模型更易于压缩",
+      "llm_evidence": "通过低秩结构训练使大模型更易于压缩",
+      "canonical_evidence": "通过低秩结构训练使大模型更易于压缩",
+      "llm_tldr_en": "Explores how the Muon optimizer induces low-rank structures in LLMs, making them more amenable to compression.",
+      "llm_tldr_cn": "研究Muon优化器如何诱导大模型产生低秩结构，从而使其更易于进行后期压缩。",
+      "llm_tldr": "研究Muon优化器如何诱导大模型产生低秩结构，从而使其更易于进行后期压缩。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Large language model compression techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.04797v1",
+      "title": "Hardware-Software Co-design for 3D-DRAM-based LLM Serving Accelerator",
+      "abstract": "Large language models (LLMs) have been widely deployed for online generative services, where numerous LLM instances jointly handle workloads with fluctuating request arrival rates and variable request lengths. To efficiently execute coexisting compute-intensive and memory-intensive operators, near-memory processing (NMP) based computing paradigm has been extensively proposed. However, existing NMP designs adopt coarse-grained KV cache management and inflexible attention execution flow. Such limitations hinder these proposals from efficiently handling \\textit{highly dynamic} LLM serving workloads, limiting their ability to accelerate LLM serving.   To tackle these problems, we propose Helios, a Hybrid-bonding-based \\uline{L}LM \\uline{S}erving accelerator. Helios aims to bridge the fundamental gap between the dynamic nature of KV cache management in LLM serving and the distributed, non-uniform memory abstraction among NMP processing engines (PEs). To this end, we design both the intra-PE execution flow and the inter-PE communication primitives for distributed tiled attention execution. We further propose \\textit{spatially-aware} KV cache allocation mechanism to balance the attention workload distribution while minimizing the inter-PE data transfer overhead. Compared with existing GPU/NMP designs, Helios achieves 3.25 times (geomean) speedup and 3.36 times (geomean) better energy efficiency, along with up to 72%/76% P50/P99 time-between-tokens degradation.",
+      "authors": [
+        "Cong Li",
+        "Yihan Yin",
+        "Chenhao Xue",
+        "Zhao Wang",
+        "Fujun Bai",
+        "Yixin Guo",
+        "Xiping Jiang",
+        "Qiang Wu",
+        "Yuan Xie",
+        "Guangyu Sun"
+      ],
+      "primary_category": "cs.AR",
+      "categories": [
+        "cs.AR"
+      ],
+      "published": "2026-03-05T04:28:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.04797v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "hardware-software co-design for LLM serving accelerator",
+      "llm_evidence_cn": "大模型推理加速器的软硬件协同设计",
+      "llm_evidence": "大模型推理加速器的软硬件协同设计",
+      "canonical_evidence": "大模型推理加速器的软硬件协同设计",
+      "llm_tldr_en": "Proposes Helios, a 3D-DRAM-based accelerator for efficient LLM serving and KV cache management.",
+      "llm_tldr_cn": "提出Helios，一种基于3D-DRAM的加速器，用于高效的大模型推理服务和缓存管理。",
+      "llm_tldr": "提出Helios，一种基于3D-DRAM的加速器，用于高效的大模型推理服务和缓存管理。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2603.07615v1",
+      "title": "Compression as Adaptation: Implicit Visual Representation with Diffusion Foundation Models",
+      "abstract": "Modern visual generative models acquire rich visual knowledge through large-scale training, yet existing visual representations (such as pixels, latents, or tokens) remain external to the model and cannot directly exploit this knowledge for compact storage or reuse. In this work, we introduce a new visual representation framework that encodes a signal as a function, which is parametrized by low-rank adaptations attached to a frozen visual generative model. Such implicit representations of visual signals, \\textit{e.g.}, an 81-frame video, can further be hashed into a single compact vector, achieving strong perceptual video compression at extremely low bitrates. Beyond basic compression, the functional nature of this representation enables inference-time scaling and control, allowing additional refinement on the compression performance. More broadly, as the implicit representations directly act as a function of the generation process, this suggests a unified framework bridging visual compression and generation.",
+      "authors": [
+        "Jiajun He",
+        "Zongyu Guo",
+        "Zhaoyang Jia",
+        "Xiaoyi Zhang",
+        "Jiahao Li",
+        "Xiao Li",
+        "Bin Li",
+        "José Miguel Hernández-Lobato",
+        "Yan Lu"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "published": "2026-03-08T12:55:40+00:00",
+      "link": "https://arxiv.org/pdf/2603.07615v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "visual representation compression using low-rank adaptations",
+      "llm_evidence_cn": "使用低秩适配进行视觉表示压缩",
+      "llm_evidence": "使用低秩适配进行视觉表示压缩",
+      "canonical_evidence": "使用低秩适配进行视觉表示压缩",
+      "llm_tldr_en": "Uses low-rank adaptations of diffusion models to achieve compact visual signal compression.",
+      "llm_tldr_cn": "利用扩散模型的低秩适配实现视觉信号的高压缩率存储与表示。",
+      "llm_tldr": "利用扩散模型的低秩适配实现视觉信号的高压缩率存储与表示。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Large language model compression techniques",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2603.03681v1",
+      "title": "EvoPrune: Early-Stage Visual Token Pruning for Efficient MLLMs",
+      "abstract": "Multimodal Large Language Models (MLLMs) have shown strong performance in vision-language tasks, but their inference efficiency is severely limited by the exponential growth of visual tokens in complex scenarios such as high-resolution images and videos. Existing visual token pruning methods mainly operate after visual encoding, overlooking the substantial computational cost incurred during the encoding stage. To address this issue, we propose EvoPrune, an early-stage visual token pruning method for MLLMs that performs pruning directly during visual encoding. Specifically, EvoPrune employs a layer-wise pruning strategy guided by token similarity, diversity, and attention-based importance to retain the most informative visual tokens at selected encoding layers. Extensive experiments on image and video benchmarks validate the effectiveness of EvoPrune. In particular, on the VideoMME dataset, EvoPrune achieves 2$\\times$ inference speedup with less than 1% performance degradation, demonstrating its potential for latency-sensitive MLLM deployment.",
+      "authors": [
+        "Yuhao Chen",
+        "Bin Shan",
+        "Xin Ye",
+        "Cheng Chen"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-04T03:15:14+00:00",
+      "link": "https://arxiv.org/pdf/2603.03681v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "visual token pruning for efficient MLLMs",
+      "llm_evidence_cn": "高效多模态大模型的视觉标记剪枝",
+      "llm_evidence": "高效多模态大模型的视觉标记剪枝",
+      "canonical_evidence": "高效多模态大模型的视觉标记剪枝",
+      "llm_tldr_en": "Introduces early-stage visual token pruning to improve the inference efficiency of multimodal LLMs.",
+      "llm_tldr_cn": "引入早期视觉标记剪枝技术，提升多模态大模型的推理效率。",
+      "llm_tldr": "引入早期视觉标记剪枝技术，提升多模态大模型的推理效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2603.05210v1",
+      "title": "Balancing Coverage and Draft Latency in Vocabulary Trimming for Faster Speculative Decoding",
+      "abstract": "Speculative decoding accelerates inference for Large Language Models by using a lightweight draft model to propose candidate tokens that are verified in parallel by a larger target model. Prior work shows that the draft model often dominates speculative decoding latency, since it generates tokens sequentially and incurs high cost from its language modeling head as vocabulary size grows. This exposes a fundamental trade-off in draft model design: larger vocabularies improve token coverage and agreement with the target model, but incur higher draft latency, while smaller vocabularies reduce latency at the risk of missing tokens required for accurate draft generation. We address this trade-off through vocabulary trimming for draft models, motivated by the observation that domain-specific workloads use only a small fraction of the full vocabulary. We cast draft vocabulary selection as a constrained optimization problem that balances token coverage and draft latency. Coverage is computed over assistant responses in the training data, while latency is estimated using architecture-aware FLOPs that capture the cost of the language modeling head as a function of vocabulary size. We optimize a utility function with a Tree-structured Parzen Estimator to efficiently explore the coverage-latency Pareto frontier under a minimum coverage constraint. Experiments show improved speculative decoding throughput while reducing draft vocabularies by up to 97% with high coverage. On domain-specific tasks, we achieve up to 16% latency reduction and 20% throughput improvement, and up to 6.7% throughput gains on diverse out-of-distribution tasks.",
+      "authors": [
+        "Ofir Ben Shoham"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-03-05T14:20:22+00:00",
+      "link": "https://arxiv.org/pdf/2603.05210v1",
+      "tags": [
+        "query:LLM CP"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "vocabulary trimming for faster speculative decoding",
+      "llm_evidence_cn": "词表裁剪以加速投机采样",
+      "llm_evidence": "词表裁剪以加速投机采样",
+      "canonical_evidence": "词表裁剪以加速投机采样",
+      "llm_tldr_en": "Optimizes draft model vocabulary size to balance token coverage and inference latency in speculative decoding.",
+      "llm_tldr_cn": "通过优化草稿模型的词表大小，在投机采样中平衡令牌覆盖率和推理延迟。",
+      "llm_tldr": "通过优化草稿模型的词表大小，在投机采样中平衡令牌覆盖率和推理延迟。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    }
+  ]
 }

@@ -1,0 +1,990 @@
+Title: FreeAct: Freeing Activations for LLM Quantization
+
+URL Source: https://arxiv.org/pdf/2603.01776v2
+
+Published Time: Fri, 06 Mar 2026 01:22:47 GMT
+
+Number of Pages: 26
+
+Markdown Content:
+# FreeAct: Freeing Activations for LLM Quantization 
+
+Xiaohao Liu 1 Xiaobo Xia 1 Manyi Zhang 2 Ji-Fu Li 2 Xianzhi Yu 2
+
+Fei Shen 1 Xiu Su 3 See-Kiong Ng 1 Tat-Seng Chua 1
+
+# Abstract 
+
+Quantization is pivotal for mitigating the signif-icant memory and computational overhead of Large Language Models (LLMs). While emerg-ing transformation-based methods have success-fully enhanced quantization by projecting fea-ture spaces onto smoother manifolds using or-thogonal matrices, they typically enforce a rigid 
+
+one-to-one transformation constraint. This static approach fails to account for the dynamic pat-terns inherent in input activations, particularly within diffusion LLMs (dLLMs) and Multimodal LLMs (MLLMs), where varying token types ex-hibit distinct distributions. To advance this, we propose FreeAct, a novel quantization framework that relaxes the static one-to-one constraint to ac-commodate dynamic activation disparities. The-oretically, we leverage the rank-deficient nature of activations to derive a solution space that ex-tends beyond simple inverse matrices, enabling the decoupling of activation transformations from weights. Methodologically, FreeAct identifies token-specific dynamics ( i.e. , vision v.s. text, or masked tokens) and allocates distinct transforma-tion matrices to the activation side, while main-taining a unified, static transformation for the weights. Extensive experiments across dLLMs and MLLMs demonstrate that FreeAct signifi-cantly outperforms baselines, up to 5.3% perfor-mance improvement, with in-depth analyses. Our code will be publicly released. 
+
+# 1. Introduction 
+
+Large Language Models (LLMs) demonstrate remarkable performance across diverse tasks, enabled by pre-training on massive corpora with vast parameter counts (Achiam 
+
+> 1
+
+National University of Singapore 2Huawei Technology 
+
+> 3
+
+Central South University. Correspondence to: Xiaobo Xia 
+
+<xbx@nus.edu.sg >.
+
+Preprint. March 6, 2026. Feature Space Transformation Quantization Space Quantization (Steep) (Smooth)    
+
+> Dynamic patterns in ACTIVATION Static WEIGHT when deployment
+> Transformation
+> Transformation
+
+Figure 1. The steep activation is smoothed by the designed trans-formation matrix for quantization ( top ). One weight corresponds to one transformation to ensure equivalence, i.e. , P × P −1 = I.In practice, activations are diverse, reflecting dynamic patterns, ne-cessitating flexible transformation matrices on the activation side, while keeping static on the weight side for quantization ( bottom ). 
+
+et al., 2023; Touvron et al., 2023; Grattafiori et al., 2024; Yang et al., 2025a; Liu et al., 2024a; Guo et al., 2025b). However, this versatility and generalization come at the cost of significant memory and computation overhead (Kaplan et al., 2020; Zhou et al., 2024; Alizadeh et al., 2024; Liu et al., 2025b; Dai et al., 2025). To maintain capabilities learned from the training stage, yet breaking the efficiency bottlenecks with lower overhead on deployment, recent re-search pivots toward one critical direction, LLM Quantiza-tion (Egashira et al., 2024; Tseng et al., 2024; Xia et al., 2024; Dettmers et al., 2022). The fundamental goal of quantization is to reduce the preci-sion of model parameters and activations ( e.g. , from BF16 to INT4) (Lin et al., 2025b; Liu et al., 2025c). However, reducing bit-width introduces quantization error, particu-larly when dealing with significant outliers or non-uniform distribution of values in activations or weights. Conven-tional methods manage this error by 1) applying clipping thresholds to limit numerical ranges, or 2) employing fine-grained scaling, such as per-token (Zhang et al., 2025b; Xu & Yang, 2025) or per-channel scales (Xiao et al., 2023; Lin et al., 2024b). Recently, transformation-based methods have emerged as a powerful technique (Chee et al., 2023; Tseng et al., 2024; Ashkboos et al., 2024; Lin et al., 2024a; Liu et al., 2024d; Ma et al., 2024), by introducing an orthogonal 1
+
+> arXiv:2603.01776v2 [cs.CL] 5 Mar 2026 FreeAct: Freeing Activations for LLM Quantization
+
+matrix P per linear layer to project the steep feature space onto a smoother quantization space, as illustrated at the top of Figure 1. The inverse P −1 guarantees the equivalence of computation. One matrix and its unique inverse balance both activation and weight sides within LLMs, i.e. , one-to-one transformation. This line of research, exemplified by QuaRot (Ashkboos et al., 2024) and FlatQuant (Sun et al., 2025), offers a new perspective to achieve higher quantiza-tion quality 1.Nevertheless, these methods overlook the dynamic patterns in activations, assuming a consistent behavior that can be handled by the one-to-one transformation. Despite the weights remaining static during inference, input activations can exhibit significant variability, particularly in diffusion LLMs (dLLMs) (Nie et al., 2025; Ye et al., 2025; Wang et al., 2025) or Multimodal LLMs (MLLMs) (Bai et al., 2025; Chen et al., 2024; Guo et al., 2025a), as shown in Figure 2 and Figure 3. The disparities between activations motivate studies on time-aware (dLLMs) (Zhang et al., 2025b; Xu & Yang, 2025) and modality-aware quantization (MLLMs) (Yu et al., 2025). Unfortunately, constrained by the requirement of maintaining a unique inverse matrix to ensure compu-tational equivalence with static weights, they relegate the handling of dynamics solely to the activation-side scaling, neglecting the potential of dynamic transformations. We pioneer relaxing the static one-to-one transformation constraint in LLM quantization. As illustrated at the bottom of Figure 1, distinct transformation matrices {P , P ′} are allocated to the activation side to accommodate distinct data types, e.g. , vision and text tokens, that exhibit varying dynamic patterns. Meanwhile, the weight side remains static, utilizing a single common transformation eP . This design frees the activation transformation from the weights, offering new flexibility needed to handle such dynamics and thereby further bolstering quantization quality. To operationalize this insight, we propose FreeAct , a novel post-training quantization method designed to address dy-namic activation patterns by breaking the static one-to-one transformation constraint. We first characterize the dy-namics arising from diverse token types. Specifically, in dLLMs, we investigate timestep-related variations in acti-vation ranges driven by the significant disparities between masked and unmasked tokens. Similarly, in MLLMs, we observe analogous distinctions between vision and text to-kens. FreeAct unifies these paradigms under a common principle. Theoretically, we leverage the rank-deficient na-ture of activations (Zhang et al., 2024; Jeon et al., 2024) to derive a solution space for transformation relationships that extends beyond simple inverses, confirming the feasibility of FreeAct. Methodologically, we index tokens by type 
+
+> 1We review the literature related to this work in Appendix B.
+
+and allocate distinct transformation matrices accordingly. For activations, we construct matrices with both shared and unique components, using zero-padding to prevent informa-tion entanglement between unique subspaces. Conversely, the weight-side matrix unifies these components while main-taining orthogonality across different subspace bases. We optimize these quantization parameters by minimizing the error w.r.t. specific activation types. Furthermore, we pro-vide theoretical guarantees for the equivalence and high-light the implementation simplicity and compatibility with additional enhancements. Extensive experiments on both dLLMs and MLLMs demonstrate that FreeAct achieves superior quantization quality, delivering up to 5.3% rela-tive improvement over state-of-the-art (SOTA) baselines. Further analysis validates the rationale and efficacy of our method. Before delving into details, we summarize our contributions as follows: • We pioneer relaxing the existing transformation constraint of the activation side to allow for more flexible, dynamic handling of varying activation patterns. Based on this, we unify two advanced LLM paradigms, i.e. , dLLMs and MLLMs, under one common principle for quantization. • We propose FreeAct, a novel post-training quantization framework, utilizing the rank-deficiency of activations to derive distinct transformation matrices for different token types, while maintaining a unified, static transformation for weights. This method effectively handles dynamic patterns through a subspace-based construction and zero-padding strategy with theoretical support. • We conduct comprehensive experiments across both dLLMs and MLLMs to demonstrate the superior quanti-zation quality of FreeAct and provide in-depth analysis to discuss its rational and effective design. 
+
+# 2. Preliminaries 
+
+2.1. Quantization Setups. Quantization is effective in accelerating the linear inference in networks, especially LLMs. 
+
+Q(X) = ⌊X/s X ⌉ , sX = max( |X|)/q max . (1) For a linear layer, the computation can be approximated by 
+
+XW ≈ Q (X) × Q (W ) = sX sW · Q X × Q W . (2) We are focusing on 4-bit quantization for both weight and activation, i.e. , W4A4. Under this setting, the model gen-erally fails to predict reasonable tokens or to follow the in-structions (Liu et al., 2025a). The quantization error (Nagel et al., 2021; Li et al., 2024) can be defined as 
+
+E(X, W ) = ∥XW − Q (X) × Q (W )∥F . (3) 2FreeAct: Freeing Activations for LLM Quantization 
+
+However, the direct quantization is normally ineffective, especially for cases with disparities between activations in Large Language Models (LLMs). 
+
+Disparities between activations. The activations exhibit different distributions with different ranges, suggesting that the activations need flexible quantization rather than a fixed process that corresponds to the weight side. In this pa-per, we explore two representative LLMs: Diffusion LLMs 
+
+(dLLMs) (Nie et al., 2025; Ye et al., 2025) and Multimodal LLMs (MLLMs) (Bai et al., 2025; Chen et al., 2024). • Mask-aware. dLLMs predict multiple tokens at newly added [MASK] tokens, which are progressively deter-mined along with the denoising process. From Figure 2, we identify that there are significantly different activation distributions between masked and unmasked tokens.  
+
+> Figure 2. Illustrative example of activations between masked and unmasked tokens along the diffusion time-steps (dLLMs).
+
+• Modality-aware. MLLMs process different modalities, 
+
+e.g., vision and text, as input. Different modality embed-dings exhibit different activation distributions, as shown in Figure 3 2. This disparity, despite being diminished, will be passed to the following layers.  
+
+> Figure 3. Illustrative example of activation distributions between vision and text tokens at different layers in MLLMs.
+
+From these preliminary investigations, we propose to pro-cess these two widely adopted paradigms (Multimodal and diffusion LLMs) under one quantization principle. 
+
+> 2Full visualization will be presented in Appendix D.1 to save the main body space.
+
+2.2. Multimodal and Diffusion LLMs Learning objective. The learning of dLLMs aims to predict masked tokens with a unified cross-entropy loss (Yang et al., 2025b; Nie et al., 2025): 
+
+LT = −Et, x0,xt
+
+h 1
+
+t
+
+> L
+
+X
+
+> l
+
+I(xlt = [ MASK ]) log pθ (xl
+
+> 0
+
+|xt)
+
+i
+
+,
+
+where L denotes the sequence length of x0 and t is the time step sampled from [0 , 1] uniformly, corresponding to xt.
+
+I(·) is the indicator. MLLMs predict the next token, while accepting vision and text as input, formally, 
+
+LM = −Ex
+
+h LX
+
+> l
+
+log pθ (xl+1 |x<l )
+
+i
+
+. (4) Here x is modal-agnostic for simplicity. 
+
+Inference. For dLLMs, given one prompt p0, the reverse process starts from a fully masked response rL. At each in-termediate step, tokens with high confidence are confirmed, with the others being remasked for the next step predic-tion. Specifically, the text sequences are divided into several blocks to mimic an auto-regressive process. For MLLMs, the inference is similar to conventional LLMs, following a next-token prediction manner. Here we handle these two types of models individually, leaving their hybrid version, 
+
+i.e. , Multimodal Diffusion Language Model (Yang et al., 2025b), or other models with heterogeneous token inputs, for future exploration. 
+
+# 3. Methodology 
+
+3.1. Beyond One-to-One One-to-one transformation. Transformation matrices are introduced to model the affine connections among channels. Previous work, like per-channel scaling, can be viewed as a special case, where the matrix is diagonal, i.e. , Y =
+
+XW = ( Xdiag (c)) × (diag (c)−1W ⊤). One matrix for one side, while its inverse is for the other side, to ensure the mathematical equivalence. A more general form can be represented as: 
+
+Y = XP × P −1W ⊤ ≈ Q (XP ) × Q (P −1W ⊤), (5) where P is the transformation matrix. FlatQuant (Sun et al., 2025) extends the Hadamard transformation, e.g. , QuaRot (Ashkboos et al., 2024), onto the real field R (i.e. , affine transformation) to flatten the steep and dispersed distribution of activations and weights, thus achieving promising results with acceptable computational overhead. This paradigm establishes one-to-one correspondence between activations 3FreeAct: Freeing Activations for LLM Quantization UNMASKED  MASKED   
+
+> dLLMs or
+
+## 0
+
+## 0     
+
+> Dynamic allocation
+> 𝑼
+> 𝑼
+> 𝑼 𝑿
+> 𝑼 𝑿 !
+> 𝑼 𝑼 𝑿 𝑼 𝑿 !
+> VISION  TEXT
+> MLLMs
+> Token indexing Minimizing the error
+> Activations
+> Weight
+> Figure 4. The overall framework of FreeAct. Different tokens are indexed to different transformation matrices according to their unique types (vision-text for MLLMs, and unmasked and masked for dLLMs). Different transformation matrices maintain a shared part together while possessing their own uniqueness, where zeros are filled in on another portion. The weight transformation matrix unites both portions to handle all the different activations. And the quantization error is minimized to optimize the quantization parameter.
+
+and weights per layer. P is fixed and shared for the dual side to ensure equivalence, i.e. , P P −1 = I.
+
+Dilemmas. Quantized weights are static during deploy-ment, yet encounter different activation distributions. For instance, the same weights will process activations at dif-ferent steps and different modal activations in dLLMs and MLLMs, respectively. A one-fits-all manner seems limited to handle diverse distributions. To advance the quantization, we explore new possibilities to free the activation side, especially for models that encounter diverse patterns of activations. 
+
+Freeing the activation side. For the static weights, we apply dynamic transformations to match the activations. Formally, 
+
+( XW ⊤ = XP × eP W ⊤,
+
+X′W ⊤ = X′P ′ × eP W ⊤, s.t. P̸ = P ′ (6) where P and P ′ correspond to different activations X and 
+
+X′. eP is determined for weight W . We are resolving these transformations {P , P ′, eP } to satisfy the above equations. We transform this question to resolve an equation with a bi-linear constraint, i.e. , XP eP W ⊤ = XW ⊤ → X(P eP −
+
+I)W ⊤ = 0 . The trivial solution is to set the middle term 
+
+(P eP − I) as 0, leading to P = eP −1. Due to the unique-ness of the matrix inverse, for the common transformation of the weight side, there is no choice for the transformation of different activations. 
+
+Proposition 1 (Beyond the Inverse) . If satisfy the equation of XP eP W ⊤ = XW ⊤, the product P eP belongs to the set n
+
+Z − PX (Z − I)PW Z ∈ Rd×do
+
+⊇ { I}, (7) 
+
+which strictly contains the singleton {I}. Consequently, the constraint admits a solution space that is strictly larger than the set of exact inverses (for which P eP = I). 
+
+Remark. PX ∈ Rd×d and PW ∈ Rd×d serve as the orthogonal projections onto the row spaces of activations and weights, satisfying XP X = X and PW W ⊤ =
+
+W ⊤. A special solution is that P = ¯P and eP = ¯P −1,when Z = I. In this case, we assume that the row spaces are of full rank, indicating PX = PW = I.Therefore, we only consider the singleton {I}. In gen-eral, activations are rank-deficient (Zhang et al., 2024), which inspires more solutions to design specific transfor-mations beyond the trivial inverse. Proof is detailed in Appendix A.1. 
+
+3.2. FreeAct 
+
+To endow activation transformation with more flexibility, we design a new P learning method according to the above proposition by enforcing the low rank at the activation side while ensuring the equivalence. The overall framework is shown in Figure 4. Different tokens are indexed according to different activation transformation matrices, which are im-plemented via allocation. Weights are also transformed and multiplied by the activations in quantization, followed by the error minimization to optimize quantization parameters. 
+
+Token indexing. Given the token sequence x, we first split all tokens into different sets. For the sake of gen-erality, we process two types of tokens once. Therefore, one set of indices can be represented as I = {i | I(xi =[MASK ]) , i ≤ L} per sequence, while another is I′ =
+
+{i | I(xi̸ = [ MASK ]) , i ≤ L}. For MLLMs, the indica-tors are designed to distinguish different modal tokens, i.e. ,4FreeAct: Freeing Activations for LLM Quantization 
+
+belonging to vision or text. For each linear layer for quanti-zation, assuming the complete input activations ˆX, we have 
+
+X = [ ˆXi]i∈I and X′ = [ ˆXi]i∈I ′ . These indexed activa-tions will be transformed and then concatenated following the original order for the fidelity of the sequence. Notably, with this formulation, we do not explicitly differentiate the types of LLMs ( i.e. , MLLMs or dLLMs) in the following. 
+
+Dynamic allocation. For different activations {X, X′},we leverage different transformation matrices, i.e. , P and 
+
+P ′, to smooth numerical values w.r.t. different channels. Specifically, they are constructed with shared and unique components. 
+
+(X, X′)
+
+( P = U , UX , 0 , U ∈ Rd×r , UX ∈ Rd×r1 ,
+
+P ′ = U , 0 , UX′
+
+, UX′ ∈ Rd×r2
+
+(W ) eP = U , UX , UX′
+
+⊤, r + r1 + r2 = d (8) On one hand, U is designed to preserve the shared row space of the activations, maintained by all activations. On the other hand, we manually allocate different activations with different portions, where UX and UX′ are maintained by distinct activations. The remaining parts are filled with zeros to avoid any additional information entanglement. This design leads to a well-structured but static weight trans-formation via eP . Once X is fed into the pre-quantization process, it invokes a low-rank transformation constructed by 
+
+U and UX . Notably, U , UX , and UX′ represent different subspaces basises to avoid any overlap, and the equivalence 
+
+XP × eP W ⊤ = XW ⊤, X′P ′ × eP W ⊤ = X′W ⊤
+
+(9) can be guaranteed with analyses in Section 3.3. Moreover, we provide in-depth analyses on guarantees and implemen-tations from different perspectives for the crux of FreeAct. 
+
+Minimizing the error. We optimize these transformations by minimizing the quantization errors under the structure designed above. Following (Sun et al., 2025), we collect cal-ibration datasets and calculate the differences between the ground truth output and predicted output after quantization. The learning objective is designed per layer: 
+
+Lq = Ex0
+
+h
+
+∥XW − Q (XP )Q( eP W ⊤)∥22
+
++∥X′W − Q (X′P ′)Q( eP W ⊤)∥22
+
+i
+
+. (10) We randomly generate orthogonal matrices for initialization, and optimize them w.r.t. different activation types. For dLLMs, we distinguish between unmasked and masked tokens, while for MLLMs, we process vision and text tokens individually to avoid the imbalance training. 
+
+3.3. Guarantees and Implementations 
+
+To further elucidate the theoretical underpinnings and prac-tical deployment of FreeAct, we provide key analyses and implementation details that ground our design choices. Be-low, we detail the guarantees of equivalence offered by our method, implementation considerations, and additional en-hancements that facilitate superior quantization outcomes. 
+
+Theorem 2 (Equivalence under projection invariance) .
+
+Given U , UX , UX′ be semi-orthogonal basis matrices forming an orthogonal decomposition of Rd, such that 
+
+XU X′ = 0 and X′UX = 0. If we define the orthog-onal matrix eP = [ U , UX , UX′ ]⊤ and the masked trans-formations P and P ′, then for any weight matrix W , the equalities in Eq. (9) hold. 
+
+Remark. This theorem substantiates the theoretical va-lidity of our design based on orthogonal decomposition. It guarantees that the linear operations remain equiva-lent when distinct activation types are projected onto dis-joint basis sets. Proof is detailed in Appendix A.2. In practice, we approach the zero-projection condition ( e.g. ,
+
+XU X′ = 0), rather than enforcing hard constraints, we rely on the minimization of quantization errors to sup-press interference between the different token types in Eq. (10). 
+
+Core implementation. In practice, FreeAct is simple to implement. Since P and P ′ are built upon the shared or-thogonal matrix eP , there is no additional memory cost to store P and P ′. To adapt FreeAct, the first step is to iden-tify different activations. We can directly index the tokens by different token id , like [MASK] for diffusion models, and <IMG> for MLLMs. Once {r, r 1, r 2} are determined, we can slice eP to yield P and P ′. We provide the de-tailed implementation in Appendix C and algorithm flow in Algorithm 1. The slicing procedure can be executed after the transformation. Here we provide the pseudo-code to adapt FreeAct with only three lines of code added before the quantization, as shown below.                     
+
+> 1inp =inp @P#Naive transformation
+> 2inp [index ][..., -r1 :] =0
+> 3inp [˜ index ][..., -r1 -r2 :-r1 ]= 0
+
+Additional enhancement. We also adopt more techniques to further enhance the quantization performance. (1) Learn-able Clip Threshold. This threshold manages the reason-able maximum value of activations or weights, enforcing the smoothness by clipping the values beyond the given threshold. We also free the clip threshold of the activa-tion side to offer more flexibility. (2) Per-Channel Scale. 
+
+This technique operates under the observation of the pat-tern of different channels, magnifying or shrinking val-ues per channel. The scale for activation and weight 5FreeAct: Freeing Activations for LLM Quantization                                                                                                                             
+
+> Table 1. Overall performance comparison of FreeAct against quantization methods across four models. The best result in each case is marked in bold, and the averaged value is under the column “Avg.”.
+> dLLMs MLLMs
+> HumanEval GSM8K Math500 Avg. MMMU MMBench RealworldQA Avg.
+> LLaDA Qwen2.5-VL
+> 16-bit Baseline 43.90 76.80 38.40 53.03 50.44 83.25 68.50 67.40 RTN (W8A8) 39.02 77.56 37.00 51.19 49.33 82.38 68.50 66.74 RTN (W4A4) 00.00 00.00 00.14 00.05 26.33 00.09 00.65 09.02 SmoothQuant 00.00 00.00 00.00 00.00 24.41 00.43 01.17 08.67 QuaRot 28.66 65.81 24.20 39.56 43.56 72.51 56.34 57.47 FlatQuant 39.63 74.37 33.60 49.20 48.89 81.61 66.27 65.59
+> FreeAct (ours) 42.68 75.74 34.60 51.01 50.44 82.22 66.01 66.22
+> Dream InternVL2.5
+> 16-bit Baseline 56.10 68.16 42.20 55.49 53.22 84.71 68.76 68.90 RTN (W8A8) 48.78 68.76 40.80 52.78 44.33 74.74 63.66 60.91 RTN (W4A4) 00.00 00.53 0.018 00.18 22.78 00.20 00.78 07.92 SmoothQuant 00.00 00.00 0.014 00.05 23.44 00.94 01.05 08.47 QuaRot 39.02 56.56 25.80 40.46 42.19 63.66 54.25 53.36 FlatQuant 46.34 63.53 34.60 48.16 42.11 69.84 57.65 56.53
+> FreeAct (ours) 50.00 68.84 32.60 50.48 42.44 70.62 58.69 57.25
+
+is entangled to keep the mathematical equivalence, i.e. ,
+
+Y = ( X · diag (c))( diag (c)−1 · W ). (3) Kronecker Prod-uct. To alleviate the computation on matrices P , we adopt two lightweight matrices to construct a larger one, i.e. ,
+
+P := Pl ⊗ Pr, following (Chee et al., 2023; Sun et al., 2025). These techniques are compatible with our proposed method, enabling synergies that boost quantization. 
+
+Integrations. We integrate FreeAct with both diffusion and multimodal large language models, which adopt the transformation architecture. We employ the matrix transfor-mation for all linear layers in self-attention and feed-forward modules. For the vision tower in MLLMs, we directly im-plement FlatQuant due to its homogeneous pattern in activa-tions, where only vision tokens are processed. The specific integration of FreeAct for different models, like LLaDA and QwenVL, is detailed in Appendix C.5. 
+
+Extensions. FreeAct provides a sound conceptual and prac-tical design for two different activations. However, the philosophy of FreeAct can be extended to 1) more flexible matrix constructions and 2) more modalities. We discuss the possibilities of these two extensions below and leave them for future exploration. (1) Proposition 1 suggests a larger solution space beyond the sole inverse, showing promise to relax the handcraft to a more flexible matrix learned by better optimization objectives. There is a trivial implementa-tion of flex-mode for FreeAct by enlarging the quantization space. In this case, r1 = r2 = d. It does not assume the ex-plicit shared components i.e. , r = 0 and r1 +r2 = 2 d, while increasing the memory cost. (2) Moreover, due to the emer-gence of modalities, like audio (Xu et al., 2025), FreeAct is capable of involving more modalities if more patterns of ac-tivations are identified. The trivial extension is adding a new portion UX′′ ∈ Rd×r3 that satisfies r + r1 + r2 + r3 = d.In addition, Multimodal Diffusion Large Language Models (MDLLMs) (Yang et al., 2025b) can be viewed as a hybrid problem. To simplify the analysis, in this paper, we do not implement FreeAct with MDLLMs. 
+
+# 4. Experiments 
+
+In this section, we conduct experiments to address the fol-lowing research question: • RQ1 : Does our method outperform SOTA quantization methods for dLLMs and MLLMs across diverse bench-marks, to demonstrate its effectiveness? • RQ2 : Has the rank-deficiency been verified to support FreeAct? And what is the effect of the additional compo-nent that enhances FreeAct? • RQ3 : How does FreeAct perform during the training and inference? 
+
+4.1. Experimental Setup Calibration & benchmark datasets. We randomly sample 128 sampels with 2048 tokens each from Wiki-Text2 (Merity et al., 2016) to construct the calibration 6FreeAct: Freeing Activations for LLM Quantization 
+
+datasets for dLLMs. We randomly select 256 samples with varying lengths from COCO-Cap (Lin et al., 2014) for MLLMs calibration, including one image and one query each. To evaluate these two LLM types, we select Hu-manEval (Chen, 2021), GSM8K (Cobbe et al., 2021) (4-shot), and Math500 (Hendrycks et al., 2021) (4-shot) for text tasks on dLLMs. For MLLMs, we select vision-relevant tasks, including MMMU (Yue et al., 2024), MMBench (Liu et al., 2024b), and RealworldQA 3. We also report the aver-age value as an overall performance indicator. The dataset descriptions are detailed in Appendix C.1 and C.2. 
+
+Base models & baselines. We select two models for each LLM paradigm, including LLaDA (Nie et al., 2025), Dream (Ye et al., 2025), Qwen2.5VL (Bai et al., 2025), and InternVL2.5 (Chen et al., 2024). Built upon these models, we test the quantization quality of FreeAct against RTN, SmoothQuant (Xiao et al., 2023), QuaRot (Ashkboos et al., 2024), and FlatQuant (Sun et al., 2025) under the W4A4 setting. In particular, we also report the results of the 16-bit baseline and RTN in W8A8 for a comprehensive compari-son. The details of base models and baselines are shown in Appendix C.3. 
+
+Implementation details. With collected calibration datasets, we tune the quantization parameters, including the transformation matrices and clip thresholds, with the AdamW optimizer. The learning rate is set to 1e-3, and the number of training epochs is 15 with a batch size of 4. These settings are kept the same for all the methods. For FreeAct, we set the ratios r1 = r2 = d/k , and set k = 32 by default for simplicity. We also select the front and back layers for FreeAct (see the fully applied version in Section 4.4). We provide more implementation recipes in Appendix C.5. 
+
+4.2. Overall Performance (RQ1) 
+
+We report the results across different models, datasets, and quantization methods in Table 1. Analyzing the comparative results offers the following three key observations: 
+
+① FreeAct outperforms all quantization baselines, achieving SOTA performance in most scenarios. Across both dLLM benchmarks ( e.g. , HumanEval and GSM8K) and MLLM benchmarks ( e.g., MMMU and MMBench), FreeAct surpasses existing W4A4 methods in most cases. Notably, it demonstrates superior accuracy retention com-pared to strong baselines like FlatQuant, achieving up to 5.3% improvement. In several tasks, FreeAct recovers the performance to a level comparable with W8A8 RTN and the 16-bit base models, like in Dream and Qwen2.5VL, highlighting its efficacy in mitigating quantization noise in    
+
+> 3https://huggingface.co/datasets/xai-org/ RealworldQA .d
+> 2
+> d
+> 4
+> d
+> 8
+> d
+> 16
+> d
+> 32
+> d
+> 64 0
+> r
+> 0.0
+> 0.5
+> 1.0
+> Norm. Score
+> MATH500
+> HumanEval
+> d
+> 2
+> d
+> 4
+> d
+> 8
+> d
+> 16
+> d
+> 32
+> d
+> 64 0
+> r
+> 0.0
+> 0.5
+> 1.0
+> MMMU
+> MMBench
+> Figure 5. Performance comparison under different rank-deficient settings, tested on LLaDA ( left ) and Qwen2.5VL ( right ).
+
+ultra-low bit-width settings. 
+
+② The transformation method is better than simple channel-wise quantization (SmoothQuant). The results indicate a clear performance gap between transformation-based methods (FreeAct, FlatQuant, QuaRot) and simple scaling methods like SmoothQuant. While SmoothQuant mitigates outliers via channel-wise scaling, it struggles to fully suppress quantization errors in the presence of complex activation patterns under the low-bit scenario. FreeAct, by employing a more sophisticated transformation strategy, ef-fectively flattens the activation distribution, making it more amenable to W4A4 quantization. 
+
+③ The larger flexibility on the transformation matrices provides the possibility to achieve better quantization quality. Comparing FreeAct against FlatQuant and QuaRot reveals that increased flexibility within the transformation matrix is crucial. FlatQuant eases the Hadamard transfor-mations in QuaRot and employs an affine flexibility, yet it remains tethered to a one-to-one mapping. FreeAct evolves this by breaking this constraint, allowing for a many-to-one transformation. This increased flexibility allows FreeAct to better accommodate diverse activation distributions, result-ing in superior quantization quality. 
+
+4.3. Ablation Study (RQ2) Rank-deficient verification. We further investigate the necessity of full-rank transformations by implementing low-rank one-to-one transformation variants. Comparisons on two different models are reported in Figure 5, where ¯r de-notes the number of removed dimensions, and 0 represents the full-rank transformation. We can observe that a large portion of the removal is incapable, while removing d/ 32 
+
+or d/ 64 can approach the upper bound performance. These results confirm our motivation for the rank-deficiency and the feasibility of developing FreeAct. 
+
+The effect of learnable clip threshold. We isolate the con-tribution of the transformation matrix from clipping thresh-old tuning to evaluate a “clean” version of FreeAct (w/o L.C.) where only the transformation matrix is learned. The results indicate that the optimized transformation matrix is the primary driver of FreeAct’s success in most cases, like 7FreeAct: Freeing Activations for LLM Quantization 
+
+Table 2. Performance comparison with FreeAct without a learnable clip threshold (L.C.). 
+
+LLaDA Dream 
+
+Math HumanEval Math HumanEval FreeAct w/o L.C. 73.09 34.15 55.65 34.14 FreeAct 75.74 34.60 68.84 50.00 
+
+Qwen2.5VL InternVL2.5 
+
+MMMU MMBench MMMU MMBench FreeAct w/o L.C. 46.44 79.30 40.22 65.12 FreeAct 50.44 82.22 42.44 70.62 Training steps 
+
+> Training steps
+> Layer index
+> Layer index
+> 𝑿
+> 𝑿’
+> 𝑿
+> 𝑿’
+
+Figure 6. Quantization errors optimized along with the training steps across different layers. X and X′ denote different activation types, i.e. , masked and unmasked token. The values in the left figure are normalized per layer. 
+
+LLaDA. The clip threshold also contributes to capturing the dynamics, especially in Dream, where performance drops with a noticeable margin, suggesting a synergy produced by both the transformation and clip threshold. 
+
+4.4. Further Analysis (RQ3) The loss of quantization errors. We analyze the train-ing dynamics of FreeAct by plotting the quantization error over time as shown in Figure 6 4. We observe a consistent decrease in Mean Squared Error (MSE) for both types of activations. We also observe the different quantization error ranges between different types ( X > X′), which suggests the need for a dynamic process. The convergence behavior confirms that FreeAct effectively optimizes the quantization parameters during the calibration phase, progressively mini-mizing the information loss caused by low-bit quantization. 
+
+Activation visualization after transformation. We illus-trate the smoothed activation ranges after applying the Free-Act transformation in Figure 7. Compared to the original activations. Applying the transformation successfully redis-tributes the activation values into a narrower, more uniform range. This smoothing effect ensures that the limited bins available in W4A4 quantization are utilized more efficiently, directly correlating with the reduced quantization error ob-served in our quantitative analysis. 
+
+Applying all layers with the fixed ratio. FreeAct provides more flexibility on the transformation matrix for each layer. 
+
+> 4
+
+The complete curves for four models are in Appendix D.1. 
+
+Figure 7. Activation distributions after the transformation. FreeAct full FlatQuant FreeAct           
+
+> 35
+> 40
+> 34.15
+> 39.63
+> 42.68
+> RTN (W8A8)
+> 16B LLaDA
+> FreeAct full FlatQuant FreeAct
+> 46
+> 48
+> 50
+> 50.44
+> 48.89
+> 50.44
+> RTN (W8A8)
+> 16B
+> Qwen2.5-VL
+> FreeAct full FlatQuant FreeAct
+> 40
+> 45
+> 50
+> 55
+> 42.68
+> 46.34
+> 50.00
+> RTN (W8A8)
+> 16B Dream
+> FreeAct full FlatQuant FreeAct
+> 65
+> 70
+> 75
+> 69.24 69.84 70.62
+> RTN (W8A8)
+> InterVL2.5
+
+Figure 8. Performance comparison across FlatQuant and fully applied FreeAct. 
+
+However, the fixed mask ratio for all layers is not optimal. We show the comparison results with this fully applied version, FreeAct full , as shown in Figure 8. Simply enforcing the activation isolation in FreeAct to every layer would lead to a worse performance in some cases, like on LLaDA or Dream, or perform well on Qwen2.5VL. This suggests the promise of FreeAct, where sophisticated strategies would further boost FreeAct. 
+
+# 5. Discussions and Outlook 
+
+In this paper, we introduced FreeAct, a novel post-training quantization framework that breaks the conventional one-to-one transformation constraint prevalent in current LLM quantization methods. By identifying the limitations of static transformations in handling the dynamic activation patterns of advanced models, like dLLMs and MLLMs, we proposed a paradigm shift towards flexible activation trans-formations. Theoretical analysis of the rank-deficient nature of activations allowed us to decouple the activation transfor-mation from the weight transformation. FreeAct success-fully allocates distinct transformation matrices to different token types while maintaining a unified, static transforma-tion for weights. Our extensive experiments demonstrate that FreeAct effectively mitigates quantization errors arising from dynamic disparities. FreeAct establishes a robust foun-dation for dynamic transformation in quantization, paving several promising avenues for future explorations: 1) ex-tending this framework to more modalities or hybrid model architectures, 2) investigating hardware-kernel co-design for full exploitation, and 3) generalizing to automatically token identification rather than indexing on predefined types. 8FreeAct: Freeing Activations for LLM Quantization 
+
+# References 
+
+Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 , 2023. Alizadeh, K., Mirzadeh, S. I., Belenko, D., Khatamifard, S., Cho, M., Del Mundo, C. C., Rastegari, M., and Farajtabar, M. Llm in a flash: Efficient large language model infer-ence with limited memory. In ACL , pp. 12562–12584, 2024. Ashkboos, S., Mohtashami, A., Croci, M. L., Li, B., Cameron, P., Jaggi, M., Alistarh, D., Hoefler, T., and Hensman, J. Quarot: Outlier-free 4-bit inference in ro-tated llms. In NeurIPS , pp. 100213–100240, 2024. Bai, S., Chen, K., Liu, X., Wang, J., Ge, W., Song, S., Dang, K., Wang, P., Wang, S., Tang, J., et al. Qwen2. 5-vl technical report. arXiv preprint arXiv:2502.13923 , 2025. Bhalgat, Y., Lee, J., Nagel, M., Blankevoort, T., and Kwak, N. Lsq+: Improving low-bit quantization through learn-able offsets and better initialization. In CVPR , pp. 696– 697, 2020. Bondarenko, Y., Del Chiaro, R., and Nagel, M. Low-rank quantization-aware training for llms. arXiv preprint arXiv:2406.06385 , 2024. Chang, Y., Wang, X., Wang, J., Wu, Y., Yang, L., Zhu, K., Chen, H., Yi, X., Wang, C., Wang, Y., et al. A survey on evaluation of large language models. ACM Transactions on Intelligent Systems and Technology , 15(3):1–45, 2024. Chee, J., Cai, Y., Kuleshov, V., and De Sa, C. M. Quip: 2-bit quantization of large language models with guarantees. In NeurIPS , pp. 4396–4429, 2023. Chen, M. Evaluating large language models trained on code. 
+
+arXiv preprint arXiv:2107.03374 , 2021. Chen, M., Shao, W., Xu, P., Wang, J., Gao, P., Zhang, K., and Luo, P. Efficientqat: Efficient quantization-aware training for large language models. In ACL , pp. 10081– 10100, 2025. Chen, Z., Wu, J., Wang, W., Su, W., Chen, G., Xing, S., Zhong, M., Zhang, Q., Zhu, X., Lu, L., et al. Internvl: Scaling up vision foundation models and aligning for generic visual-linguistic tasks. In CVPR , pp. 24185– 24198, 2024. Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., et al. Training verifiers to solve math word problems. 
+
+arXiv preprint arXiv:2110.14168 , 2021. Dai, G., Hong, K., Mao, Q., Li, X., Xu, J., Huang, H., Xia, H., Ning, X., Yan, S., Liang, Y., et al. Flashdecod-ing++next: High throughput llm inference with latency and memory optimization. IEEE Transactions on Com-puters , 2025. Dettmers, T., Lewis, M., Belkada, Y., and Zettlemoyer, L. Gpt3. int8 (): 8-bit matrix multiplication for transformers at scale. In NeurIPS , pp. 30318–30332, 2022. Du, D., Zhang, Y., Cao, S., Guo, J., Cao, T., Chu, X., and Xu, N. Bitdistiller: Unleashing the potential of sub-4-bit llms via self-distillation. arXiv preprint arXiv:2402.10631 ,2024. Egashira, K., Vero, M., Staab, R., He, J., and Vechev, M. Ex-ploiting llm quantization. In NeurIPS , pp. 41709–41732, 2024. Frantar, E., Ashkboos, S., Hoefler, T., and Alistarh, D. Gptq: Accurate post-training quantization for generative pre-trained transformers. arXiv preprint arXiv:2210.17323 ,2022. Grattafiori, A., Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Vaughan, A., et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. Guo, D., Wu, F., Zhu, F., Leng, F., Shi, G., Chen, H., Fan, H., Wang, J., Jiang, J., Wang, J., et al. Seed1. 5-vl technical report. arXiv preprint arXiv:2505.07062 , 2025a. Guo, D., Yang, D., Zhang, H., Song, J., Zhang, R., Xu, R., Zhu, Q., Ma, S., Wang, P., Bi, X., et al. Deepseek-r1: In-centivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025b. Hendrycks, D., Burns, C., Kadavath, S., Arora, A., Basart, S., Tang, E., Song, D., and Steinhardt, J. Measuring math-ematical problem solving with the math dataset. arXiv preprint arXiv:2103.03874 , 2021. Hu, X., Cheng, Y., Yang, D., Xu, Z., Yuan, Z., Yu, J., Xu, C., Jiang, Z., and Zhou, S. Ostquant: Refining large language model quantization with orthogonal and scal-ing transformations for better distribution fitting. arXiv preprint arXiv:2501.13987 , 2025. Jeon, H., Kim, Y., and Kim, J. L4q: Parameter efficient quantization-aware fine-tuning on large language models. arxiv 2024. arXiv preprint arXiv:2402.04902 , 2024. Jin, Z., Wang, B., Lin, X., Bing, L., and Sun, A. On the role of discreteness in diffusion llms. arXiv preprint arXiv:2512.22630 , 2025. 9FreeAct: Freeing Activations for LLM Quantization 
+
+Kaddour, J., Harris, J., Mozes, M., Bradley, H., Raileanu, R., and McHardy, R. Challenges and applications of large language models. arXiv preprint arXiv:2307.10169 ,2023. Kaplan, J., McCandlish, S., Henighan, T., Brown, T. B., Chess, B., Child, R., Gray, S., Radford, A., Wu, J., and Amodei, D. Scaling laws for neural language models. 
+
+arXiv preprint arXiv:2001.08361 , 2020. Li, M., Lin, Y., Zhang, Z., Cai, T., Li, X., Guo, J., Xie, E., Meng, C., Zhu, J.-Y., and Han, S. Svdquant: Absorb-ing outliers by low-rank components for 4-bit diffusion models. In NeurIPS , 2024. Lin, H., Xu, H., Wu, Y., Cui, J., Zhang, Y., Mou, L., Song, L., Sun, Z., and Wei, Y. Duquant: Distributing outliers via dual transformation makes stronger quantized llms. In NeurIPS , pp. 87766–87800, 2024a. Lin, H., Xu, H., Wu, Y., Guo, Z., Zhang, R., Lu, Z., Wei, Y., Zhang, Q., and Sun, Z. Quantization meets dllms: A sys-tematic study of post-training quantization for diffusion llms. arXiv preprint arXiv:2508.14896 , 2025a. Lin, J., Tang, J., Tang, H., Yang, S., Chen, W.-M., Wang, W.-C., Xiao, G., Dang, X., Gan, C., and Han, S. Awq: Activation-aware weight quantization for on-device llm compression and acceleration. In MLSys , pp. 87–100, 2024b. Lin, T.-Y., Maire, M., Belongie, S., Hays, J., Perona, P., Ramanan, D., Doll ´ar, P., and Zitnick, C. L. Microsoft coco: Common objects in context. In ECCV , pp. 740–755, 2014. Lin, Y., Tang, H., Yang, S., Zhang, Z., Xiao, G., Gan, C., and Han, S. Qserve: W4a8kv4 quantization and system co-design for efficient llm serving. In MLSys , 2025b. Liu, A., Feng, B., Xue, B., Wang, B., Wu, B., Lu, C., Zhao, C., Deng, C., Zhang, C., Ruan, C., et al. Deepseek-v3 technical report. arXiv preprint arXiv:2412.19437 ,2024a. Liu, R., Sun, Y., Zhang, M., Bai, H., Yu, X., Yu, T., Yuan, C., and Hou, L. Quantization hurts reasoning? an empirical study on quantized reasoning models. arXiv preprint arXiv:2504.04823 , 2025a. Liu, X., Xia, X., Zhao, W., Zhang, M., Yu, X., Su, X., Yang, S., Ng, S.-K., and Chua, T.-S. L-mtp: Leap multi-token prediction beyond adjacent context for large language models. NeurIPS , 2025b. Liu, Y., Duan, H., Zhang, Y., Li, B., Zhang, S., Zhao, W., Yuan, Y., Wang, J., He, C., Liu, Z., et al. Mmbench: Is your multi-modal model an all-around player? In ECCV ,pp. 216–233, 2024b. Liu, Z., Oguz, B., Zhao, C., Chang, E., Stock, P., Mehdad, Y., Shi, Y., Krishnamoorthi, R., and Chandra, V. Llm-qat: Data-free quantization aware training for large language models. In ACL Findings , pp. 467–484, 2024c. Liu, Z., Zhao, C., Fedorov, I., Soran, B., Choudhary, D., Kr-ishnamoorthi, R., Chandra, V., Tian, Y., and Blankevoort, T. Spinquant: Llm quantization with learned rotations. In 
+
+ICLR , 2024d. Liu, Z., Zhao, C., Huang, H., Chen, S., Zhang, J., Zhao, J., Roy, S., Jin, L., Xiong, Y., Shi, Y., et al. Paretoq: Scaling laws in extremely low-bit llm quantization. arXiv preprint arXiv:2502.02631 , 2025c. Loshchilov, I. and Hutter, F. Decoupled weight decay regu-larization. arXiv preprint arXiv:1711.05101 , 2017. Luo, R., Xia, X., Wang, L., Chen, L., Shan, R., Luo, J., Yang, M., and Chua, T.-S. Next-omni: Towards any-to-any omnimodal foundation models with discrete flow matching. arXiv preprint arXiv:2510.13721 , 2025. Lyu, C., Wu, M., Wang, L., Huang, X., Liu, B., Du, Z., Shi, S., and Tu, Z. Macaw-llm: Multi-modal language modeling with image, audio, video, and text integration. 
+
+arXiv preprint arXiv:2306.09093 , 2023. Ma, Y., Li, H., Zheng, X., Ling, F., Xiao, X., Wang, R., Wen, S., Chao, F., and Ji, R. Affinequant: Affine transformation quantization for large language models. arXiv preprint arXiv:2403.12544 , 2024. Merity, S., Xiong, C., Bradbury, J., and Socher, R. Pointer sentinel mixture models. arXiv preprint arXiv:1609.07843 , 2016. Nagel, M., Fournarakis, M., Amjad, R. A., Bondarenko, Y., Van Baalen, M., and Blankevoort, T. A white pa-per on neural network quantization. arXiv preprint arXiv:2106.08295 , 2021. Nagel, M., Fournarakis, M., Bondarenko, Y., and Blankevoort, T. Overcoming oscillations in quantization-aware training. In ICML , pp. 16318–16330, 2022. Nie, S., Zhu, F., You, Z., Zhang, X., Ou, J., Hu, J., Zhou, J., Lin, Y., Wen, J.-R., and Li, C. Large language diffusion models. arXiv preprint arXiv:2502.09992 , 2025. Penrose, R. A generalized inverse for matrices. In Math-ematical Proceedings of the Cambridge Philosophical Society , pp. 406–413, 1955. Sapkota, R., Qureshi, R., Hadi, M. U., Hassan, S. Z., Sadak, F., Shoman, M., Sajjad, M., Dharejo, F. A., Paudel, A., Li, J., et al. Multi-modal llms in agriculture: A comprehen-sive review. IEEE Transactions on Automation Science and Engineering , 2025. 10 FreeAct: Freeing Activations for LLM Quantization 
+
+Shao, W., Chen, M., Zhang, Z., Xu, P., Zhao, L., Li, Z., Zhang, K., Gao, P., Qiao, Y., and Luo, P. Omniquant: Omnidirectionally calibrated quantization for large lan-guage models. arXiv preprint arXiv:2308.13137 , 2023. Sun, Y., Liu, R., Bai, H., Bao, H., Zhao, K., Li, Y., Hu, J., Yu, X., Hou, L., Yuan, C., et al. Flatquant: Flatness matters for llm quantization. ICML , 2025. Team, G., Anil, R., Borgeaud, S., Alayrac, J.-B., Yu, J., Sori-cut, R., Schalkwyk, J., Dai, A. M., Hauth, A., Millican, K., et al. Gemini: a family of highly capable multimodal models. arXiv preprint arXiv:2312.11805 , 2023. Thirunavukarasu, A. J., Ting, D. S. J., Elangovan, K., Gutier-rez, L., Tan, T. F., and Ting, D. S. W. Large language models in medicine. Nature Medicine , 29(8):1930–1940, 2023. Tian, Y., Liang, Y., Sun, J., Zhang, S., Yang, G., Shu, Y., Fang, S., Guo, T., Han, K., Xu, C., et al. From next-token to next-block: A principled adaptation path for diffusion llms. arXiv preprint arXiv:2512.06776 , 2025. Touvron, H., Lavril, T., Izacard, G., Martinet, X., Lachaux, M.-A., Lacroix, T., Rozi `ere, B., Goyal, N., Hambro, E., Azhar, F., et al. Llama: Open and efficient foundation lan-guage models. arXiv preprint arXiv:2302.13971 , 2023. Tseng, A., Chee, J., Sun, Q., Kuleshov, V., and De Sa, C. Quip#: Even better llm quantization with hadamard incoherence and lattice codebooks. ICML , 2024. Wang, X., Song, D., Chen, S., Zhang, C., and Wang, B. Longllava: Scaling multi-modal llms to 1000 im-ages efficiently via a hybrid architecture. arXiv preprint arXiv:2409.02889 , 2024. Wang, X., Xu, C., Jin, Y., Jin, J., Zhang, H., and Deng, Z. Diffusion llms can do faster-than-ar inference via dis-crete diffusion forcing. arXiv preprint arXiv:2508.09192 ,2025. Wu, C., Zhang, H., Xue, S., Diao, S., Fu, Y., Liu, Z., Molchanov, P., Luo, P., Han, S., and Xie, E. Fast-dllm v2: Efficient block-diffusion llm. arXiv preprint arXiv:2509.26328 , 2025. Wu, S., Fei, H., Qu, L., Ji, W., and Chua, T.-S. Next-gpt: Any-to-any multimodal llm. In ICML , 2024. Xia, Y., Fu, F., Zhang, W., Jiang, J., and Cui, B. Efficient multi-task llm quantization and serving for multiple lora adapters. In NeurIPS , pp. 63686–63714, 2024. Xiao, B., Xia, B., Yang, B., Gao, B., Shen, B., Zhang, C., He, C., Lou, C., Luo, F., Wang, G., et al. Mimo-v2-flash technical report. arXiv preprint arXiv:2601.02780 , 2026. Xiao, G., Lin, J., Seznec, M., Wu, H., Demouth, J., and Han, S. Smoothquant: Accurate and efficient post-training quantization for large language models. In ICML , pp. 38087–38099, 2023. Xu, C. and Yang, D. Dllmquant: Quantizing diffusion-based large language models. arXiv preprint arXiv:2508.14090 ,2025. Xu, J., Guo, Z., He, J., Hu, H., He, T., Bai, S., Chen, K., Wang, J., Fan, Y., Dang, K., et al. Qwen2. 5-omni techni-cal report. arXiv preprint arXiv:2503.20215 , 2025. Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025a. Yang, L., Tian, Y., Li, B., Zhang, X., Shen, K., Tong, Y., and Wang, M. Mmada: Multimodal large diffusion language models. arXiv preprint arXiv:2505.15809 , 2025b. Yao, Y., Yu, T., Zhang, A., Wang, C., Cui, J., Zhu, H., Cai, T., Li, H., Zhao, W., He, Z., et al. Minicpm-v: A gpt-4v level mllm on your phone. arXiv preprint arXiv:2408.01800 ,2024. Yao, Z., Li, C., Wu, X., Youn, S., and He, Y. A comprehen-sive study on post-training quantization for large language models. arXiv preprint arXiv:2303.08302 , 2023. Ye, J., Xie, Z., Zheng, L., Gao, J., Wu, Z., Jiang, X., Li, Z., and Kong, L. Dream 7b: Diffusion large language models. arXiv preprint arXiv:2508.15487 , 2025. Yu, J., Zhou, S., Yang, D., Li, S., Wang, S., Hu, X., Xu, C., Xu, Z., Shu, C., and Yuan, Z. Mquant: Unleashing the inference potential of multimodal large language models via static quantization. In ACM MM , pp. 1783–1792, 2025. Yue, X., Ni, Y., Zhang, K., Zheng, T., Liu, R., Zhang, G., Stevens, S., Jiang, D., Ren, W., Sun, Y., et al. Mmmu: A massive multi-discipline multimodal understanding and reasoning benchmark for expert agi. In CVPR , pp. 9556– 9567, 2024. Zhang, A., Wang, N., Deng, Y., Li, X., Yang, Z., and Yin, P. Magr: Weight magnitude reduction for enhancing post-training quantization. In NeurIPS , pp. 85109–85130, 2024. Zhang, D., Wang, G., Xue, J., Fang, K., Zhao, L., Ma, R., Ren, S., Liu, S., Guo, T., Zhuang, W., et al. Mimo-audio: Audio language models are few-shot learners. arXiv preprint arXiv:2512.23808 , 2025a. Zhang, T., Li, Z., Yan, X., Qin, H., Guo, Y., and Zhang, Y. Quant-dllm: Post-training extreme low-bit quantiza-tion for diffusion large language models. arXiv preprint arXiv:2510.03274 , 2025b. 11 FreeAct: Freeing Activations for LLM Quantization 
+
+Zhao, W. X., Zhou, K., Li, J., Tang, T., Wang, X., Hou, Y., Min, Y., Zhang, B., Zhang, J., Dong, Z., et al. A survey of large language models. arXiv preprint arXiv:2303.18223 ,2023. Zhou, Z., Ning, X., Hong, K., Fu, T., Xu, J., Li, S., Lou, Y., Wang, L., Yuan, Z., Li, X., et al. A survey on effi-cient inference for large language models. arXiv preprint arXiv:2404.14294 , 2024. Zhu, D., Chen, J., Shen, X., Li, X., and Elhoseiny, M. Minigpt-4: Enhancing vision-language understanding with advanced large language models. arXiv preprint arXiv:2304.10592 , 2023. 12 Appendix 
+
+# Contents 
+
+A Theoretical Analysis 14 
+
+A.1 Proof of Proposition 1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 A.2 Proof of Theorem 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14 B Related Work 15 
+
+B.1 Multimodal and Diffusion LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 B.2 Quantization for LLMs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 C Implementation Details 16 
+
+C.1 Calibration Datasets . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 C.2 Evaluation Benchmarks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 C.3 Base Models . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 C.4 Baselines . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 C.5 Implementation Recipe . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17 C.6 Hyperparameter Settings . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 C.7 Detailed Algorithm Flow . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 D Additional Results 18 
+
+D.1 Activation Visualization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 D.2 Case Studies . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 E Reproducibility 19 
+
+F Limitations 19 
+
+G Use of LLMs in Writing 20 
+
+13 FreeAct: Freeing Activations for LLM Quantization 
+
+# A. Theoretical Analysis 
+
+A.1. Proof of Proposition 1 
+
+Recall. To satisfy XP eP W ⊤ = XW ⊤, the product P eP belongs to the set 
+
+n
+
+Z − PX (Z − I)PW Z ∈ Rd×do
+
+⊇ { I},
+
+which strictly contains the singleton {I}. Consequently, the constraint admits a solution space that is strictly larger than the set of exact inverses (for which P eP = I). Proof. 
+
+XP eP W ⊤ = XW ⊤ =⇒ XP eP W ⊤ − XW ⊤ = 0 (11) 
+
+X(P eP − I)W ⊤ = 0 (12) According to the general solution for AXB = C, see Lemma 1, we have: 
+
+X(P eP − I)W ⊤ = 0 = ⇒ P eP − I = Z − A†AZBB † (13) 
+
+P eP = Z − A†AZBB † + I (14) 
+
+= Z − A†A(Z − I)BB † (Z := Z − I) (15) 
+
+Lemma 1 (Solving AXB = C (Penrose, 1955)) . A necessary and sufficient condition for the equation AXB = C to have a solution is AA †CB †B = C, in which case the general solution is 
+
+X = A†CB † + Z − A†AZBB †, (16) 
+
+where Z is arbitrary. Proof. 
+
+AXB = C =⇒ C = AXB = AA †AXBB †B = A(A†CB †)B. (17) 
+
+A†CB † is the particular solution of AXB = C. For the general solution, we are solving AXB = 0 .
+
+X = Z − A†AZBB † =⇒ AXB = A  Z − A†AZBB † B (18) 
+
+= AZB − AA †AZBB †B (19) 
+
+= AZB − AZB = 0 (20) If X is one solution of AXB = 0 , then 
+
+AXB = 0 = ⇒ X = X − 0 = X − A†(AXB )B† (21) 
+
+A.2. Proof of Theorem 2 
+
+Recall. Given U , UX , UX′ be semi-orthogonal basis matrices forming an orthogonal decomposition of Rd, such that 
+
+XU X′ = 0 and X′UX = 0. If we define the orthogonal matrix eP = [ U , UX , UX′ ]⊤ and the masked transformations 
+
+P = [ U , UX , 0] and P ′ = [ U , 0, UX′ ], then for any weight matrix W , the equalities 
+
+XP eP W ⊤ = XW ⊤ and X′P ′ eP W ⊤ = X′W ⊤
+
+hold. 
+
+14 FreeAct: Freeing Activations for LLM Quantization 
+
+Proof. Give the identity property of the orthogonal matrix eP , we have: 
+
+eP eP ⊤ = U , UX , UX′
+
+
+
+U ⊤
+
+U ⊤
+
+> X
+
+U ⊤
+
+> X′
+
+ (22) 
+
+= U U ⊤ + UX U ⊤ 
+
+> X
+
++ UX′ U ⊤ 
+
+> X′
+
+(23) 
+
+= Id (24) Since the rank-deficiency of X, we have rank (X) = r + r1 < d . We can find a matric UX′ ∈ Rd×r2 , r 2 = d − (r + r1)
+
+satisfy XU X′ U ⊤ 
+
+> X′
+
+= 0, where UX′ U ⊤ 
+
+> X′
+
+projects X to the its kernel space. Therefore, 
+
+XP eP W ⊤ = XU , UX , 0
+
+U ⊤
+
+U ⊤
+
+> X
+
+U ⊤
+
+> X′
+
+ W ⊤ (25) 
+
+= X(U U ⊤ + UX U ⊤ 
+
+> X
+
+)W ⊤ (26) 
+
+= X(Id − UX′ U ⊤ 
+
+> X′
+
+)W ⊤ ( eP eP ⊤ = Id) (27) 
+
+= XW ⊤ − XU X′ U ⊤
+
+> X′
+
+| {z }
+
+> 0
+
+W ⊤ = XW ⊤ (28) This also holds for mX ′, for its rank-deficiency rank (X′) = r + r2 < d . Therefore: 
+
+X′P ′ eP W ⊤ = X′(Id − UX U ⊤ 
+
+> X
+
+)W ⊤ = X′W ⊤ − X′UX U ⊤ 
+
+> X
+
+W ⊤ = X′W ⊤. (29) 
+
+# B. Related Work 
+
+B.1. Multimodal and Diffusion LLMs 
+
+Large Language Models (LLMs) (Achiam et al., 2023; Touvron et al., 2023; Thirunavukarasu et al., 2023; Zhao et al., 2023; Chang et al., 2024; Kaddour et al., 2023) have demonstrated remarkable success in generating textual tokens, paving the way for advanced extensions such as Multimodal LLMs (MLLMs) (Team et al., 2023; Luo et al., 2025; Xiao et al., 2026; Zhang et al., 2025a; Sapkota et al., 2025; Lyu et al., 2023; Wang et al., 2024), which integrate modalities like vision, and diffusion LLMs (dLLMs) (Nie et al., 2025; Ye et al., 2025; Wu et al., 2025; Jin et al., 2025; Tian et al., 2025), which introduce a denoising mechanism on masked tokens to enable simultaneous multi-token prediction. Typically, MLLMs incorporate a visual encoder to process visual inputs, followed by a projector to align different modalities with a powerful decoder-based LLM. Since the release of ChatGPT, researchers augment open-source LLMs ( e.g. , the LLaMA series (Touvron et al., 2023)) with visual perception capabilities, establishing a widely adopted paradigm exemplified by MiniGPT-4 (Zhu et al., 2023) and NExT-GPT (Wu et al., 2024). Subsequent research has scaled data and parameters, leading to the release of Qwen-VL (Bai et al., 2025), InternVL (Chen et al., 2024), and MiniCPM-V (Yao et al., 2024). Most recent works propose a unified multimodal paradigm that eliminates the separate vision projector, opting instead for a tightly coupled visual-text architecture capable of both understanding and generation. Meanwhile, dLLMs explore the prediction of multiple masked tokens, inspired by prior discrete diffusion modeling with absorbing states (Nie et al., 2025). LLaDA (Nie et al., 2025) and Dream (Ye et al., 2025) successfully implement this diffusion process in billion-parameter models, achieving performance comparable to purely autoregressive LLMs. In this paper, we target these two advanced paradigms and formulate a unified quantization framework for both. 
+
+B.2. Quantization for LLMs 
+
+Quantization significantly improves efficiency by reducing the precision, particularly for LLMs. Quantization-Aware Training (QAT) adopts low-bit precision directly during training (Nagel et al., 2022; Chen et al., 2025; Liu et al., 2024c; Bondarenko et al., 2024; Du et al., 2024), whereas Post-Training Quantization (PTQ) is applied to pre-trained models, aiming to retain their original capabilities in a resource-efficient manner (Yao et al., 2023). Within the PTQ paradigm, 15 FreeAct: Freeing Activations for LLM Quantization 
+
+recent research is generally categorized into weight-only (Frantar et al., 2022; Lin et al., 2024b) and weight-activation quantization (Tseng et al., 2024; Ashkboos et al., 2024; Lin et al., 2024a), where the latter further quantizes activations to achieve higher efficiency but presents greater challenges. Several works (Shao et al., 2023; Bhalgat et al., 2020) focus on managing clip thresholds and fine-grained scales to constrain value ranges. In contrast, SmoothQuant (Xiao et al., 2023) migrates the difficulty of quantization from activations to weights using a diagonal matrix, while QuaRot (Ashkboos et al., 2024) introduces the Hadamard transformation to mitigate outliers, establishing a one-to-one transformation that ensures mathematical equivalence. Recent studies extend this transformation-based paradigm by making these matrices learnable (Lin et al., 2024a; Hu et al., 2025) and more flexible, evolving from simple rotations (Liu et al., 2024d) to general affine transformations (Ma et al., 2024). Notably, FlatQuant (Sun et al., 2025) incorporates the Kronecker product with affine transformations, achieving state-of-the-art quantization quality on LLMs. Researchers have also specialized these techniques for dLLMs (Xu & Yang, 2025; Lin et al., 2025a; Zhang et al., 2025b) and MLLMs (Yu et al., 2025), which involve different token types. However, these efforts mainly focus on optimizing scales and calibrating the dataset, setting transformation advancement aside. In this paper, we pioneer the exploration of flexible transformations beyond one-to-one for LLMs, specifically dLLMs and MLLMs, that process diverse input types with distinct activation distributions. 
+
+# C. Implementation Details 
+
+C.1. Calibration Datasets 
+
+• WikiText2 (Merity et al., 2016) 5 is a language modeling dataset comprising approximately 2 million tokens on Wikipedia. It maintains a vocabulary size of 33,278 words and retains the original document structure, including full punctuation and capitalization. We directly concatenate different sequences and split them into 128 samples with 2048 tokens for quantization calibration of dLLMs. • COCO-Cap (Lin et al., 2014) 6 is a large-scale multimodal collection consisting of approximately 120,000 images derived from the MS COCO dataset, with each image annotated with five independent human-generated captions. We randomly select 256 samples from its validation split, serving as the calibration dataset for MLLM quantization. 
+
+C.2. Evaluation Benchmarks 
+
+• GSM8K (Cobbe et al., 2021) is a dataset of approximately 8,500 high-quality, linguistically diverse grade school math word problems created by human writers. We employ its test split, which contains 1,319 examples in total. • Human-Eval (Chen, 2021) is a code generation benchmark released by OpenAI, consisting of 164 hand-written programming problems in Python. Each problem includes a function signature, a docstring, and a set of hidden unit tests. • Math500 (Hendrycks et al., 2021) is a curated subset of the larger MATH dataset, containing 500 challenging mathematics problems covering diverse subjects such as algebra, geometry, and calculus. It serves as a robust benchmark for evaluating the advanced mathematical problem-solving capabilities of LLMs. • MMMU (Yue et al., 2024) is a large-scale benchmark designed to evaluate expert-level multimodal reasoning. It comprises approximately 11,500 questions derived from college exams, quizzes, and textbooks across six core disciplines and 30 distinct subjects. We use its validation split, comprising 900 multiple-choice questions. • MMBench (Liu et al., 2024b) is a comprehensive evaluation pipeline designed to assess the fine-grained perception and reasoning abilities of MLLMs. It employs a circular evaluation strategy with multiple-choice questions to ensure robust performance assessment across various perceptual and cognitive dimensions. • RealworldQA is a benchmark designed to test spatial and physical reasoning in real-world scenarios. It features high-quality images taken from vehicles and egocentric views, challenging models to answer questions about object relations and environmental context in unconstrained, realistic settings. 
+
+> 5https://huggingface.co/datasets/Salesforce/wikitext
+> 6https://huggingface.co/datasets/lmms-lab/COCO-Caption
+
+16 FreeAct: Freeing Activations for LLM Quantization 
+
+The evaluation of dLLMs is evaluated by LM Eval 7 and further accelerated with Fast-dLLM 8. The evaluation of MLLMs is evaluated by lmms-eval 9.
+
+C.3. Base Models 
+
+• LLaDA (Nie et al., 2025) is a generative Large Language Model built on a diffusion architecture by employing a masked diffusion strategy. It iteratively denoises the entire sequence in parallel during both training and inference, demonstrating that diffusion models can achieve generation quality and in-context learning capabilities comparable to autoregressive baselines. We use its instruction version, LLaDA-8B-Instruct , for our evaluation. • Dream (Ye et al., 2025) is a diffusion large language model that employs discrete diffusion modeling to optimize the sequences in parallel. Dream is initialized with weights from Qwen2.5 7B and is continually pre-trained to adapt the diffusion architecture. We use its instruction version, Dream-v0-Instruct-7B , for our evaluation. • QwenVL (Bai et al., 2025) is a vision-language model built upon the Qwen foundation, designed to handle high-resolution image inputs and fine-grained visual grounding tasks. It incorporates position-aware visual adapters that allow it to perform complex tasks, establishing itself as a robust open-source benchmark for general-purpose multimodal perception and interaction. We use Qwen2.5-VL-7B-Instruct for our evaluation. • InternVL (Chen et al., 2024) employs a progressive scaling strategy that aligns a 6B vision encoder with smaller LLMs before seamlessly transferring weights to larger models to cut computational costs. The well-designed data pipelines and the advanced reweighting technique that balance gradients across diverse response lengths and enhance the visual understanding. Here we use InternVL2 5-8B for our evaluation. 
+
+C.4. Baselines 
+
+• RTN is the straightforward quantization strategy that maps floating-point values to the nearest integer representation without additional optimization or calibration. • SmoothQuant (Xiao et al., 2023) uses a diagnoal scales to smooth activation outliers by migrating the quantization difficulty from activations to weights. • QuaRot (Ashkboos et al., 2024) uses randomized Hadamard transforms to rotate weights and activations into a space where outliers are suppressed, enabling outlier-free 4-bit quantization. • FlatQuant (Sun et al., 2025) is designed to improve low-bit quantization by flattening the activation distributions using similar rotation techniques, specifically optimized for efficient deployment on hardware. 
+
+C.5. Implementation Recipe 
+
+In the following, we first review the one-to-one transformation recipe, exemplified by FlatQuant. Then we provide a comprehensive implementation of FreeAct. 
+
+One-to-one recipe. Give a linear layer equipped with weight W ∈ Rd′×d, the input activation is denoted as X ∈ Rn×d,satisfying Y = XW ⊤ ∈ Rn×d′
+
+. For the weight side, fW ← P −1 
+
+> l
+
+^×W /diag (c)×(P −1 
+
+> r
+
+)⊤. And Pl := Ul ×diag (sl)×V ⊤
+
+> l
+
+is constructed via SVD to guarantee the invertibility of P . U and V are both orthogonal matrices, and s is the vector containing singular values. The transformed weight fW is then clipped, operating clamp ( fW , s min  
+
+> fW
+
+, s max  
+
+> fW
+
+), where smin  
+
+> fW
+
+:= (min fW ) · σ(αmin  
+
+> W
+
+) and smax  
+
+> fW
+
+:= (max fW ) · σ(αmax  
+
+> W
+
+). α is the learnable clip threshold. For the activation side, similarly, 
+
+fX ← P ⊤ 
+
+> l
+
+^×X · diag (c) × Pr , followed by clamp ( fX, s min  
+
+> eX
+
+, s max  
+
+> eX
+
+). After the transformation, we adopt the quantizer from GPTQ. Specifically, the quantization scale for weight is estimated by the minimum and maximum values per channel without MSE search. For the activation, the scale is estimated per token. 
+
+> 7https://github.com/EleutherAI/lm-evaluation-harness
+> 8https://github.com/NVlabs/Fast-dLLM
+> 9https://github.com/EvolvingLMMs-Lab/lmms-eval
+
+17 FreeAct: Freeing Activations for LLM Quantization 
+
+Equivalence. The equivalence of one-to-one transformation methods can be simply verified by the following equations: 
+
+fX fW ⊤ = ( P ⊤ 
+
+> l
+
+^×X · diag (c) × Pr )( P −1 
+
+> l
+
+^×W /diag (c) × (P −1 
+
+> r
+
+)⊤)⊤ = XP × P −1W ⊤ = XW ⊤.
+
+More-to-one recipe (FreeAct). The processing for one linear layer mostly follows the one-to-one recipe. Let X := 
+
+^X · diag (c) and W := ^W /diag (c), we assign the same projection matrix for different activations, i.e. , X and X′, yet masking its different portions. For instance, fX := ( P ⊤ 
+
+> l
+
+^×X · diag (c) × Pr ) ⊙ m, where m ∈ { 0, 1}d is a binary vector and ⊙ represents the element wise multiplication. m controls the utilization of different components for different activation types. For other parts, we keep the same as the one-to-one recipe. The equivalence of the more-to-one recipe is proved in Appendix A.2. 
+
+Implementation for dLLMs. We utilize the LLaDA and Dream implementations from Fast-dLLM to facilitate inference via its optimized caching techniques. The maximum number of generated tokens is set to 256 using 8 time blocks. For calibration, we construct 128 examples containing 2,048 text tokens followed by 256 mask tokens. The activation indices are determined by the [MASK] token ID prior to the next denoising step; consequently, we do not need to explicitly simulate distinct diffusion steps. To accelerate the calibration process, we save all input and output hidden states per layer and train these layers in parallel. 
+
+Implementation for MLLMs. We adopt tailored strategies for the various components within the MLLMs. For the LM backbone, we employ FreeAct as it effectively handles diverse activation inputs, such as vision and text. Given that the sequence length for each calibration example is relatively short, we use 256 examples for the calibration process. Activation indices are determined by the [IMG] token ID during prefilling. We apply FlatQuant to the vision model due to its homogeneous tokens and adopt RTN for the MLP projector. Similar to the dLLM setup, we save all input and output hidden states for both the vision encoder and LM decoder to facilitate parallelized training and faster calibration. 
+
+C.6. Hyperparameter Settings 
+
+We employ the AdamW optimizer (Loshchilov & Hutter, 2017) to optimize the quantization parameters, including the transformation matrices and the clip threshold, while freezing the model parameters. We set the learning rate as 1 × 10 −3
+
+and train the parameters on calibrated datasets for 15 epochs. The number of samples is 128 for dLLMs and 256 for MLLMs. The transformation matrix is initialized as a random orthogonal matrix and is restricted to being orthogonal during the optimization. The clip threshold is initialized as 4.0. We keep these hyperparameters the same for both baselines and FreeAct. The key hyperparameters for FreeAct are {r, r 1, r 2}. To simplify the implementation, we set r1 = r2 = d/k . We set k = 32 by default. 
+
+C.7. Detailed Algorithm Flow 
+
+In this section, we provide the training algorithm flow of FreeAct in Algorithm 1. 
+
+# D. Additional Results 
+
+In this section, we provide the full illustrations of activations per layer across different models. 
+
+D.1. Activation Visualization 
+
+We provide the full details of activation distributions for all layers across four evaluated models, as shown in Figures 11, 12, 13, and 14. We also provide the full quantization errors across four models in Figures 9 and 10. 
+
+D.2. Case Studies 
+
+In this section, we provide the cases generated by different models to demonstrate the effectiveness of FreeAct (see Figures 15, 16, 17, and 18). 18 FreeAct: Freeing Activations for LLM Quantization 
+
+Algorithm 1 FreeAct Algorithm Flow 
+
+Require: Calibration dataset D = {Xk}Nk=1 where Xk ∈ RL×d, pre-trained weights W ∈ Rd×dout , r, r 1, r 2.
+
+Ensure: 
+
+1: Optimized orthogonal matrix eP ∈ Rd×d. Other quantization parameters (scales, clip threshold). 
+
+2: Initialization: 
+
+3: Initialize eP ∈ d × d as a random orthogonal matrix. 
+
+4: while not converged do 
+
+5: for each batch of input activations ˆX ∈ RB×L×d in D do 
+
+6: ① Token Indexing. 
+
+Identify indices based on token types (e.g., Vision/Text or Unmasked/Masked): 
+
+G := {i | I ( ˆX:,i, :) is Type A } G′ := {i | I ( ˆX:,i, :) is Type B }
+
+7: ② Dynamic Allocation. 
+
+eP ← [U , UX , UX′ ]⊤ ▷ U ∈ Rd×r UX ∈ Rd×r1 UX′ ∈ Rd×r2
+
+P ← [U , UX , 0] ∈ Rd×d, where 0 ∈ Rd×r2
+
+P ′ ← [U , 0, UX′ ] ∈ Rd×d, where 0 ∈ Rd×r1
+
+8: ③ Grouping 
+
+X ← ˆX:,G,: ∈ RB×|G|× d
+
+X′ ← ˆX:,G′,: ∈ RB×|G ′|× d
+
+9: ④ Transformation & Quantization 
+
+fW ← eP W fX ← XP ′ fX′ ← X′P ′
+
+Yq ← Q ( fX)Q( fW ) Y ′ 
+
+> q
+
+← Q ( fX′)Q( fW )
+
+10: ⑤ Optimization 
+
+L ← ∥ XW − Yq ∥22 + ∥X′W − Y ′ 
+
+> q
+
+∥22 (Eq. (10)) Update eP and quantization params to minimize L.
+
+11: end for 
+
+12: end while 
+
+# E. Reproducibility 
+
+We provide implementation details, involving illustrative algorithm descriptions in Appendix C and pseudo-code in Section 3.2. The source code will be publicly released for reproducibility. 
+
+# F. Limitations 
+
+We demonstrate the effectiveness of FreeAct through rigorous empirical validation and theoretical support, establishing its conceptual advancement in the field of quantization. Despite these strengths, several limitations remain for future exploration. 1) The current version of FreeAct cannot accept more modalities or diverse input types ( # > 2). It can be extended to more complex scenarios, but requires an in-depth investigation into activation distributions. 2) Due to the resource constraints, we 0              
+
+> 10
+> 20
+> 30 0
+> 10
+> 20
+> 30
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> LLaDA
+> 0
+> 10
+> 20
+> 30 0510 15 20 25
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Dream
+> 0
+> 10
+> 20
+> 30 0510 15 20 25
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Qwen2.5-VL
+> 0
+> 10
+> 20
+> 30 0
+> 10
+> 20
+> 30
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> InterVL2.5
+
+Figure 9. The full losses trained on the calibration dataset for four models. The quantization errors are measured per layer and grouped in terms of different activation types. To better show the differences, the numerical values are normalized. 
+
+19 FreeAct: Freeing Activations for LLM Quantization 0              
+
+> 10
+> 20
+> 30 0
+> 10
+> 20
+> 30
+> 0
+> 1
+> 2
+> 3
+> LLaDA
+> 0
+> 10
+> 20
+> 30 0510 15 20 25
+> 0
+> 2
+> 4
+> 6
+> 8
+> Dream
+> 0
+> 10
+> 20
+> 30 0510 15 20 25
+> 0
+> 2
+> 4
+> 6
+> 8
+> Qwen2.5-VL
+> 0
+> 10
+> 20
+> 30 0
+> 10
+> 20
+> 30
+> 0.00
+> 0.25
+> 0.50
+> 0.75
+> 1.00
+> 1.25
+> InterVL2.5
+
+Figure 10. The full losses trained on the calibration dataset for four models. The quantization errors are measured per layer and grouped in terms of different activation types. 
+
+do not scale the model size. 3) We do not deploy FreeAct offline while evaluating its effectiveness with fake quantization. 
+
+# G. Use of LLMs in Writing 
+
+We used an LLM solely to polish the writing and correct grammatical issues during the preparation of this submission. The LLM was not involved in any idea generation, experiment design, or analysis. All scientific contributions are entirely made by the authors. 20 FreeAct: Freeing Activations for LLM Quantization 
+
+Figure 11. Illustrative examples of activation distributions across different layers on LLaDA-8B-Instruct . There is a clear dividing line between unmasked and masked tokens. 
+
+21 FreeAct: Freeing Activations for LLM Quantization 
+
+Figure 12. Illustrative examples of activation distributions across different layers on Dream-v0-Instruct-7B . There is a clear dividing line and spikes to distinguish unmasked and masked tokens. 
+
+22 FreeAct: Freeing Activations for LLM Quantization 
+
+Figure 13. Illustrative examples of activation distributions across different layers on Qwen2.5-VL-7B-Instruct . Only the language tower is plotted. There is a clear dividing line to distinguish vision and text tokens. 
+
+23 FreeAct: Freeing Activations for LLM Quantization 
+
+Figure 14. Illustrative examples of activation distributions across different layers on InternVL2.5-8B . Only the language tower is plotted. There is a clear dividing line to distinguish vision and text tokens. 
+
+24 FreeAct: Freeing Activations for LLM Quantization 
+
+Prompt: 
+
+Janet s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers market? 
+
+Response: BF16 Janet calculates how many eggs she has left after her breakfast and her friends’ breakfast. She eats 3 eggs for breakfast and bakes 4 eggs for her friends, so she uses a total of 3 + 4 = 7 eggs per day.\n\nHer’s ducks lay 16 eggs per day, so she has 16 - 7 = 9 eggs left.\n\nShe sells these 9 eggs at $2 per egg, so she makes 9 *$2 = $<<9*2=18>>18 per day.\n\nTherefore, Janet makes $18 every day at the farmers ’ market.\n######## 18 
+
+RTN (W4A4) 000000<$ 10%00 100000000000000 100000000000000000000000000000000000000000000000000000000000000000.... 
+
+FreeAct (W4A4) Janet calculates how many eggs she has left after her breakfast and her friends’ breakfast. She eats 3 eggs for breakfast and bakes 4 eggs for her friends, so she uses a total of 3 + 4 = 7 eggs per day.\n\nHer’s ducks lay 16 eggs per day, so she has 16 - 7 = 9 eggs left.\n\nShe sells these 9 eggs at $2 per egg, so she makes 9 * $2 = $<<9*2=18>>18 per day.\n\nTherefore, Janet makes $18 every day at the farmers’ market.\n######## 18 
+
+Figure 15. Case study of how FreeAct integrates into LLaDA and performs under the W4A4 quantization setting on the GSM8K dataset, compared with the RTN method, which fails to respond. 
+
+Prompt: 
+
+Janet s ducks lay 16 eggs per day. She eats three for breakfast every morning and bakes muffins for her friends every day with four. She sells the remainder at the farmers market daily for $2 per fresh duck egg. How much in dollars does she make every day at the farmers market? 
+
+Response: BF16 Janet eats 3 eggs for breakfast and bakes 4 eggs for muffins, so she uses 3 + 4= <<3+4=7>>7 eggs per day.\nShe then sells 16 - 7 = <<16-7=9>>9 eggs per day.\nShe sells 9 eggs for $2 each, so she makes 9 * $2 = <<9*2=18>>$18 per day at the farmers’ market.\n#### 18 
+
+RTN (W4A4) relico00 flashback relicl musebrates Lucifer: relic relic relic inn1P1 relic( relic relic0 brates lodge0 relicp relic s hop relic relich pregnancies relic1 relicog relic1 relic\n relic relic nip skate hen conco 
+
+FreeAct (W4A4) Janet eats 3 eggs for breakfast and bakes 4 eggs for muffins, so she uses 3 + 4 = <<3+4=7>>7 eggs per day.\nShe then sells 16 - 7 = <<16-7=9>>9 eggs per day.\nShe sells 9 eggs for $2 each, so she makes 9 * $2 = <<9*2=18>>$18 per day at the farmers’ market.\n#### 18 
+
+Figure 16. Case study of how FreeAct integrates into Dream and performs under the W4A4 quantization setting on the GSM8K dataset, compared with the RTN method, which fails to respond. 
+
+25 FreeAct: Freeing Activations for LLM Quantization 
+
+Prompt: 
+
+<image 1> Baxter Company has a relevant range of production between 15,000 and 30,000 units. The following cost data represents average variable costs per unit for 25,000 units of production. If 30,000 units are produced, what are the per unit manufacturing overhead costs incurred?\nA. $6\nB. $7\nC. $8\nD. $9\n\nAnswer with the option’s letter from the given choices directly. 
+
+Response: BF16 B
+
+RTN (W4A4) Gluten \n\n\n 2 -Pack-gend Stainless ( 1 Spare Bottle-Pack Clamp \n 10-Packerrated Mounted1 Movement A S 1/&ombine S1 1 4 Aluminum 0 4 0 0Wholesale Decorating Color 2-Packlasses Clamp 1 1S lideh1-Pack Qty5-Pack Polymerdden Cabinets1gend-Packreff-Pack -Pack ringe -Pack Bulk Lines2 
+
+FreeAct (W4A4) B
+
+Figure 17. Case study of how FreeAct integrates into QWen2.5 VL and performs under the W4A4 quantization setting on the MMMU dataset, compared with the RTN method, which fails to respond. 
+
+Prompt: 
+
+<image 1> Baxter Company has a relevant range of production between 15,000 and 30,000 units. The following cost data represents average variable costs per unit for 25,000 units of production. If 30,000 units are produced, what are the per unit manufacturing overhead costs incurred?\nA. $6\nB. $7\nC. $8\nD. $9\n\nAnswer with the option’s letter from the given choices directly. 
+
+Response: BF16 B
+
+RTN (W4A4) In n 1, 1 5,000-00 0 s/ 1.5/0. 5/2. The 2010,000 sp?/ 1.5.0 are then 5/5/10*5 10/0/10/ 5/6?/ $The The average costs? / 10/6/5.0?. The The ten /5/5 The average cost/ 5,000/2/5 The average cost per10? /5%? The average? 5/5 5/0/5?/0 
+
+FreeAct (W4A4) B. $7 
+
+Figure 18. Case study of how FreeAct integrates into InternVL2.5 and performs under the W4A4 quantization setting on the MMMU dataset, compared with the RTN method, which fails to respond. 
+
+26
