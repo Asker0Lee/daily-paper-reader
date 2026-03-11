@@ -1,0 +1,1327 @@
+Title: The Geometry of Learning Under AI Delegation
+
+URL Source: https://arxiv.org/pdf/2603.02950v1
+
+Published Time: Wed, 04 Mar 2026 02:03:44 GMT
+
+Number of Pages: 40
+
+Markdown Content:
+# The Geometry of Learning Under AI Delegation 
+
+Lingxiao Huang Nanjing University Nisheeth K. Vishnoi Yale University 
+
+Abstract 
+
+As AI systems shift from tools to collaborators, a central question is how the skills of humans relying on them change over time. We study this question mathematically by modeling the joint evolution of human skill and AI delegation as a coupled dynamical system. In our model, delegation adapts to relative performance, while skill improves through use and decays under non-use; crucially, both updates arise from optimizing a single performance metric measuring expected task error. Despite this local alignment, adaptive AI use fundamentally alters the global stability structure of human skill acquisition. Beyond the high-skill equilibrium of human-only learning, the system admits a stable low-skill equilibrium corresponding to persistent reliance, separated by a sharp basin boundary that makes early decisions effectively irreversible under the induced dynamics. We further show that AI assistance can strictly improve short-run performance while inducing persistent long-run performance loss relative to the no-AI baseline, driven by a negative feedback between delegation and practice. We characterize how AI quality deforms the basin boundary and show that these effects are robust to noise and asymmetric trust updates. Our results identify stability, not incentives or misalignment, as the central mechanism by which AI assistance can undermine long-run human performance and skill. 
+
+1
+
+> arXiv:2603.02950v1 [cs.CY] 3 Mar 2026
+
+# Contents 
+
+1 Introduction 32 Model 53 Theoretical results 7
+
+3.1 Analyzing performance loss across time . . . . . . . . . . . . . . . . . . . . . . . . . 10 3.2 Overview of the proofs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 
+
+4 Model extensions and robustness 12 5 Omitted details for ODE (2) from Section 2 13 
+
+5.1 Deriving dynamics under AI assistance . . . . . . . . . . . . . . . . . . . . . . . . . . 14 5.2 Dynamics (8) tracks to ODE (2) . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 5.3 ODE (2) is well-posed and converges . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 5.4 Analysis of stochastic variant of ODE (3) . . . . . . . . . . . . . . . . . . . . . . . . 17 
+
+6 Omitted proofs and results from Section 3 18 
+
+6.1 Proof of Theorem 3.1: equilibrium of ODE (3) . . . . . . . . . . . . . . . . . . . . . 18 6.2 Proof of Theorem 3.2: two basins divided by saddle point . . . . . . . . . . . . . . . 20 6.3 Proof of Theorem 3.3: effects of θa on ψ . . . . . . . . . . . . . . . . . . . . . . . . . 22 6.4 Proof of Theorem 3.4: short-term gain, long-term losses . . . . . . . . . . . . . . . . 23 6.5 Proof of Lemma 3.5: negative coupling between skill and delegation . . . . . . . . . 24 6.6 Approximation of the stable manifold of the saddle point . . . . . . . . . . . . . . . . 26 6.7 Effects of parameters on the stable manifold . . . . . . . . . . . . . . . . . . . . . . . 28 
+
+7 Omitted details from Section 4 31 
+
+7.1 Derivation of ODE (5) for jagged AI . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 7.2 Derivation of ODE (6) for noisy update of delegations . . . . . . . . . . . . . . . . . 32 7.3 Derivation of ODE (7) for asymmetric update of delegations . . . . . . . . . . . . . . 33 7.4 Extension with alternative performance loss . . . . . . . . . . . . . . . . . . . . . . . 33 
+
+8 Usability of our model 34 9 Conclusions, limitations, and future work 37 
+
+21 Introduction 
+
+AI systems are increasingly used to support cognitive tasks such as writing, coding, and education [ 2, 15 , 3 , 16 ]. A key reason for this growing reliance is their ability to deliver immediate performance gains: improving accuracy, speed, or output quality over a short horizon [ 3, 16 , 15 ]. Accordingly, much of the current discourse treats AI use as a one-step decision, evaluated primarily through its short-term impact on task performance. Moreover, AI performance is often uneven across instances, alternating between strong and weak outputs even within the same task [ 6 ]. While such variability shapes users’ immediate experiences, it remains unclear whether long-run effects are driven by stochastic performance fluctuations or by more structural features of repeated reliance. Crucially, repeated use of AI tools turns users into learners: agents whose future performance depends on how current task execution shapes underlying skill. However, when such tools are used repeatedly, their impact has been shown to extend beyond immediate performance. Emerging longitudinal studies suggest that sustained AI use can alter users’ underlying abilities, leading to reduced independent performance, over-dependence, or skill atrophy once assistance is reduced or removed [ 13 , 3 , 2 , 8, 1 ]. For example, writers who rely on AI assistance exhibit weaker recall of their own text, reduced lexical diversity, and diminished sense of ownership, with these deficits persisting even after access to the AI is withdrawn [ 13 ]. Related field experiments in coding and mathematics similarly find that AI assistance improves immediate performance and throughput, but leads to diminished human skill acquisition [ 1 ] and worse post-test performance once the assistance is removed [ 3, 16 ]. Moreover, empirical studies report substantial heterogeneity in outcomes across different subjects, with some users benefiting from AI assistance while others stagnate or regress [29, 16, 32]. These findings point to a fundamental tension. AI assistance is often adopted because it improves short-term task performance, and these gains are likely to grow as AI systems become more capable. Yet repeated reliance may reshape human capability in ways that are invisible to one-step evaluations and short-run benchmarks. This raises a central question: How do repeated AI use and growing capability shape human skill and performance over time, and when do short-term gains become long-term losses? 
+
+Much of the existing literature is empirical, documenting patterns of reliance and skill change in specific tasks. To our knowledge, the long-term effects of repeated AI assistance on human ability have not been studied in a mathematical framework. Existing learning and decision-theoretic models can be applied in restricted settings, but they do not capture the interaction between short-term reliance, evolving human capability, and increasing AI strength. 
+
+Related work. Work on AI-assisted learning documents substantial short-term gains in productiv-ity and output quality alongside declines in retention, transfer, or post-test performance once assis-tance is removed, with heterogeneous effects across learners with distinct reliance [ 13 , 3, 16 , 29 , 30 ]. A recent survey [ 8] reports a negative relationship between the frequency of AI usage and cognitive load. These findings are often interpreted through behavioral and human–automation lenses, includ-ing cognitive offloading, automation bias, and incentive-driven task substitution [ 21 , 20 , 27 ], but remain largely descriptive and do not model long-run dynamics. Separately, mathematical models of human learning, ranging from learning-forgetting curves and stochastic approximation to Bayesian updating, reinforcement learning, and reinforced urn processes, capture error-driven improvement and use-it-or-lose-it decay under fixed task execution 3[7, 19 , 12 , 11 , 25 , 22 ]. In the absence of delegation, such models typically admit a unique stable learning equilibrium. Classical results in stochastic approximation show that many such learning rules track limiting ordinary differential equations whose global behavior governs convergence [ 4], but these analyses do not account for settings with adaptive delegation or the joint evolution of human skill and AI reliance under a shared performance objective. Related work on performative prediction and feedback loops studies how deployed models reshape data distributions [ 23 , 17 ], focusing on model learning under distribution shift rather than the evolution of human skill under adaptive reliance. 
+
+Our contributions. We provide a mathematical framework for studying the long-term effects of AI assistance on human performance. Our key abstraction models repeated AI use as a coupled dynamical system in which performance-driven delegation decisions shape the future evolution of human skill. A central feature is that delegation and skill updates are locally aligned, both optimize the same instantaneous objective, yet interact to produce qualitatively different global learning dynamics. Our main contributions are: 
+
+• A unified dynamical model of AI-assisted learning. We formulate repeated AI delegation and human learning as a coupled dynamical system driven by a single performance objective. Despite local alignment, delegation adapts to relative performance and skill evolves through use and non-use, the resulting global dynamics differ qualitatively from human-only learning. 
+
+• New equilibria under AI assistance. In contrast to human-only settings without AI assis-tance, which admit a unique high-skill equilibrium with no delegation, we prove that AI assistance introduces additional equilibria, including a stable low-skill equilibrium correspond-ing to persistent delegation and an interior saddle point whose skill matches that of the AI (Theorem 3.1). 
+
+• Geometry and irreversibility. We show that the stable manifold of the interior saddle point forms a one-dimensional global basin boundary separating the state space into exactly two basins of attraction, yielding path dependence and irreversible learning outcomes (Theorem 3.2). This irreversibility does not arise from decay alone, which is reversible in human-only learning, but from the interaction between skill dynamics and adaptive delegation. 
+
+• Short-run gains, long-run losses. We prove that AI assistance can strictly improve performance in the short run while inducing persistent long-run performance loss relative to the no-AI baseline, even when evaluation is based solely on task performance and the AI is highly capable but imperfect (Theorem 3.4). 
+
+• Mechanism of degradation. We identify a negative feedback mechanism in which higher initial delegation reduces practice, lowers skill, and induces further delegation through performance-driven updates. We show that this feedback strengthens as AI quality improves (Lemma 3.5). 
+
+• Effect of AI quality. We characterize how AI capability deforms the basin boundary, showing a monotonic dependence on AI quality (Theorem 3.3). Improving AI capability expands the low-skill basin and can dramatically extend the duration of short-term performance gains, even as it exacerbates long-run skill degradation (Figure 2c). 4• Extensions. We show that the qualitative phase structure of the dynamics, including multiple equilibria, basin boundaries, and irreversibility, persists under jagged AI performance, noisy or asymmetric delegation updates, and alternative performance objectives (Sections 4 and 7). Together, our results show that improving AI capability can amplify short-term gains while inducing persistent long-run losses in both human skill and task performance, even under fully rational, performance-driven behavior. These effects arise from the global dynamics induced by adaptive delegation, not from incentive misalignment. 
+
+# 2 Model 
+
+We study a repeated task-execution scenario in which a user chooses between performing a task independently or delegating it to AI and receives performance feedback on the resulting output. When such feedback is observed repeatedly, the user acquires an evolving internal capability; we therefore model the user as a learner with a time-varying skill parameter. Performance feedback is provided by an external evaluator, which in the repeated-feedback regime effectively plays the role of a teacher . This setting isolates the effects of endogenous delegation under AI assistance. We focus on error-driven learners [ 25 , 9 ], whose updates, covering both skill and delegation, are governed by observed performance loss. Accordingly, we begin by specifying the performance loss that drives the learning dynamics. 
+
+Skill representation. We represent task-specific ability as a latent scalar parameter that governs performance quality on the task. This parameter summarizes task-specific performance relative to the target. For analytical convenience, we represent skill as a scalar θ ∈ [0 , 1], where θ = 1 corresponds to optimal task performance. This scalar representation provides a minimal summary of task-specific performance and can be viewed as a projection of richer latent skill spaces often modeled geometrically in machine learning. Such geometric abstractions are common in settings such as semi-supervised learning and deep generative models [ 26 , 14 , 28 ]. Let θ(t) ∈ [0 , 1] denote the learner’s skill at time t. Let θa ∈ [0 , 1] denote the AI’s effective skill , defined as the expected performance of the AI under the task loss. Importantly, this parameter does not assume that AI performance is stable or deterministic. In practice, AI systems are often jagged, producing highly accurate outputs on many instances while occasionally making severe errors [ 6 ]. As shown in Section 4, such variability admits a performance-equivalent deterministic representation under the expected loss. 
+
+Performance loss. Task performance is evaluated by an external evaluator against a fixed target. We represent task-specific ability by a scalar skill parameter θ ∈ [0 , 1], where θ = 1 corresponds to optimal task performance. Let θ(t) denote the learner’s skill at time t, and let θa denote the AI’s effective skill, defined as its expected performance under the task loss. Let X(t) ∈ { 0, 1}
+
+be the delegation indicator, where X(t) = 1 corresponds to delegating the task to AI. We define the instantaneous performance loss as ℓ(θ(t), X (t)) := (1 − X(t))(1 − θ(t)) 2 + X(t)(1 − θa)2. Let 
+
+p(t) ∈ [0 , 1] denote the delegation level, i.e., Pr [X(t) = 1] = p(t). The expected instantaneous performance loss is 
+
+ℓ(θ(t), p (t)) = (1 − p(t))(1 − θ(t)) 2 + p(t)(1 − θa)2. (1) 5When (1 − θ(t)) 2 ≥ (1 − θa)2, increasing delegation strictly improves short-run performance, creating an incentive to rely on AI. 
+
+Skill update. The learner’s skill θ(t) ∈ [0 , 1] evolves in response to observed performance loss and decays under non-use. To model bounded skill dynamics, we adopt a standard multiplicative-update metric, F (θ) = 1 
+
+> θ(1 −θ)
+
+, which induces updates proportional to θ(1 − θ) and is widely used in learning and evolutionary dynamics [18]. Conditioned on the realized delegation decision X(t), minimizing the instantaneous loss ℓ(θ(t), X (t)) induces the learning drift 
+
+gt := F (θ(t)) −1 ∂θℓ(θ(t), X (t)) ,
+
+corresponding to replicator-style (MWU) dynamics. When the task is delegated to AI ( X(t) = 1), the learner does not practice and skill decays toward a default level θd ∈ [0 , 1] [ 10 , 25 ]. We model this as a decay drift 
+
+dt := X(t) F (θ(t)) −1 ∂θ(θ(t) − θd)2.
+
+Combining learning and decay yields the stochastic update 
+
+θ(t + 1) − θ(t) = −η (gt + ∆ dt) ,
+
+where η > 0 is the learning rate and ∆ > 0 controls the relative strength of decay. Taking expectations and noting Pr[ X(t) = 1] = p(t) gives 
+
+E[θ(t + 1) − θ(t) | θ(t)] = 2 ηθ (t)(1 − θ(t)) ((1 − p(t))(1 − θ(t)) + ∆ p(t)( θd − θ(t))) .
+
+As delegation increases, the expected skill update transitions from improvement toward the task optimum to decay toward the default level. 
+
+Delegation update. We assume that the learner can estimate its own performance loss and the AI-induced loss under the task objective. Accordingly, the delegation level p(t) ∈ [0 , 1] adapts to minimize the expected performance loss ℓ(θ(t), p (t)). Since p(t) is a probability, we model its evolution using a multiplicative update. Taking a gradient step on ℓ(θ(t), p (t)) yields 
+
+p(t + 1) − p(t) := −κ · 2ηF (p(t)) −1∂pℓ(θ(t), p (t)) = κ · 2η p (t)(1 − p(t))  (1 − θ(t)) 2 − (1 − θa)2 ,
+
+where κ > 0 controls the relative adaptation rate of delegation. When the AI outperforms the learner, i.e., (1 − θ(t)) 2 ≥ (1 − θa)2, delegation increases; otherwise it decreases. This captures the empirically observed tendency of lower-skill users to rely more heavily on AI assistance [3, 30]. 
+
+Dynamics. The update rules above define a discrete-time stochastic process. Following standard stochastic-approximation arguments [ 4 ], we show that, as the step size η → 0, the expected trajectories of this process are well approximated by the following system of ordinary differential equations: ˙θ = θ(1 − θ)((1 − p)(1 − θ) + ∆ p(θd − θ)) ,
+
+˙p = κ p (1 − p)((1 − θ)2 − (1 − θa)2). (2) 6(a) Comparison of (3) and (4) (b) Illustration of Theorem 3.2 (c) Effects of θa
+
+Figure 1: Plots illustrating the outcomes of ODE (3) and effects of AI skill, with default settings of (θa, κ, ∆) = (0 .5, 3, 2). A complete derivation and an analysis of the stochastic trajectories are provided in Section 5. Importantly, both θ and p evolve to locally minimize the same instantaneous performance loss, so the system exhibits no incentive misalignment. Despite this local alignment, the resulting global dynamics differ qualitatively from human-only learning, giving rise to multiple equilibria and path-dependent outcomes. Throughout the analysis, we compare the long-run behavior of (2) across different initial conditions ( θ0, p 0) and against the no-AI baseline (4) . Unless otherwise stated, we consider the regime θa, θ 0 ∈ [θd, 1]. Without loss of generality, we normalize θd = 0, yielding the simplified system ˙θ = θ(1 − θ) ((1 − p)(1 − θ) − ∆p θ ) ,
+
+˙p = κ p (1 − p)  (1 − θ)2 − (1 − θa)2 . (3) Analysis of the general case is deferred to Section 5.3. 
+
+Comparison with no-AI case. When the initial delegation level is p0 = 0, we have p(t) ≡ 0, yielding a one-dimensional skill dynamics ˙θ = θ(1 − θ)(1 − θ), (4) which corresponds to learning without AI assistance. This ODE converges to a unique globally stable equilibrium at θ = 1, consistent with classical learning models [ 19 , 4]. This agreement serves as a sanity check for (3). Figure 1a visualizes the phase spaces with and without AI assistance. The introduction of adaptive delegation substantially alters the dynamics, partitioning the state space [0 , 1] 2 into multiple behavioral regions separated by the nullclines ˙θ = 0 and ˙ p = 0. 
+
+Remark 2.1 ( Usability of the model) . We provide an explicit procedure for estimating the parameters θa, κ, and ∆ from data in Section 8, together with a worked numerical example. 
+
+# 3 Theoretical results 
+
+We analyze the qualitative long-run behavior of the learning dynamics (3) , with a focus on how adaptive delegation reshapes learning outcomes. Our results proceed in three steps: (i) we charac-terize the fixed points introduced by AI assistance, (ii) we show that the resulting saddle structure 7partitions the state space into two basins of attraction, and (iii) we quantify the resulting tradeoff between short-run performance gains and long-run losses. Throughout, we study the flow of ODE (3) on the interior (0 , 1) 2. A standard stochastic-approximation argument implies that the discrete-time process from Section 2 tracks this ODE in the small-step regime. Basic well-posedness facts (forward invariance and global existence) are stated and proved in Section 5.3. We begin by comparing (3) with the no-AI baseline (4) . Adaptive delegation changes the fixed-point structure: in addition to the high-skill equilibrium, the system admits a stable low-skill equilibrium corresponding to persistent delegation. 
+
+Theorem 3.1 (Equilibria of ODE (3) ). Let θa, κ, ∆ be the parameters of ODE (3) . When θa ∈
+
+(0 , 1) , the ODE system exhibits two stable nodes (sinks): a high-skill equilibrium at (θ∞, p ∞) = (1 , 0) 
+
+and a low-skill equilibrium (θ∞, p ∞) = (0 , 1) ; two unstable nodes (sources) at (0 , 0) and (1 , 1) ; and an additional interior saddle point ( θ†, p †) = ( θa, 1−θa 
+
+> 1−(1 −∆) θa
+
+).
+
+The key observation is that AI assistance introduces an additional stable low-skill equilibrium (0 , 1), in contrast to the no-AI baseline (4) , which admits a unique stable high-skill equilibrium θ∞ = 1. The key qualitative change is the emergence of an additional stable equilibrium at (0 , 1), which has no analog in the no-AI baseline (4) . The interior saddle point mediates this shift, producing a phase portrait with competing long-run outcomes. This provides a dynamical explanation for heterogeneous effects of AI assistance across learners reported in recent empirical studies [13, 16]. As θa → 0, the saddle ( θ†, p †) approaches the low-skill equilibrium (0 , 1); as θa → 1, it approaches (1 , 0). Thus, AI quality directly shifts the global geometry of learning. The remaining question is which initial conditions converge to the low-skill equilibrium. This is determined not by local improvement, but by which side of the saddle’s stable manifold the learner starts on. 
+
+Theorem 3.2 (Two basins divided by saddle point). Let θa, κ, ∆ be the parameters of ODE 
+
+(3) . Let (p†, θ †) be the interior saddle point guaranteed by Theorem 3.1. There exists a monotonically increasing differentiable function ψ : (0 , 1) → (0 , 1) that extends continuously to [0 , 1] with ψ(0) = 0 
+
+and ψ(1) = 1 , whose graph coincides with the one-dimensional stable manifold of (θ†, p †) within 
+
+(0 , 1) 2. The curve p = ψ(θ) partitions the state space [0 , 1] 2 into two distinct basins of attraction: 
+
+• For any initial state with p0 > ψ (θ0) (higher delegation), the learner converges to the low-skill equilibrium (0 , 1) .
+
+• For any initial state with p0 < ψ (θ0) (lower delegation), the learner converges to the high-skill equilibrium (1 , 0) .
+
+Note that the stable manifold of the saddle point serves as a boundary that partitions the state space into exactly two basins of attraction. In particular, a slight increase in the initial delegation level p0
+
+can shift the system from p0 < ψ (θ0) to p0 > ψ (θ0), causing the learner to converge to the low-skill equilibrium. Thus, adaptive delegation creates a feedback loop: increased delegation reduces practice, which lowers skill and in turn increases future delegation through performance-driven updates. Although each update is locally aligned with the same performance objective, their interaction alters the global stability structure. In particular, the low-skill outcome is not explained by decay alone, which is reversible when p ≡ 0, but by the coupling between decay and adaptive delegation. Figure 1b visualizes the stable manifold ψ(·) and the two basins of attraction. 8The monotonicity of ψ with respect to θ indicates that AI delegation is more risky for early-stage learners: even small initial levels of delegation can place them in the low-skill basin, from which recovery requires sustained reductions in delegation. For example, when θ0 = 0 .2, a slight initial delegation with p0 > 0.07 pushes the learner into the low-skill basin. Moreover, since the stable manifold terminates at (1 , 1), we have ψ(θ) < 1 for any θ < 1. This implies that even highly skilled learners may face the risk of skill degradation under sufficiently heavy reliance on AI. To enable actionable predictions of whether a learner lies in the low-skill basin, we propose a piecewise-polynomial approximation eψ(·) of the basin boundary; see Equation (16) and Figure 4a in Section 6.6. 
+
+Effects of AI quality on the basin boundary. We next ask whether a better AI can reduce the risk of skill degradation for learners. To address this, we propose the following theorem that characterize how the basin boundary ψ varies with AI skill θa.
+
+Theorem 3.3 (Effects of θa on ψ). For all θ ∈ (0 , 1) , ψ(θ) is monotonically decreasing in θa
+
+and continuously differentiable with respect to θa. Moreover, for any (θ0, p 0) ∈ (0 , 1) 2, there exists 
+
+θa ∈ (0 , 1) such that p0 = ψθa (θ0).
+
+Theorem 3.3 implies that increasing AI skill shifts the basin boundary downward, expanding the set of initial conditions that converge to the low-skill equilibrium. Equivalently, as θa grows, the threshold of “safe” delegation becomes more stringent. Figure 1c illustrates this dependence. For low AI quality (e.g., θa = 0 .01), the low-skill basin is small. For very high AI quality (e.g., θa = 0 .99), the high-skill basin is small, corresponding to near-complete task replacement. As θa increases from 0 to 1, the interior saddle point moves continuously, approaching (0 , 1) as 
+
+θa → 0 and (1 , 0) as θa → 1. This motion induces a shifting threshold of safe delegation: beyond the boundary p = ψ(θ), trajectories are drawn into the low-skill basin. A key implication is that no learner is inherently safe as AI capability increases: for sufficiently large θa, any interior initial condition may fall into the low-skill basin. Sustained practice therefore remains necessary even when AI systems are highly capable. Providing early-stage learners with access to near-solution-level assistance can be particularly risky, since it increases delegation precisely when the learner’s skill is still forming. These predictions are consistent with recent evidence [ 32 , 3]. In particular, settings closer to “feedback”-style assistance tend to show weaker learning losses than settings closer to “solution”-style assistance, which aligns with our model’s dependence on effective AI skill. A further implication is that the timing of access matters: introducing AI after partial skill acquisition can lead to different outcomes than introducing it from the outset, even with the same total exposure. This non-commutativity is evidenced in [ 13 ], where participants who trained without LLMs and were later granted access (termed as “Brain-to-LLM”) outperformed those who received immediate access, both in quotation accuracy and in self-reported essay ownership. These findings support a dynamic view of delegation, in which AI tools interact with the learner’s evolving state rather than acting as context-free substitutes for effort. In addition, we study how the basin boundary varies with other parameters, namely κ and ∆, thereby validating the robustness of the convergence behavior under AI assistance. See Section 6.7 for the corresponding results. We next translate these asymptotic predictions about skill into consequences for task performance over time. 9(a) Loss with and without AI (b) Varying θa = 0 .8 (c) Crossing time v.s. θa
+
+Figure 2: Plots illustrating the instantaneous performance loss across time with and with AI, and how the crossing point varies with respect to AI skill θa, with default settings of ( θa, κ, ∆, θ 0, p 0) = (0 .5, 3, 2, 0.4, 0.3). 
+
+3.1 Analyzing performance loss across time 
+
+Although AI assistance may lead to long-run skill degradation, it can reduce instantaneous perfor-mance loss in the short run. This effect is particularly pronounced for early-stage learners with 
+
+θ0 < θ a, for whom the instantaneous loss ℓ(θ0, p 0) is monotonically decreasing in the delegation level p0. As discussed in Section 1, related experiments find that AI assistance improves immediate performance, but that this advantage may diminish or even reverse as interaction time increases [3, 13 ]. For example, in essay-writing tasks, the average accuracy of the LLM-assisted group is consistently higher than that of the brain-only group in the first section, while the brain-only group achieves higher average accuracy by the third section; see Figure 41 in [ 13 ]. These observations raise a natural question: can the performance gains from AI assistance persist over time? To answer this question, we first define the difference in instantaneous performance loss over time between the AI-assisted and no-AI settings. For an initial state ( θ0, p 0) ∈ (0 , 1) 2, let θ(t; θ0, p 0)and p(t; θ0, p 0) denote the learner’s skill and delegation level at time t, respectively. In particular, 
+
+θ(t; θ0, 0) corresponds to the learner’s skill at time t in the absence of AI, yielding a performance loss of (1 − θ(t; θ0, 0)) 2. We define the performance gap at time t as 
+
+Gℓ(t) := ℓ (θ(t; θ0, p 0), p (t; θ0, p 0)) − (1 − θ(t; θ0, 0)) 2,
+
+which is the difference in instantaneous performance loss at time t between an AI-assisted learner with initial state ( θ0, p 0) and a no-AI learner with initial skill θ0. A negative value Gℓ(t) < 0 means that delegation yields lower loss at time t than learning without AI. We ask whether Gℓ(t) < 0 can hold for all t ≥ 0. 
+
+Theorem 3.4 (Short-term gains, long-term losses). Let θa, κ, ∆ be the parameters of ODE 
+
+(3) . Given an initial state (θ0, p 0) ∈ (0 , 1) 2 with θ0 < θ a, let tc := inf {t ≥ 0 : ∀t′ > t, G ℓ(t′) > 0}
+
+denote the crossing time after which AI delegation incurs higher loss than the no-AI baseline. Then 
+
+tc < ∞. Moreover, tc = 0 when θ0 ≥ θa and θ(tc; θ0, 0) ≤ θa when θ0 < θ a.
+
+This result shows that AI assistance yields a short-term performance gain but leads to persistent performance loss after a crossing time tc; see Figure 2a for an illustration. The crossing time tc
+
+reflects a balance between two competing effects: (1) a performance gain induced by delegating to an AI with higher skill than the learner, i.e., θa > θ (t; θ0, p 0) for t < t c, and (2) a performance loss 10 induced by skill degradation due to delegation, i.e., θ(t; θ0, p 0) ≤ θ(t; θ0, 0) for all t ≥ 0, as guaranteed by Lemma 3.5. Notably, the long-run loss reflects both decay under non-use and foregone learning opportunities during delegation, effects that are not internalized under myopic, performance-driven updates. This mechanism yields what is often called the cognitive debt phenomenon [ 13 ]: short-term performance gains from AI delegation are eventually outweighed by structurally foregone practice under adaptive delegation. 
+
+Effects of AI quality on the performance crossing time. We next study how the crossing time tc varies with AI skill θa. This question is of practical interest to learners, for example, those who aim to ensure that the period of performance gains covers the duration of a course when grades are prioritized over skill acquisition. To address this question, we visualize how the crossing time tc varies with θa in Figure 2c. The plot shows that the duration of performance gains can be substantially prolonged as AI quality improves. When θa ≤ θ0 = 0 .4, we have tc = 0, since the no-AI learner consistently outperforms the AI-assisted learner in this regime. In contrast, when θa increases to a high capability level (e.g., θa = 0 .78), in the plotted example, the crossing time can increase sharply from tc = 1 .482 to 
+
+tc = 3 .954. This occurs because multiple solutions to Gℓ(t) = 0 appear, as illustrated in Figure 2b. Intuitively, a learner without AI requires substantially more time to surpass a highly capable AI through independent learning, thereby extending the period during which AI assistance yields a performance advantage. Higher AI capability can dramatically extend the window of short-run gains while expanding the low-skill basin (Theorem 3.3). As a result, improvements in AI quality can increase the misalignment between optimizing short-term performance and optimizing long-term skill. This tension underscores the risks of incorporating highly capable AI into learning processes and the need to redesign learner incentives and reward structures. 
+
+3.2 Overview of the proofs 
+
+We summarize the key proof ideas underlying each main theorem; full proofs are deferred to Section 6. 
+
+To Theorem 3.1. The first step is to solve equations ˙θ = ˙p = 0, yielding four corner equilibria in {0, 1}2 and a unique interior equilibrium ( θ†, p †), located at the intersection of the two interior nullclines (1 − p)(1 − θ) − ∆pθ = 0 and (1 − θ)2 − (1 − θa)2 = 0. To analyze stability, we study the eigenvalues of the Jacobian matrix J =
+
+∂θ ˙θ ∂p ˙θ∂θ ˙p ∂p ˙p
+
+
+
+.
+
+For a corner equilibrium ( θ∞, p ∞) ∈ { 0, 1}2, the Jacobian is diagonal: J = diag (∂θ ˙θ, ∂ p ˙p), where 
+
+∂θ ˙θ = (1 − 2θ∞) ((1 − p∞)(1 − θ∞) − ∆p∞θ∞) , and ∂p ˙p = κ(1 − 2p∞)  (1 − θ∞)2 − (1 − θa)2 .
+
+When θ∞ = p∞, both ∂θ ˙θ and ∂p ˙p are positive, so both eigenvalues of J are positive. Thus, (0 , 0) and (1 , 1) are unstable sources. In contrast, when θ∞̸ = p∞, one eigenvalue is zero and the other one is negative, so the corresponding corner equilibria are (non-hyperbolic) stable sinks. Finally, for the interior equilibrium ( θ†, p †), the Jacobian takes the form J =
+
+∂θ ˙θ ∂p ˙θ∂θ ˙p 0
+
+
+
+, where 
+
+∂p ˙θ = − θ2 
+
+> a(1 −θa)
+> p†
+
+< 0, ∂ θ ˙p = −2κp †(1 − p†)θa(1 − θa) < 0. Thus, the Jacobian has one positive and one negative eigenvalue, and ( θ†, p †) is a saddle point. 11 To Theorem 3.2 and Theorem 3.3. The key is to understand why higher initial delegation 
+
+p0, lower initial skill θ0, and greater AI skill θa increase susceptibility to long-run skill degradation, shaping the low-skill basin in Theorem 3.2 and its deformation with θa (Theorem 3.3). To address this question, we establish the following lemma, which identifies a negative coupling between skill and delegation. This lemma is the main monotonicity principle driving both the basin geometry and the performance results. 
+
+Lemma 3.5 (Negative coupling between skill and delegation ). Let θa, κ, and ∆ be the parameters of ODE (3) . For any t > 0, θ(t) is non-increasing and p(t) is non-decreasing as functions of each of the following variables: the initial delegation p0, the initial skill gap 1 − θ0, and θa.
+
+As t → ∞ , the lemma implies that the limiting skill level θ∞ is non-increasing in the initial delegation 
+
+p0, the initial skill gap 1 − θ0, and the AI skill θa, supporting the monotonic basin structure in our theory. Technically, we exploit the system’s monotonicity to lift local saddle stability to a global partition of the phase space. Beyond its technical role, Lemma 3.5 implies that among learners with identical initial skills, the one with a higher delegation level will have lower skill at any point in time. This provides a theoretical explanation for the negative correlation between delegation level and human understanding, coding proficiency, and cognitive load reported in [ 1 , 8], and predicts that this effect strengthens as AI quality improves. 
+
+To Theorem 3.4. The key insight is that once the no-AI learner’s skill reaches θ(t; θ0, 0) ≥ θa, it will thereafter consistently outperform the AI-assisted learner. This follows from Lemma 3.5, which guarantees that θ(t; θ0, p 0) < θ (t; θ0, 0) for all t > 0, and from the definition of tc as the first time at which θ(t; θ0, 0) reaches θa. Together, these observations yield the properties of the crossing time tc
+
+established in Theorem 3.4. 
+
+# 4 Model extensions and robustness 
+
+Recall that ODE (3) is a minimal dynamical system introduced for analytical tractability. This raises a natural question: does the qualitative phase structure persist in more general settings? To address this, we consider several extensions of the system and examine how they reshape the basins of attraction, thereby validating the robustness of our analytical results. Key results are summarized below, with full derivations and figures in Section 7. 
+
+Jagged AI and effective skill. Recall that AI performance is often jagged across instances in practice [ 6 ]. Let s ∈ [0 , 1] denote the random per-instance skill of a jagged AI and let μa denote a distribution over AI skill on [0 , 1]. For instance, one may consider a two-point case: s = 1 with probability q and s = θℓ with probability 1 − q. When q is close to 1, this represents a highly capable but occasionally failing AI. Consequently, the update of the delegation level becomes: ˙p = κp (1 − p)  (1 − θ)2 − Es∼μa [(1 − s)2] . (5) To analyze the effect of the jagged AI on basins, we define the effective skill bθa as the deterministic skill that matches expected squared task error: (1 − bθa)2 = E(1 − s)2. This definition ensures that 12 a jagged AI and a deterministic AI with ability bθa are equivalent under the performance metric governing delegation decisions in our model. In the two-point case, this yields (1 − bθa)2 = (1 − q)(1 − θℓ)2, bθa = 1 − p1 − q (1 − θℓ).
+
+As a result, the phase structure and basin geometry derived in Section 3 remain unchanged under jagged AI. Since Es∼μa
+
+(1 − s)2 ≥ (1 − Es∼μa [s]) 2, randomness in AI skill increases the effective expected loss of delegation relative to a deterministic AI with the same mean skill, enlarging the high-skill basin. 
+
+Noisy update of delegations. ODE (3) assumes accurate beliefs about the AI-induced per-formance loss (1 − θa)2 when updating delegation, which may not hold in practice. For instance, humans may overestimate AI skill due to surface fluency [ 6]. Let eθa ∈ [0 , 1] denote the skill level that the learner believes the AI to have. This misperception affects the delegation update through the loss term used when evaluating delegation decisions, leading to ˙p = κp (1 − p) (1 − p)
+
+
+
+(1 − θ)2 − (1 − eθa)2
+
++ p  (1 − θ)2 − (1 − θa)2 , (6) where the learner evaluates delegation using the perceived loss (1 − eθa)2, while realized outcomes depend on the true loss (1 − θa)2. Then overestimating AI skill (i.e., eθa > θ a) increases reliance on AI, enlarging the low-skill basin. 
+
+Asymmetric update of delegations. ODE (2) assumes a uniform update rate κ for the delegation level, regardless of whether the learner outperforms the AI (i.e., (1 − θ)2 < (1 − θa)2) or vice versa. This corresponds to a risk-neutral learner, whereas learners in practice often exhibit asymmetric responses to positive and negative evidence [ 33 , 5 ]. For example, a learner may reduce delegation more aggressively upon realizing that the AI performs worse. To capture this behavior, we introduce a risk-aversion factor α ≥ 0 that controls the update rate when the learner outperforms the AI. Let [ x]+ := max {x, 0} for x ∈ R, and let f (p) := 
+
+κp (1 − p)  (1 − θ)2 − (1 − θa)2 denote the default delegation update in ODE (3) . We then derive the following asymmetric update rule for the delegation level: ˙p = [ f (p)] + − α [−f (p)] +. (7) When α > 1, negative evidence about AI performance is weighted more heavily than positive evidence, causing delegation to decrease faster once the learner outperforms the AI. Geometrically, this asymmetry shifts the stable manifold outward, enlarging the high-skill basin. Consequently, this extension can be interpreted as an intervention policy for senior learners with θ0 > θ a, encouraging vigilance against over-reliance on AI without restricting access outright. In addition, we consider an extension with an alternative performance loss in Section 7.4. These extensions show that multiple equilibria, basin boundaries, and long-run degradation are not artifacts of particular modeling choices, but structurally stable consequences of adaptive AI delegation. 
+
+# 5 Omitted details for ODE (2) from Section 2 
+
+In this section, we first derive a dynamics from the learning procedure, and then show that the dynamics tracks to ODE (2) . Finally, we prove some basic properties of ODE (2) , which are omitted in the main body. Table 1 summarizes notations used in this paper. 13 Table 1: Used notations                                                                         
+
+> Symbol Domain Description
+> 1[0 ,1] Target skill
+> θd[0 ,1] Default skill
+> θa[0 ,1] AI skill
+> θ0[0 ,1] Initial skill of learner
+> θ(t)[0 ,1] Learner skill at time tθ(t;θ0, p 0)[0 ,1] Learner skill at time twith initial state ( θ0, p 0)
+> p0[0 ,1] Initial delegation level of learner
+> p(t)[0 ,1] Delegation level at time tp(t;θ0, p 0)[0 ,1] Delegation level at time twith initial state ( θ0, p 0)∆R≥0Decay rate
+> κR≥0Delegation rate
+> d(θ, θ ′)[0 ,1] 2→R≥0Distance between two skills θand θ′
+> ℓ(θ, p )[0 ,1] 2→R≥0Instantaneous performance loss w.r.t. skill θand delegation levels pψ(θ)[0 ,1] →[0 ,1] Mapping for the stable manifold of saddle point from θto a delegation level
+> Gℓ(t)R≥0→RPerformance gap between with and without AI at time ttcR≥0Maximum crossing time for performance loss
+
+5.1 Deriving dynamics under AI assistance 
+
+Let X(t) ∈ { 0, 1} denote the action of the learner at round t, where X(t) = 0 represents that the learner does the task by itself and X(t) = 1 represents that the learner delegates the task to AI. Let 
+
+p(t) ∈ [0 , 1] denote the probability of X(t) = 1 at round t. Let θ(t) ∈ denote the skill of the learner at round t. Recall that θd, θ a ∈ [0 , 1] denote the default skill and AI skill, respectively. The mechanism of learning with AI assistance is: At round t,
+
+• (Task completion stage) Learner delegates the task to AI with probability p(t), which sets 
+
+X(t) = 1; and does the task by itself with probability 1 − p(t), which sets X(t) = 0. 
+
+• (Evaluation stage) Learner submits the output to the teacher. The teacher gives a loss ℓt to the learner, where 
+
+ℓt := (1 − X(t))(1 − θ(t)) 2 + X(t) · (1 − θa)2.
+
+• (Update of skill) If X(t) = 0, the learner skill (intrinsically) updates towards the target 1 according to the loss ℓt = (1 − θ(t)) 2:
+
+θ(t + 1) := θ(t) + 2 ηθ (t)(1 − θ(t)) 2
+
+Otherwise, if X(t) = 1, the learner skill decays towards θd due to non-practice: 
+
+θ(t + 1) := θ(t) + 2 η∆θ(t)(1 − θ(t))( θd − θ(t)) .
+
+• (Update of delegation level) If X(t) = 0, assume that the learner has an accurate belief (1 − θa)2 on the loss of AI’s output. Otherwise, if X(t) = 1, assume that the learner has an accurate belief (1 − θ(t)) 2 on the loss of its output. Together with the obtained loss ℓt, the learner updates its delegation level as follows: 
+
+p(t + 1) := p(t) + κ · 2ηp (t)(1 − p(t))  (1 − θ(t)) 2 − (1 − θa)2 .
+
+14 In summary, we derive the following stochastic dynamics under AI assistance: 
+
+X(t) ∼ Bern( p(t)) ,θ(t + 1) = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − X(t))(1 − θ(t)) + ∆ · X(t) · (θd − θ(t))] 
+
+p(t + 1) = p(t) + κ · 2ηp (t)(1 − p(t))[(1 − θ(t)) 2 − (1 − θa)2].
+
+(8) 
+
+5.2 Dynamics (8) tracks to ODE (2) 
+
+We show that as the step size η → 0, the stochastic trajectory of Dynamics (8) converges to the solution of the ODE (2). We first derive the expected dynamics of the discrete system. 
+
+Lemma 5.1 (Expected discrete dynamics). The expected evolution of the stochastic system 
+
+(8) , conditional on the current state (θ(t), p (t)) , is given by the deterministic map: 
+
+E[θ(t + 1) | F t] = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − p(t))(1 − θ(t)) + ∆ · p(t) · (θd − θ(t))] ,p(t + 1) = p(t) + κ · 2ηp (t)(1 − p(t))[(1 − θ(t)) 2 − (1 − θa)2]. (9) 
+
+Proof. Let Ft denote the filtration generated by the history up to time t. Note that the update for 
+
+p(t + 1) is deterministic given Ft. The update for θ(t + 1) depends on the random variable X(t). Since X(t) ∼ Bern (p(t)), we have E[X(t) | F t] = p(t). Because the update rule for θ(t + 1) is affine in X(t), we can compute the conditional expectation by substituting X(t) with its mean p(t): 
+
+E[θ(t + 1) | F t] = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − E[X(t)])(1 − θ(t)) + ∆ E[X(t)]( θd − θ(t))] = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − p(t))(1 − θ(t)) + ∆ p(t)( θd − θ(t))] .
+
+This yields the system (9). By standard results in stochastic approximation [ 4, 12 ], as η → 0, the trajectory of the stochastic process (8) concentrates around the solution of the ODE defined by the drift fields in (9) , which is exactly ODE (2). 
+
+5.3 ODE (2) is well-posed and converges 
+
+We show that ODE (2) admits a solution from any initial condition and has no cycles, providing a foundation for the analysis in Section 3. 
+
+Theorem 5.2 (Existence of a solution and convergence). Let θa, κ, ∆ be the parameters of ODE (3) . Then for any initial state (θ0, p 0) ∈ [0 , 1] 2, the following properties hold: 
+
+• ODE (3) has a unique solution (p(t), θ (t)) ∈ [0 , 1] × (0 , 1) defined for all t ≥ 0;
+
+• There always exists (θ∞, p ∞) ∈ [0 , 1] × (0 , 1) such that lim t→∞ (p(t), θ (t)) = ( p∞, θ ∞).Proof. We write x = ( θ, p ) ∈ R2 and denote by F : R2 → R2 the vector field given by the right-hand side of the system, so that the ODE can be written concisely as ˙x = F (x).
+
+15 Local existence and uniqueness. Each component of F is a polynomial in ( θ, p ), obtained as a product of factors of the form θ, (1 − θ), ( θd − θ), p, (1 − p) and fixed parameters in [0 , 1]. In particular, F is C∞ on R2, hence locally Lipschitz. By the Picard–Lindel¨ of theorem for autonomous systems in R2, for every initial condition x0 ∈ R2
+
+there exists a unique maximal solution x : [0 , T max ) → R2 with Tmax > 0 such that x(0) = x0 and ˙x(t) = F (x(t)) for all t ∈ [0 , T max ). 
+
+Lemma 5.3 (Logistic barrier lemma). Let g : [0 , T max ) → R be continuous, and consider the scalar nonautonomous ODE 
+
+˙y(t) = y(t) 1 − y(t) g(t), t ∈ [0 , T max ).
+
+Suppose y : [0 , T max ) → R is a C1 solution with y(0) ∈ [0 , 1] . Then 
+
+y(t) ∈ [0 , 1] for all t ∈ [0 , T max ).
+
+Proof. Define 
+
+S := {t ∈ [0 , T max ) : y(s) ∈ [0 , 1] for all s ∈ [0 , t ]},
+
+and let τ := sup S. Since y(0) ∈ [0 , 1] and y is continuous, we have 0 ∈ S so S̸ = ∅ and τ ∈ (0 , T max ]. By continuity of y, we have y(t) ∈ [0 , 1] for all t ∈ [0 , τ ] and y(τ ) ∈ [0 , 1]. We claim that τ = Tmax .Suppose, for contradiction, that τ < T max .
+
+Case 1: y(τ ) ∈ (0 , 1) . Then, by continuity, there exists ε > 0 such that the solution is defined on [ τ, τ + ε] and y(t) ∈ (0 , 1) ⊂ [0 , 1] for all t ∈ [τ, τ + ε]. Thus y(t) ∈ [0 , 1] for all t ∈ [0 , τ + ε], contradicting the definition of τ as the supremum of S.
+
+Case 2: y(τ ) ∈ { 0, 1}. Without loss of generality assume y(τ ) = 0; the case y(τ ) = 1 is identical. Consider the scalar ODE ˙z(t) = f (t, z (t)) , f (t, z ) := z(1 − z)g(t),
+
+with initial condition z(τ ) = 0. The map f is continuous in ( t, z ) and, for each fixed t, it is a polynomial in z, hence locally Lipschitz in z on R. By the Picard–Lindel¨ of theorem for nonautonomous scalar ODEs, there exists a unique solution z(t) in a neighborhood of τ with 
+
+z(τ ) = 0. Note that the constant function z(t) ≡ 0 is a solution, since f (t, 0) = 0 for all t. Our original function y(t) also solves the same ODE and satisfies y(τ ) = 0. By uniqueness of solutions through (τ, 0), we must have y(t) ≡ 0 on some interval [ τ, τ + ε] for ε > 0. In particular, y(t) ∈ [0 , 1] for all 
+
+t ∈ [0 , τ + ε], again contradicting the definition of τ .We have reached a contradiction in both cases, so our assumption τ < T max was false. Hence 
+
+τ = Tmax and therefore y(t) ∈ [0 , 1] for all t ∈ [0 , T max ). 
+
+Invariance of [0 , 1] for each coordinate. Each coordinate of x(t) can be rewritten in the form ˙y(t) = y(t)(1 − y(t)) g(t),
+
+with g(t) continuous. Thus each coordinate satisfies the hypotheses of Lemma 5.3. Since the initial condition lies in [0 , 1] 2, we conclude 
+
+θ(t), p (t) ∈ [0 , 1] for all t ∈ [0 , T max ).
+
+Hence [0 , 1] 2 is positively invariant. Since f (t, y ) = y(1 − y)g(t) is a polynomial in y, it is locally Lipschitz in y, uniformly on compact sets, ensuring the uniqueness needed in Lemma 5.3. 16 Global existence ( Tmax = + ∞). We now upgrade local solutions to global ones. By Step 2, if 
+
+x(0) ∈ [0 , 1] 2 then x(t) ∈ [0 , 1] 2 for all t ∈ [0 , T max ). The set [0 , 1] 2 is compact, and F is continuous, hence 
+
+M := sup 
+
+> x∈[0 ,1] 2
+
+∥F (x)∥ < ∞.
+
+Therefore any solution starting in [0 , 1] 2 is bounded and has bounded derivative: 
+
+∥x(t)∥ ≤ √2 and ∥ ˙x(t)∥ = ∥F (x(t)) ∥ ≤ M for all t ∈ [0 , T max ).
+
+We invoke the Coddington–Levinson theorem for ODEs: for an ODE ˙x = F (x) with F locally Lipschitz, a maximal solution x : [0 , T max ) → R2 can only have Tmax < ∞ if either 1. ∥x(t)∥ → ∞ as t ↑ Tmax , or 2. x(t) approaches a point where F is not locally Lipschitz (equivalently, the vector field is undefined or blows up). In our setting, neither can happen: 
+
+• ∥x(t)∥ is uniformly bounded on [0 , T max ), since x(t) ∈ [0 , 1] 2;
+
+• F is a polynomial vector field, hence smooth (and therefore locally Lipschitz) on all of R2.Thus Tmax cannot be finite, and we must have Tmax = + ∞.Putting everything together, we have shown: 
+
+• for each initial condition x(0) ∈ [0 , 1] 2 there exists a unique solution x(t) to ˙x = F (x) defined on [0 , ∞); 
+
+• this solution satisfies x(t) ∈ [0 , 1] 2 for all t ≥ 0. This proves both parts (1) and (2) of the theorem. We then extend Theorem 3.1 to ODE (2) . The key difference is that the low-skill equilibrium shifts to ( θd, 1). The proof is identical to that of Theorem 3.1. 
+
+Theorem 5.4 (Equilibria of ODE (2) ). Let θa, θ d, κ, ∆ be the parameters of ODE (2) . When 
+
+θd ∈ (0 , 1) and θa ∈ (θd, 1) , the ODE system exhibits two stable nodes (sinks): a high-skill equilibrium at (θ∞, p ∞) = (1 , 0) and a low-skill equilibrium (θ∞, p ∞) = ( θd, 1) ; three unstable nodes (sources) at 
+
+(0 , 0) , (1 , 0) and (1 , 1) ; and an additional interior saddle point ( θ†, p †) = ( θa, 1−θa 
+
+> 1−θa+∆( θa−θd)
+
+).
+
+5.4 Analysis of stochastic variant of ODE (3) 
+
+The analysis of ODE (3) relies on the limit η → 0. In practice, finite step sizes and noisy feedback introduce stochasticity. To study how randomness affects convergence, we consider the following stochastic differential equation (SDE): 
+
+dθ (t) = θ(t)(1 − θ(t)) 
+
+
+
+(1 − p(t))(1 − θ(t)) − ∆p(t)θ(t)
+
+
+
+dt, dp (t) = κp (t)(1 − p(t)) 
+
+ (1 − θ(t)) 2 − (1 − θa)2 dt + σ dW t
+
+
+
+,
+
+(10) 17 Figure 3: Heatmap of the probability of converging to the high-skill equilibrium (1 , 0) for SDE (10) as a function of the initial state ( θ0, p 0), with default settings of ( θa, κ, ∆, σ ) = (0 .5, 3, 2, 0.1). Green indicates probability 0, and red indicates probability 1. where σ ≥ 0 controls the noise level and Wt is a standard Brownian motion. When σ = 0, this reduces to ODE (3). Figure 3 shows how the probability of converging to the high-skill equilibrium (1 , 0) varies with the initial state ( θ0, p 0) ∈ (0 , 1) 2. We observe that the heatmap closely matches the basin structure in Figure 1b for the ODE, exhibiting a sharp transition in convergence probability. This supports the robustness of our conclusions in Section 3. 
+
+# 6 Omitted proofs and results from Section 3 
+
+In this section, we provide proofs for the results in Section 3 and show how to derive an approximation of the stable manifold ψ.
+
+6.1 Proof of Theorem 3.1: equilibrium of ODE (3) 
+
+Theorem 6.1 (Restatement of Theorem 3.1). Let θa, κ, ∆ be the parameters of ODE (3) .When θa ∈ (0 , 1) , the ODE system exhibits two stable nodes (sinks): a high-skill equilibrium at 
+
+(θ∞, p ∞) = (1 , 0) and a low-skill equilibrium (θ∞, p ∞) = (0 , 1) ; two unstable nodes (sources) at (0 , 0) 
+
+and (1 , 1) ; and an additional interior saddle point ( θ†, p †) = ( θa, 1−θa 
+
+> 1−(1 −∆) θa
+
+).Proof. To establish the equilibria and their stability properties, we first identify the fixed points of the system and then analyze the Jacobian matrix of the linearized system around these points. 
+
+Existence of equilibria. The equilibria are the solutions to the system of algebraic equations ˙θ = 0 and ˙ p = 0: 
+
+θ(1 − θ) ((1 − p)(1 − θ) − ∆p θ ) = 0 , (11) 
+
+κ p (1 − p)  (1 − θ)2 − (1 − θa)2 = 0 . (12) From the factors θ(1 − θ) in (11) and p(1 − p) in (12) , we immediately identify the four corner equilibria in the domain {0, 1}2:(θ, p ) ∈ { (0 , 0) , (0 , 1) , (1 , 0) , (1 , 1) }.
+
+18 To find the interior equilibrium ( θ†, p †) ∈ (0 , 1) 2, we require the non-trivial factors to vanish: (1 − θ)2 − (1 − θa)2 = 0 , (13) (1 − p)(1 − θ) − ∆p θ = 0 . (14) Since θ, θ a ∈ [0 , 1], Equation (13) implies 1 − θ = 1 − θa, yielding the unique skill solution θ† = θa.Substituting θ† = θa into (14) and solving for p yields: (1 − p)(1 − θa) = ∆ pθ a =⇒ 1 − θa = p (1 − θa + ∆ θa) .
+
+Thus, the unique interior equilibrium is (θ†, p †) = 
+
+
+
+θa, 1 − θa
+
+1 − (1 − ∆) θa
+
+
+
+.
+
+Stability analysis. We analyze the linear stability via the Jacobian matrix J of the system. Let 
+
+f (θ, p ) = ˙θ and g(θ, p ) = ˙ p. The Jacobian is given by 
+
+J(θ, p ) = 
+
+∂θf ∂pf∂θg ∂pg
+
+
+
+.
+
+Corner equilibria. At the corner points where ( θ, p ) ∈ { 0, 1}2, the off-diagonal terms vanish (i.e., 
+
+∂pf = 0 and ∂θg = 0). The Jacobian becomes diagonal: 
+
+J = diag( λθ, λ p),
+
+where the eigenvalues are given by the partial derivatives evaluated at the equilibrium ( θ∞, p ∞): 
+
+λθ = (1 − 2θ∞) ((1 − p∞)(1 − θ∞) − ∆p∞θ∞) ,λp = κ(1 − 2p∞)  (1 − θ∞)2 − (1 − θa)2 .
+
+We examine two cases: 1. Sources ( θ∞ = p∞): 
+
+• At (0 , 0): λθ = 1 > 0 and λp = κ(1 − (1 − θa)2) > 0. Both eigenvalues are positive. 
+
+• At (1 , 1): λθ = ∆ > 0 and λp = κ(1 − θa)2 > 0. Both eigenvalues are positive. Thus, (0 , 0) and (1 , 1) are unstable nodes. 2. Sinks ( θ∞̸ = p∞): 
+
+• At (1 , 0): λθ = 0 and λp = −κ(1 − (1 − θa)2) < 0. The negative λp implies exponential decay in the delegation direction (transverse stability). Along the invariant boundary 
+
+p = 0, the skill dynamics reduce to ˙θ = θ(1 − θ)2, which is positive for θ ∈ (0 , 1). This implies that θ monotonically increases toward 1. Thus, (1 , 0) is asymptotically stable. 
+
+• At (0 , 1): λθ = 0 and λp = −κ(1 − θa)2 < 0. The negative λp implies exponential decay toward full delegation. Along the invariant boundary p = 1, the skill dynamics reduce to ˙θ = −∆θ2(1 − θ), which is negative for θ ∈ (0 , 1). This implies that θ monotonically decays toward 0. Thus, (0 , 1) is asymptotically stable. 19 Thus, the high-skill equilibrium (1 , 0) and low-skill equilibrium (0 , 1) are stable nodes. 
+
+Interior saddle point. At the interior equilibrium ( θ†, p †), the diagonal terms vanish because the condition for equilibrium (Equations (13) and (14) ) sets the terms multiplying θ(1 − θ) and p(1 − p)to zero. The Jacobian simplifies to: 
+
+J(θ†, p †) = 
+
+∂θ ˙θ ∂p ˙θ∂θ ˙p 0
+
+
+
+.
+
+Evaluating the partial derivatives at ( θ†, p †): 
+
+∂p ˙θ = − θ2
+
+> a
+
+(1 − θa)
+
+p† < 0,∂θ ˙p = −2κp †(1 − p†)θa(1 − θa) < 0.
+
+The determinant of the Jacobian is det (J) = −(∂p ˙θ)( ∂θ ˙p). Since both off-diagonal terms are negative, their product is positive, making the determinant negative: det( J) < 0.
+
+A negative determinant implies one positive and one negative eigenvalue. Therefore, the interior equilibrium ( θ†, p †) is a saddle point. 
+
+6.2 Proof of Theorem 3.2: two basins divided by saddle point 
+
+Theorem 6.2 (Restatement of Theorem 3.2). Let θa, κ, ∆ be the parameters of ODE (3) .Let (p†, θ †) be the interior saddle point guaranteed by Theorem 3.1. There exists a monotonically increasing differentiable function ψ : (0 , 1) → (0 , 1) that extends continuously to [0 , 1] with ψ(0) = 0 
+
+and ψ(1) = 1 , whose graph coincides with the one-dimensional stable manifold of (θ†, p †) within 
+
+(0 , 1) 2. The curve p = ψ(θ) partitions the state space [0 , 1] 2 into two distinct basins of attraction: 
+
+• For any initial state with p0 > ψ (θ0) (higher delegation), the learner converges to the low-skill equilibrium (0 , 1) .
+
+• For any initial state with p0 < ψ (θ0) (lower delegation), the learner converges to the high-skill equilibrium (1 , 0) .Proof. The proof proceeds in two steps: first, we establish the existence of the separatrix ψ using the local geometry of the saddle point; second, we use the monotonicity property (Lemma 3.5) to characterize the global basins of attraction defined by this curve. 
+
+Existence and properties of the stable manifold. From Theorem 3.1, the interior equilibrium (θ†, p †) is a hyperbolic saddle point. By the Stable Manifold Theorem for planar system [ 24 ], there exists a unique one-dimensional stable manifold W s(θ†, p †) passing through ( θ†, p †) tangent to the stable eigenvector. Let this manifold be represented locally as a curve. Since the vector field is smooth and the boundaries of [0 , 1] 2 are invariant, W s extends to the boundaries of the domain. 20 Partitioning the basins of attraction. The curve p = ψ(θ) divides the interior of the state space into two connected components: the set Shigh = {(θ, p ) : p < ψ (θ)} and the set Slow = {(θ, p ) : 
+
+p > ψ (θ)}. Consider an initial state ( θ0, p 0) on the curve, i.e., p0 = ψ(θ0). By definition of the stable manifold, the trajectory converges to the saddle point ( θ†, p †). Now consider an initial state ( θ0, p 0) ∈ Slow , meaning p0 > ψ (θ0). Let ( θ0, p ′
+
+> 0
+
+) be a reference point on the manifold such that p′ 
+
+> 0
+
+= ψ(θ0). Since p0 > p ′
+
+> 0
+
+, Lemma 3.5 implies that for all t > 0, the delegation level satisfies p(t; θ0, p 0) ≥ p(t; θ0, p ′
+
+> 0
+
+) and the skill satisfies θ(t; θ0, p 0) ≤ θ(t; θ0, p ′
+
+> 0
+
+). The reference trajectory on the manifold converges to the saddle ( θ†, p †). Because the actual trajectory starts with strictly higher delegation, it cannot cross the invariant manifold and converge to the saddle point ( θ†, p †). Since the only stable attractors in the system are (1 , 0) and (0 , 1) by Theorem 3.1, and it must converge to an equilibrium by Theorem 5.2, it must converge to the low-skill equilibrium (0 , 1) such that θ∞ = 0 < θ †.By a symmetric argument, for any initial state ( θ0, p 0) ∈ Shigh where p0 < ψ (θ0), Lemma 3.5 implies the learner maintains lower delegation and higher skill relative to the manifold trajectory, forcing convergence to the high-skill equilibrium (1 , 0). Thus, ψ is the separatrix dividing the two basins of attraction. 
+
+Monotonicity of the stable manifold ψ. We prove that ψ(θ) is monotonically increasing by contradiction. Suppose, for the sake of contradiction, that ψ is not monotonically increasing. Then there must exist two skill levels θ1 < θ 2 such that ψ(θ1) > ψ (θ2). By the continuity of ψ, we can select a delegation level ¯p such that ψ(θ2) < ¯p < ψ (θ1). Now consider two initial states at this same delegation level ¯ p but different skill levels: 
+
+• State A = ( θ1, ¯p). Since ¯p < ψ (θ1), state A lies below the separatrix. It follows from the above analysis that it must converge to the high-skill equilibrium (1 , 0). 
+
+• State B = ( θ2, ¯p). Since ¯p > ψ (θ2), state B lies above the separatrix. It follows from the above analysis that it must converge to the low-skill equilibrium (0 , 1). This implies that state A (with lower initial skill θ1) achieves a better outcome than state B
+
+(with higher initial skill θ2), holding delegation constant. However, Lemma 3.5 states that θ(t) is non-decreasing in the initial skill gap −(1 − θ0), meaning higher initial skill should lead to higher (or equal) limiting skill. State B having higher initial skill but converging to lower limiting skill (θ∞ = 0) than State A (θ∞ = 1) is a direct contradiction. Therefore, ψ(θ) must be monotonically increasing. 
+
+Extension of ψ to the boundary. It remains to show that the separatrix ψ extends continuously to the corners, i.e., lim θ→0 ψ(θ) = 0 and lim θ→1 ψ(θ) = 1. The stable manifold W s is an invariant set. Since trajectories cannot cross, the closure of W s must contain the limit sets of its trajectories in backward time. Consider the limit as θ → 0. Note that points on the boundary segment {0} × (0 , 1) are not equilibria; the flow on this boundary satisfies ˙p = κp (1 − p)(1 − (1 − θa)2) > 0. Thus, any trajectory starting on the interior of the left boundary converges to the low-skill sink (0 , 1) and originates from the source (0 , 0). If the separatrix approached a point (0 , p ∗) with p∗ > 0, then by continuity of flow, a neighborhood of points near (0 , p ∗) would follow the boundary flow toward (0 , 1). This contradicts the definition of the separatrix as the boundary of the high-skill basin. Specifically, if 21 lim θ→0 ψ(θ) = p∗ > 0, we could pick an initial condition ( ϵ, p ∗ − δ) in the high-skill basin (below ψ)that is arbitrarily close to the boundary flow converging to the low-skill sink. This discontinuity is impossible in the smooth vector field. Therefore, the only possible limit point is the source (0 , 0). A symmetric argument applies to the right boundary θ = 1: points on {1} × (0 , 1) flow toward the high-skill sink (1 , 0) (since ˙p < 0), preventing the separatrix from attaching anywhere except the source (1 , 1). Thus, ψ connects (0 , 0) to (1 , 1) through the saddle. 
+
+6.3 Proof of Theorem 3.3: effects of θa on ψ
+
+Theorem 6.3 (Restatement of Theorem 3.3 ). For all θ ∈ (0 , 1) , ψ(θ) is monotonically decreasing in θa and continuously differentiable with respect to θa. Moreover, for any (θ0, p 0) ∈ (0 , 1) 2, there exists θa ∈ (0 , 1) such that p0 = ψθa (θ0).Proof. We prove the properties of the separatrix ψθa sequentially. 
+
+Monotonicity with respect to θa. We show that for any fixed θ ∈ (0 , 1), ψθa (θ) is decreasing in θa. Let θa, 1 < θ a, 2 be two distinct AI skill levels. Let ψ1 and ψ2 denote the corresponding separatrices. Suppose, for the sake of contradiction, that there exists some θ∗ ∈ (0 , 1) such that 
+
+ψ2(θ∗) > ψ 1(θ∗). Since the functions are continuous and connect (0 , 0) to (1 , 1) (Theorem 3.2), we can select a test point ( θ∗, p 0) in the state space such that: 
+
+ψ1(θ∗) < p 0 < ψ 2(θ∗).
+
+Now, consider the long-run convergence of a learner starting at ( θ∗, p 0) under the two different AI regimes: 
+
+• Regime 1 ( θa, 1): Since p0 > ψ 1(θ∗), the initial state lies in the Low-Skill Basin (above the separatrix). By Theorem 3.2, the learner converges to the low-skill equilibrium: θ∞ 
+
+> 1
+
+= 0. 
+
+• Regime 2 ( θa, 2): Since p0 < ψ 2(θ∗), the initial state lies in the High-Skill Basin (below the separatrix). By Theorem 3.2, the learner converges to the high-skill equilibrium: θ∞ 
+
+> 2
+
+= 1. Comparing the outcomes, we have θ∞ 
+
+> 2
+
+> θ ∞ 
+
+> 1
+
+. However, Lemma 3.5 states that for any time t, the skill θ(t) is non-increasing in θa. Taking the limit t → ∞ , this implies that increasing the AI skill from θa, 1 to θa, 2 must result in θ∞ 
+
+> 2
+
+≤ θ∞ 
+
+> 1
+
+. The result θ∞ 
+
+> 2
+
+= 1 > 0 = θ∞ 
+
+> 1
+
+is a direct contradiction. Therefore, the assumption must be false, and it must hold that ψ2(θ) ≤ ψ1(θ) for all θ ∈ (0 , 1). 
+
+Differentiability. The vector field defined by ODE (3) is C∞-smooth with respect to the parameter 
+
+θa. Since the saddle point ( θ†, p †) is hyperbolic for all θa ∈ (0 , 1), the Stable Manifold Theorem with parameters [ 24 ] guarantees that the local stable manifold varies smoothly (is C1) with respect to θa.Since the global separatrix ψθa is obtained by backward integration of the local manifold—and the flow of the ODE is smooth with respect to parameters—the global function ψθa (θ) is continuously differentiable with respect to θa.22 Sweeping Property. We show that for any point ( θ0, p 0), there exists a θa such that the separatrix passes through it. We analyze the geometric limits of the saddle point ( θ†, p †) as θa approaches the boundaries: 
+
+• Limit θa → 1: The saddle point ( θ†, p †) converges to the high-skill corner (1 , 0). The stable manifold connecting (0 , 0) to the saddle collapses toward the θ-axis ( p = 0). Thus, lim θa→1 ψθa (θ0) = 0. 
+
+• Limit θa → 0: The saddle point converges to the low-skill corner (0 , 1) (since p† → 1). The stable manifold connects the source (0 , 0) to the saddle (0 , 1) and effectively fills the upper triangle, pushing the boundary toward p = 1. Thus, lim θa→0 ψθa (θ0) = 1. Since ψθa (θ0) is a continuous function of θa and its range includes the interval (0 , 1) as θa varies, the Intermediate Value Theorem implies that for any p0 ∈ (0 , 1), there exists a value θa ∈ (0 , 1) such that ψθa (θ0) = p0.
+
+6.4 Proof of Theorem 3.4: short-term gain, long-term losses 
+
+Theorem 6.4 (Restatement of Theorem 3.4). Let θa, κ, ∆ be the parameters of ODE (3) .Given an initial state (θ0, p 0) ∈ (0 , 1) 2 with θ0 < θ a, let tc := inf {t ≥ 0 : ∀t′ > t, G ℓ(t′) > 0} denote the crossing time after which AI delegation incurs higher loss than the no-AI baseline. Then tc < ∞.Moreover, tc = 0 when θ0 ≥ θa and θ(tc; θ0, 0) ≤ θa when θ0 < θ a.Proof. We first express the performance gap Gℓ(t) by expanding the loss term ℓ(θ, p ) = (1 − p)(1 −
+
+θ)2 + p(1 − θa)2:
+
+Gℓ(t) = (1 − p(t; θ0, p 0))(1 − θ(t; θ0, p 0)) 2 + p(t; θ0, p 0)(1 − θa)2 − (1 − θ(t; θ0, 0)) 2
+
+= (1 − p(t; θ0, p 0)) (1 − θ(t; θ0, p 0)) 2 − (1 − θ(t; θ0, 0)) 2 + p(t; θ0, p 0) (1 − θa)2 − (1 − θ(t; θ0, 0)) 2 .
+
+Since p0 > 0, Lemma 3.5 implies that for all t > 0, the delegation level remains positive, p(t; θ0, p 0) >
+
+0, and the AI-assisted skill is no more than the baseline skill: 
+
+θ(t; θ0, p 0) ≤ θ(t; θ0, 0) .
+
+Consequently, the first bracketed term (skill loss difference) is non-negative for all t > 0: (1 − θ(t; θ0, p 0)) 2 − (1 − θ(t; θ0, 0)) 2 ≥ 0. (15) 
+
+Case 1: θ0 ≥ θa. If the learner starts with skill superior to the AI, then θ(t; θ0, 0) > θ 0 ≥ θa for all t ≥ 0. This implies (1 − θa)2 > (1 − θ(t; θ0, 0)) 2. Since p(t; θ0, p 0) > 0 and the skill difference (15) is positive, every term in the expression for Gℓ(t) is non-negative, and the second term is strictly positive. Thus, Gℓ(t) > 0 for all t > 0, implying tc = 0. 
+
+Case 2: θ0 < θ a. The baseline skill θ(t; θ0, 0) evolves according to ˙θ = θ(1 − θ)2, which strictly increases from θ0 to 1. Since θ0 < θ a < 1, by the Intermediate Value Theorem, there exists a unique finite time t∗ > 0 such that θ(t∗; θ0, 0) = θa. For any time t > t ∗, we have θ(t; θ0, 0) > θ a, which implies: (1 − θa)2 − (1 − θ(t; θ0, 0)) 2 > 0.
+
+23 Combining this with (15) and the fact that p(t; θ0, p 0) > 0, we conclude that Gℓ(t) is a sum of strictly positive terms for all t > t ∗. The crossing time is defined as tc := inf {t ≥ 0 : ∀t′ > t, G ℓ(t′) > 0}.Since Gℓ(t) > 0 holds for all t > t ∗, it follows that tc ≤ t∗ < ∞. Finally, because Gℓ(t) becomes strictly positive whenever θ(t; θ0, 0) > θ a, any period where the AI provides a benefit ( Gℓ(t) ≤ 0) must occur while the baseline skill is still below the AI skill. Therefore, at the crossing time, the baseline skill satisfies θ(tc; θ0, 0) ≤ θa.
+
+6.5 Proof of Lemma 3.5: negative coupling between skill and delegation 
+
+Lemma 6.5 (Restatement of Lemma 3.5 ). Let θa, κ, and ∆ be the parameters of ODE (3) .For any t > 0, θ(t) is non-increasing and p(t) is non-decreasing as functions of each of the following variables: the initial delegation p0, the initial skill gap 1 − θ0, and θa.Proof. We prove the lemma using mathematical induction on the Euler-discretized system. Let 
+
+η > 0 be a sufficiently small step size. The system evolves according to the map M : [0 , 1] 2 → [0 , 1] 2
+
+defined by: 
+
+θk+1 = Φ θ(θk, p k) := θk + η · θk(1 − θk) [(1 − pk)(1 − θk) − ∆pkθk] ,pk+1 = Φ p(θk, p k) := pk + η · κp k(1 − pk) (1 − θk)2 − (1 − θa)2 .
+
+We define the partial order ⪯ on the state space such that ( θ, p ) ⪯ (ˆθ, ˆp) if and only if: 
+
+θ ≤ ˆθ and p ≥ ˆp. 
+
+Monotonicity of the update map. We first show that the map M preserves this order. That is, if ( θ, p ) ⪯ ( ˆθ, ˆp), then (Φ θ(θ, p ), Φp(θ, p )) ⪯ (Φ θ( ˆθ, ˆp), Φp( ˆθ, ˆp)). This requires checking the partial derivatives of the update functions. 
+
+Skill update Φθ. The function Φ θ is differentiable on [0 , 1] 2. By the Mean Value Theorem, there exists a point ξ = ( ξθ, ξ p) on the line segment connecting ( θ, p ) and ( ˆθ, ˆp) such that: Φθ(ˆθ, ˆp) − Φθ(θ, p ) = ∇Φθ(ξ) ·
+
+ˆθ − θ
+
+ˆp − p
+
+
+
+= ∂Φθ
+
+∂θ (ξ)( ˆθ − θ) + ∂Φθ
+
+∂p (ξ)(ˆ p − p).
+
+We evaluate the signs of the partial derivatives for sufficiently small η:
+
+• ∂Φθ 
+
+> ∂θ
+
+= 1 + η ∂f ∂θ . Since f and its derivative are bounded on the compact set [0 , 1] 2, for small η,this term is strictly positive ( > 0). 
+
+• ∂Φθ 
+
+> ∂p
+
+= η ∂f ∂p = η · θ(1 − θ)[ −(1 − θ) − ∆θ]. Since θ, ∆ ≥ 0, this derivative is strictly non-positive (≤ 0). Substituting these signs back into the MVT equation: 
+
+• Term 1: ∂Φθ 
+
+> ∂θ
+
+(ξ) > 0 and ( ˆθ − θ) ≥ 0 = ⇒ Product is ≥ 0. 
+
+• Term 2: ∂Φθ 
+
+> ∂p
+
+(ξ) ≤ 0 and (ˆ p − p) ≤ 0 (since p ≥ ˆp) =⇒ Product is ≥ 0. 24 Thus, the sum is non-negative: Φθ(ˆθ, ˆp) − Φθ(θ, p ) ≥ 0 = ⇒ Φθ(θ, p ) ≤ Φθ(ˆθ, ˆp).
+
+Delegation update Φp. Similarly, applying the Mean Value Theorem to Φ p, there exists a point ζ on the segment such that: Φp(ˆθ, ˆp) − Φp(θ, p ) = ∂Φp
+
+∂θ (ζ)( ˆθ − θ) + ∂Φp
+
+∂p (ζ)(ˆ p − p).
+
+Evaluating the derivatives: 
+
+• ∂Φp 
+
+> ∂p
+
+= 1 + η ∂g ∂p . For small η, this is strictly positive ( > 0). 
+
+• ∂Φp 
+
+> ∂θ
+
+= η ∂g ∂θ = η · κp (1 − p)[ −2(1 − θ)]. This derivative is strictly non-positive ( ≤ 0). Analyzing the terms: 
+
+• Term 1: ∂Φp 
+
+> ∂θ
+
+(ζ) ≤ 0 and ( ˆθ − θ) ≥ 0 = ⇒ Product is ≤ 0. 
+
+• Term 2: ∂Φp 
+
+> ∂p
+
+(ζ) > 0 and (ˆ p − p) ≤ 0 = ⇒ Product is ≤ 0. Thus, the sum is non-positive: Φp(ˆθ, ˆp) − Φp(θ, p ) ≤ 0 = ⇒ Φp(ˆθ, ˆp) ≤ Φp(θ, p ).
+
+Combining the above analysis, we have proved that M preserves the order ⪯.
+
+Inductive proof. We now apply the order-preserving property of the map M to the specific variables. 
+
+Case A: initial delegation p0. Let two learners have states ( θ0, p 0) and ( θ0, ˆp0) with p0 > ˆp0.
+
+• Base Case: (θ0, p 0) ⪯ (θ0, ˆp0) holds immediately. 
+
+• Inductive Step: Assume ( θk, p k) ⪯ ( ˆθk, ˆpk). By the monotonicity of M proven above, the next state satisfies ( θk+1 , p k+1 ) ⪯ (ˆθk+1 , ˆpk+1 ). 
+
+Case B: initial skill gap 1 − θ0. Let two learners have states ( θ0, p 0) and ( ˆθ0, p 0) where 
+
+θ0 < ˆθ0.
+
+• Base Case: (θ0, p 0) ⪯ (ˆθ0, p 0) holds immediately. 
+
+• Inductive Step: By the monotonicity of M , the order is preserved. 
+
+Case C: AI skill θa. Let system 1 have θa and system 2 have ˆθa with θa > ˆθa. Here, the update maps M1 and M2 differ slightly. Specifically, in the delegation update Φ p, the drift term involves −(1 − θa)2. Since θa > ˆθa, we have −(1 − θa)2 > −(1 − ˆθa)2. Thus, for any fixed state (θ, p ), we have Φ p(θ, p ; θa) > Φp(θ, p ; ˆθa). 
+
+• Base Case: (θ0, p 0) = ( ˆθ0, ˆp0). 25 (a) Default setting. (b) Varying θa = 0 .8. (c) Varying κ = 1 .5. 
+
+Figure 4: Plots illustrating the closeness between the stable manifold ψ(·) and its approximation eψ,with default parameter settings ( θa, κ, ∆) = (0 .5, 3, 2). 
+
+• Step 1: θ1 = ˆθ1 (skill update independent of θa given same state), but p1 > ˆp1 due to the parameter difference. Thus ( θ1, p 1) ⪯ (ˆθ1, ˆp1). 
+
+• Inductive Step: Assume ( θk, p k) ⪯ ( ˆθk, ˆpk). Apply the map M1 to the LHS: pk+1 =Φp(θk, p k; θa) ≥ Φp(θk, p k; ˆθa) (Parameter monotonicity). Then use State monotonicity: Φp(θk, p k; ˆθa) ≥ Φp( ˆθk, ˆpk; ˆθa) = ˆpk+1 . Similarly for skill: θk+1 = Φ θ(θk, p k) ≤ Φθ( ˆθk, ˆpk) = ˆθk+1 . Thus, the order is preserved. Taking η → 0, the discrete order preservation implies the continuous trajectories satisfy the monotonicity properties. 
+
+6.6 Approximation of the stable manifold of the saddle point 
+
+In this section, we construct an explicit approximation eψ to the stable manifold ψ (Eq. (16) ) to enable actionable predictions. Figure 4a plots eψ under different parameter choices and shows that it closely tracks ψ.We construct eψ(θ) by approximating the global stable manifold as a composite of three locally valid functions: a linear segment near the saddle point derived from the stable eigenvector, and two power-law segments near the corners (0 , 0) and (1 , 1) derived from the local eigenvalues. We determine the transition points θl and θr by enforcing continuity of both the function and its first derivative ( C1 continuity). 
+
+1. Linear approximation at the saddle. We first linearize the system around the saddle point (θ†, p †). The Jacobian matrix J evaluated at the saddle is given by: 
+
+J =
+
+J11 J12 
+
+J21 J22 
+
+
+
+=
+
+∂θ ˙θ ∂p ˙θ∂θ ˙p ∂p ˙p
+
+
+
+.
+
+At the saddle, we have ∂p ˙p = 0, so J22 = 0. The other entries are: 
+
+J11 = (1 − 2θ†)
+
+h
+
+(1 − p†)(1 − θ†) − ∆p†θ†i
+
++ θ†(1 − θ†)[ −(1 − p†) − ∆p†]= − θ†(1 − θ†)(1 − p† + ∆ p†)
+
+J12 = θ†(1 − θ†)[ −(1 − θ†) − ∆θ†] = −θ†(1 − θ†)(1 − θ†(1 − ∆)) 
+
+J21 = − 2κp †(1 − p†)(1 − θ†) = − a1
+
+1 − θ† · 2(1 − θ†)26 The characteristic equation for eigenvalues λ is λ2 − J11 λ − J12 J21 = 0. The stable eigenvalue λs is the negative root. The associated eigenvector vs = [1 , m †]T satisfies ( J11 − λs) + J12 m† = 0. Solving for the slope m† yields the expression: 
+
+m† = λs − J11 
+
+J12 
+
+= −J11 − pJ211 + 4 J12 J21 
+
+2J12 
+
+.
+
+Thus, near the saddle, the manifold is approximated by the line: 
+
+ψmid (θ) = p† + m†(θ − θ†).
+
+2. Power-law approximation at (0 , 0) . Near the origin (0 , 0), we approximate the dynamics by keeping only the lowest-order linear terms. For θ ≈ 0, p ≈ 0: ˙θ ≈ θ(1)(1 − 0) = θ. 
+
+˙p ≈ κp (1)(1 − (1 − θa)2) = κp (1 − (1 − θ†)2).
+
+We define the ratio of the growth rates as βl := ˙p/ρ  
+
+> ˙θ/θ
+
+= κ(1 − (1 − θ†)2). The differential equation describing the trajectory shape is dp dθ = ˙p 
+
+> ˙θ
+
+= βl pθ . Integrating this yields the power law form: 
+
+ψleft (θ) = Cl · θβl .
+
+3. Power-law approximation at (1 , 1) . Near the corner (1 , 1), we transform variables to 
+
+x = 1 − θ and y = 1 − p, where x, y ≈ 0. The dynamics become: ˙x = − ˙θ ≈ − θ(1 − θ)( −∆pθ ) ≈ ∆x. (since θ → 1, p → 1) .
+
+˙y = − ˙p ≈ − κp (1 − p)( −(1 − θa)2) ≈ κy (1 − θ†)2.
+
+We define the ratio of decay rates as βr := ˙y 
+
+> ˙x
+
+= κ(1 −θ†)2 
+
+> ∆
+
+. The trajectory shape satisfies dy dx = βr yx .Integrating yields y = Crxβr . Transforming back to original coordinates, we get: 1 − ψright (θ) = Cr(1 − θ)βr =⇒ ψright (θ) = 1 − Cr(1 − θ)βr .
+
+4. Smooth pasting at breakpoints. We determine the breakpoints θl and θr by matching the linear segment ψmid to the power laws ψleft and ψright .
+
+• Left Breakpoint θl: We require ψleft (θl) = ψmid (θl) and ψ′
+
+> left
+
+(θl) = ψ′
+
+> mid
+
+(θl). The derivative condition gives: 
+
+Clβlθβl−1 
+
+> l
+
+= m† =⇒ βl
+
+θl
+
+(Clθβl 
+
+> l
+
+) = m† =⇒ βl
+
+θl
+
+ψmid (θl) = m†.
+
+Substituting the linear form ψmid (θl) = p† + m†(θl − θ†): 
+
+βl(p† + m†θl − m†θ†) = m†θl.
+
+Rearranging terms to solve for θl:
+
+βl(p† − m†θ†) = m†θl(1 − βl) = ⇒ θl = βl(p† − m†θ†)
+
+m†(1 − βl) .
+
+27 • Right Breakpoint θr: Similarly, we match the function and derivative at θr. The derivative condition for the right segment is: 
+
+ψ′
+
+> right
+
+(θ) = −Crβr(1 − θ)βr −1(−1) = βr
+
+1 − θ Cr(1 − θ)βr = βr
+
+1 − θ (1 − ψright (θ)) .
+
+Setting this equal to m† at θr:
+
+βr
+
+1 − θr
+
+(1 − ψmid (θr)) = m†.
+
+Substituting ψmid (θr) = p† + m†(θr − θ†): 
+
+βr(1 − p† − m†θr + m†θ†) = m†(1 − θr).
+
+Rearranging terms to solve for θr:
+
+βr(1 − p† + m†θ†) − βrm†θr = m† − m†θr
+
+m†θr(1 − βr) = m† − βr(1 − p† + m†θ†)
+
+θr = m† − βr(1 − p† + m†θ†)
+
+m†(1 − βr) .
+
+To ensure θl ≤ θa ≤ θr, we let 
+
+θl := min {θ†, βl(p† − m†θ†)
+
+m†(1 − βl) }, and θr := min {1, m† − βr(1 − p† + m†θ†)(1 − βr)m† }.
+
+In summary, the approximation eψ is: 
+
+eψ(θ) := 
+
+
+
+(p† + m† · (θl − θ†)) · ( θθl )βl if 0 ≤ θ ≤ θl
+
+p† + m† · (θ − θ†) if θl < θ < θ r
+
+1 − (1 − pm(θr)) · ( 1−θ 
+
+> 1−θr
+
+)βr if θr ≤ θ ≤ 1.
+
+(16) 
+
+6.7 Effects of parameters on the stable manifold 
+
+Beyond Theorem 3.3, we also study how κ and ∆ affect the stable manifold. Figure 5 shows the resulting variation in the basin boundary as κ and ∆ change. We observe that changing κ does not affect the saddle location, whereas changing ∆ shifts the saddle along the line θ = θa.
+
+Lemma 6.6 (Effects of κ on stable manifold). Fix θa. For θ ∈ (0 , θ a), ψ(θ) is monotonically decreasing in κ and continuously differentiable with respect to κ. For θ ∈ (θa, 1) , ψ(θ) is monotonically increasing in κ and continuously differentiable with respect to κ.Proof. The lemma establishes the behavior of the stable manifold ψ(θ) (separatrix) as the delegation speed parameter κ varies. We treat differentiability and monotonicity separately. 28 (a) Effects of κ (b) Effects of ∆ 
+
+Figure 5: Plots illustrating the relationship between the basin boundary ψ(·) and model parameters 
+
+θa, κ, ∆, with default setting ( θa, κ, ∆) = (0 .5, 3, 2). 
+
+1. Differentiability. The vector field defined by ODE (3) is C∞-smooth with respect to all state variables and the parameter κ. Since the interior equilibrium ( θ†, p †) is a hyperbolic saddle point for all κ > 0 (Theorem 3.1), the Stable Manifold Theorem with parameters guarantees that the local stable manifold varies smoothly ( C1) with respect to κ. Since the global separatrix ψ(θ) is the backward extension of this local manifold, and the flow is smooth, ψ(θ) is continuously differentiable with respect to κ.
+
+2. Monotonicity via vector field comparison. We prove the monotonicity by comparing the slopes of the trajectories under two different parameters κ1 < κ 2. Let Fκ(θ, p ) = ( ˙θ, ˙pκ) denote the vector field, where: ˙θ = f (θ, p ), ˙pκ = κ · g(θ, p ),
+
+with g(θ, p ) = p(1 − p)[(1 − θ)2 − (1 − θa)2]. Note that f is independent of κ, and g captures the sign of the delegation drift. The slope of the vector field at any point ( θ, p ) where f̸ = 0 is given by: 
+
+m(θ, p ; κ) = dp dθ = ˙pκ
+
+˙θ = κ g(θ, p )
+
+f (θ, p ) .
+
+Case 1: Region θ ∈ (0 , θ a). In this region, the skill is below the AI skill, so (1 − θ)2 > (1 − θa)2,implying g(θ, p ) > 0. The separatrix ψ connects the source (0 , 0) to the saddle ( θa, p †). Along this curve, θ is increasing, so ˙θ = f (θ, p ) > 0. Since g > 0 and f > 0, the slope m is positive. Comparing 
+
+κ1 < κ 2:
+
+m(θ, p ; κ2) = κ2
+
+κ1
+
+m(θ, p ; κ1) > m (θ, p ; κ1).
+
+The vector field for κ2 is strictly “steeper” (points more upward) than for κ1 everywhere in this region. Consider a point z = ( θ0, p 0) lying exactly on the separatrix ψ1 for κ1. Under the flow of 
+
+κ1, the trajectory γ1(t) starting at z converges to the saddle. Under the flow of κ2, the trajectory 
+
+γ2(t) starting at z has a strictly larger slope at every point than γ1. Geometrically, this implies γ2
+
+must rise above γ1. Since γ1 eventually hits the saddle, the steeper trajectory γ2 must pass “above” the saddle (i.e., to the left of the stable manifold of the saddle in the local linearization), entering the basin of attraction of the low-skill equilibrium (0 , 1). For z to be in the low-skill basin of κ2, it must lie above the separatrix ψ2. Thus, p0 > ψ 2(θ0). Since p0 = ψ1(θ0), we have ψ1(θ0) > ψ 2(θ0). Therefore, ψ(θ) is monotonically decreasing in κ on (0 , θ a). 29 Case 2: Region θ ∈ (θa, 1) . In this region, (1 − θ)2 < (1 − θa)2, implying g(θ, p ) < 0. The separatrix connects the saddle to the source (1 , 1) (in backward time), or equivalently, trajectories flow from the saddle towards the high-skill sink (1 , 0). However, technically ψ is defined as the stable manifold. In this region, ψ separates flow to (0 , 1) and (1 , 0). Consider the slope again. Note that g(θ, p ) is negative, which means delegation is being suppressed. Increasing κ makes ˙p more negative . Consider a point z on the separatrix ψ1 (for 
+
+κ1). Under κ1, it flows to the saddle. Under κ2, the downward push is stronger. The trajectory starting at z will drop below the trajectory of κ1. Since the κ1 trajectory hits the saddle, the κ2
+
+trajectory (being lower) will pass “below” the saddle, entering the basin of attraction of the high-skill equilibrium (1 , 0). For z to be in the high-skill basin of κ2, it must lie below the separatrix ψ2.Thus, p0 < ψ 2(θ0). Since p0 = ψ1(θ0), we have ψ1(θ0) < ψ 2(θ0). Therefore, ψ(θ) is monotonically increasing in κ on ( θa, 1). 
+
+Lemma 6.7 (Effects of ∆ on stable manifold). For θ ∈ (0 , 1) , ψ(θ) is monotonically decreasing in ∆ and continuously differentiable with respect to ∆.Proof. We analyze the dependence of the stable manifold ψ(θ) on the drift parameter ∆. 
+
+Differentiability. The vector field of ODE (3) is smooth ( C∞) with respect to the state variables (θ, p ) and the parameter ∆. The interior equilibrium ( θ†, p †) depends smoothly on ∆ (specifically, 
+
+p†(∆) = 1−θa 
+
+> 1−θa+∆ θa
+
+). Since the equilibrium remains a hyperbolic saddle for all ∆ > 0, the Stable Manifold Theorem with parameters [ 24 ] guarantees that the local stable manifold varies smoothly (C1) with respect to ∆. By the smoothness of the flow extending the local manifold to the global separatrix, ψ(θ) is continuously differentiable with respect to ∆. 
+
+Monotonicity via trajectory comparison. We prove that ψ(θ) decreases as ∆ increases by establishing a monotonicity property for the trajectories and using a basin-of-attraction argument. Let ∆ 1 < ∆2. Consider two systems starting from the same initial state ( θ0, p 0). Comparing the drift functions: 
+
+• The delegation update ˙ p = g(θ, p ) is independent of ∆. 
+
+• The skill update ˙θ = f (θ, p ; ∆) satisfies: 
+
+∂f ∂∆ = −θ2(1 − θ)p < 0 for θ, p ∈ (0 , 1) .
+
+Since a higher ∆ strictly reduces the skill growth rate, the system forms a monotone dynamical system with respect to this parameter. Specifically, similar to Lemma 3.5, strictly lower skill growth leads to lower future skill θ(t), which in turn induces higher delegation p(t). Thus, for any finite 
+
+t > 0, the solutions satisfy: 
+
+θ(t; ∆ 2) ≤ θ(t; ∆ 1) and p(t; ∆ 2) ≥ p(t; ∆ 1).
+
+Taking the limit t → ∞ , the equilibria reached must satisfy the same ordering: θ∞(∆ 2) ≤ θ∞(∆ 1). Let ψ1 and ψ2 be the separatrices for ∆ 1 and ∆ 2 respectively. We claim ψ2(θ) < ψ 1(θ) for all 
+
+θ ∈ (0 , 1). Suppose, for contradiction, that there exists some θ∗ such that ψ2(θ∗) ≥ ψ1(θ∗). We can choose an initial delegation p0 such that ψ1(θ∗) < p 0 < ψ 2(θ∗). Consider the asymptotic outcome of a learner starting at ( θ∗, p 0) under both regimes: 30 (a) Noisy delegation update (5) 
+
+> (b) Asymmetric delegation up-date (7)
+> (c) Alternative performance loss (17)
+
+Figure 6: Plots illustrating how the basins vary under different model extensions, with default parameter settings ( θa, κ, ∆) = (0 .5, 3, 2). 
+
+• Under ∆1: Since p0 > ψ 1(θ∗), the state is in the low-skill basin (above the separatrix). The learner converges to the low-skill equilibrium ( θ∞ = 0). 
+
+• Under ∆2: Since p0 < ψ 2(θ∗), the state is in the high-skill basin (below the separatrix). The learner converges to the high-skill equilibrium ( θ∞ = 1). This implies θ∞(∆ 2) = 1 > 0 = θ∞(∆ 1). However, this contradicts the trajectory monotonicity, which requires θ∞(∆ 2) ≤ θ∞(∆ 1). Therefore, the assumption is false, and it must hold that 
+
+ψ2(θ) < ψ 1(θ). Thus, ψ(θ) is monotonically decreasing in ∆. 
+
+# 7 Omitted details from Section 4 
+
+In this section, we provide detailed derivations of ODEs for the extensions in Section 4. In addition, we present an extension with an alternative performance objective in Section 7.4. Figure 6 plots the basins of attraction under different model extensions. 
+
+7.1 Derivation of ODE (5) for jagged AI 
+
+With a jagged AI, the main difference is that the performance loss by AI’s output is random. Consequently, the mechanism of learning in Section 5.1 extends to be: 
+
+• (Task completion stage) Learner delegates the task to AI with probability p(t), which sets 
+
+X(t) = 1; and does the task by itself with probability 1 − p(t), which sets X(t) = 0. 
+
+• (Evaluation stage) Learner submits the output to the teacher. The teacher gives a loss ℓt
+
+to the learner. If the output is done by the learner itself, ℓt = (1 − θ(t)) 2. Otherwise, if the output is done by AI, ℓt = (1 − st)2, where st ∼ μa is a random AI skill drawn from μa. Then 
+
+ℓt := (1 − X(t))(1 − θ(t)) 2 + X(t) · (1 − st)2.
+
+• (Update of skill) If X(t) = 0, the learner skill (intrinsically) updates towards the target 1 according to the loss ℓt = (1 − θ(t)) 2:
+
+θ(t + 1) := θ(t) + 2 ηθ (t)(1 − θ(t)) 2
+
+31 Otherwise, if X(t) = 1, the learner skill decays towards θd due to non-practice: 
+
+θ(t + 1) := θ(t) + 2 η∆θ(t)(1 − θ(t))( θd − θ(t)) .
+
+• (Update of delegation level) If X(t) = 0, assume that the learner has an accurate belief 
+
+Es[(1 − s)2] on the expected performance loss of AI’s output. Otherwise, if X(t) = 1, assume that the learner has an accurate belief (1 − θ(t)) 2 on the loss of its output. Together with the obtained loss ℓt, the learner updates its delegation level as follows: 
+
+p(t + 1) := p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t))  (1 − θ(t)) 2 − Es[(1 − s)2]
+
++ X(t)  (1 − θ(t)) 2 − (1 − st)2  .
+
+In summary, we derive the following stochastic dynamics under AI assistance: 
+
+X(t) ∼ Bern( p(t)) ,st ∼ μa,θ(t + 1) = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − X(t))(1 − θ(t)) + ∆ · X(t) · (θd − θ(t))] 
+
+p(t + 1) = p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t))  (1 − θ(t)) 2 − Es[(1 − s)2]
+
++ X(t)  (1 − θ(t)) 2 − (1 − st)2  .
+
+The key difference from Dynamics (8) is the introduction of the random variable st and the resulting modification to the update rule for p.Like in Section 5.2, we then track this stochastic dynamics to its expectation. Since the randomness of st is independent from ( X(t), θ (t), p (t)), we have that 
+
+EX(t),s t [p(t + 1) | θ(t), p (t)] = EX(t) [Est [p(t + 1) | θ(t), p (t), X (t)]] (Law of iterated expectations) = EX(t)
+
+p(t) + 2 ηκp (t)(1 − p(t))  (1 − θ(t)) 2 − Est [(1 − st)2] (Linearity of expectation) = p(t) + 2 ηκp (t)(1 − p(t))  (1 − θ(t)) 2 − Est [(1 − st)2] . (Independence from X(t)) As the step size η → 0, this expected dynamics tracks to ODE (5). 
+
+7.2 Derivation of ODE (6) for noisy update of delegations 
+
+With an inaccurate belief eθa, the main difference is on the update of the delegation level when the learner does the task by its own, i.e., if X(t) = 0, the learner has an accurate belief (1 − eθa)2 on the loss of AI’s output. Otherwise, if X(t) = 1, we still assume that the learner has an accurate belief (1 − θ(t)) 2 on the loss of its output. Together, the learner updates its delegation level as follows: 
+
+p(t + 1) := p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t)) 
+
+
+
+(1 − θ(t)) 2 − (1 − eθa)2
+
++ X(t)  (1 − θ(t)) 2 − (1 − θa)2  .
+
+Then its corresponding expected dynamics is: 
+
+E[p(t + 1) | (θ(t), p (t))] = p(t) + κ · 2ηp (t)(1 − p(t)) (1 − p(t)) 
+
+
+
+(1 − θ(t)) 2 − (1 − eθa)2
+
++ p(t)  (1 − θ(t)) 2 − (1 − θa)2  .
+
+As the step size η → 0, this expected dynamics tracks to ODE (6). 32 7.3 Derivation of ODE (7) for asymmetric update of delegations 
+
+With a risk-averse factor α > 0, the update for the delegation level extends to be: If (1 − θ(t)) 2 <
+
+(1 − θa)2, the step size is κα rather than κ. This corresponds to the following dynamics: 
+
+p(t + 1) := p(t) + κ · 2ηp (t)(1 − p(t)) [(1 − θ(t)) 2 − (1 − θa)2]+ − α[(1 − θa)2 − (1 − θ(t)) 2]+
+
+ .
+
+As the step size η → 0, this dynamics tracks to ODE (7). 
+
+7.4 Extension with alternative performance loss 
+
+Another extension considers the case in which the teacher penalizes the learner upon detecting that an output was generated by AI, serving as an intervention to reduce AI reliance [ 31 ]. To study this effect, let q ∈ [0 , 1] denote the probability that AI-generated output is detected, and assume that upon detection the performance loss of AI output is |1 − θa|. This alternative loss exceeds (1 − θa)2
+
+and thus acts as an explicit penalty for AI delegation. Under this model, the mechanism of learning in Section 5.1 extends to be: 
+
+• (Task completion stage) Learner delegates the task to AI with probability p(t), which sets 
+
+X(t) = 1; and does the task by itself with probability 1 − p(t), which sets X(t) = 0. 
+
+• (Evaluation stage) Learner submits the output to the teacher. The teacher gives a loss ℓt
+
+to the learner. If the output is done by the learner itself, ℓt = (1 − θ(t)) 2. Otherwise, if the output is done by AI, the teacher successfully detects with probability q, which sets Y (t) = 1. If Y (t) = 1, ℓt = |1 − θa|; while if Y (t) = 0, ℓt = (1 − θa)2. Then 
+
+ℓt := (1 − X(t))(1 − θ(t)) 2 + X(t) ·  (1 − Y (t))(1 − θa)2 + Y (t)|1 − θa| .
+
+• (Update of skill) If X(t) = 0, the learner skill (intrinsically) updates towards the target 1 according to the loss ℓt = (1 − θ(t)) 2:
+
+θ(t + 1) := θ(t) + 2 ηθ (t)(1 − θ(t)) 2
+
+Otherwise, if X(t) = 1, the learner skill decays towards θd due to non-practice: 
+
+θ(t + 1) := θ(t) + 2 η∆θ(t)(1 − θ(t))( θd − θ(t)) .
+
+• (Update of delegation level) If X(t) = 0, assume that the learner has an accurate belief (1 − q)(1 − θa)2 + q|1 − θa| on the expected performance loss of AI’s output. Otherwise, if 
+
+X(t) = 1, assume that the learner has an accurate belief (1 − θ(t)) 2 on the loss of its output. Together with the obtained loss ℓt, the learner updates its delegation level as follows: 
+
+p(t + 1) := p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t))  (1 − θ(t)) 2 − (1 − q)(1 − θa)2 − q|1 − θa|
+
++ X(t)  (1 − θ(t)) 2 − (1 − Y (t))(1 − θa)2 − Y (t)|1 − θa|  
+
+33 In summary, we derive the following stochastic dynamics under AI assistance: 
+
+X(t) ∼ Bern( p(t)) ,Y (t) ∼ Bern( q),θ(t + 1) = θ(t) + 2 ηθ (t)(1 − θ(t))[(1 − X(t))(1 − θ(t)) + ∆ · X(t) · (θd − θ(t))] 
+
+p(t + 1) = p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t))  (1 − θ(t)) 2 − (1 − q)(1 − θa)2 − q|1 − θa|
+
++ X(t)  (1 − θ(t)) 2 − (1 − Y (t))(1 − θa)2 − Y (t)|1 − θa|  .
+
+The key difference from Dynamics (8) is the introduction of the random variable Y (t) and the resulting modification to the update rule for p.Like in Section 5.2, we then track this stochastic dynamics to its expectation. We have that 
+
+EX(t),Y (t)[p(t + 1) | θ(t), p (t)] = EX(t)
+
+EY (t)[p(t + 1) | θ(t), p (t), X (t)]  (Law of iterated expectations) = EX(t)
+
+p(t) + κ · 2ηp (t)(1 − p(t)) (1 − X(t))  (1 − θ(t)) 2 − (1 − q)(1 − θa)2 − q|1 − θa|
+
++ X(t)  (1 − θ(t)) 2 − (1 − q)(1 − θa)2 − q|1 − θa|  (Linearity of expectation) = p(t) + 2 ηκp (t)(1 − p(t))  (1 − θ(t)) 2 − (1 − q)(1 − θa)2 − q|1 − θa| . (Independence from X(t)) As the step size η → 0, this dynamics tracks to ODE ˙p = κp (1 − p)  (1 − θ)2 − (1 − q)(1 − θa)2 − q|1 − θa| . (17) Intuitively, increasing q raises the expected cost of delegating to AI by making AI usage more likely to incur a harsher loss, thereby weakening the incentive to delegate and shifting trajectories toward sustained practice. Figure 6c illustrates this effect. This demonstrates the effectiveness of such penalties as an intervention mechanism. 
+
+# 8 Usability of our model 
+
+We demonstrate the usability of our framework by providing an explicit procedure for deriving parameters θa, κ, ∆, together with a worked numerical example. Consider an experimental setup in which a learner decides whether to delegate tasks to AI or perform them independently over T sections. For each section t, the following data are observed: an indicator X(t) ∈ { 0, 1}, where X(t) = 1 denotes delegation to AI; an evaluation loss ℓt ∈ [0 , 1] for the learner’s output as assessed by an teacher; and an evaluation loss ℓa,t ∈ [0 , 1] for the output generated by AI alone. Here, all loss values are normalized to lie in [0 , 1]. We note that such data have been collected in [13] and are partially reported in Figure 41 of that paper. In addition, applying our model requires access to the learner’s delegation level p(t) ∈ [0 , 1], which can be collected by querying learners about their willingness to delegate to AI prior to each section. 
+
+Deriving AI skill. Using the evaluation losses {ℓa,t }Tt=1 , we estimate the (effective) AI skill as 
+
+θa := 1 −
+
+vuut 1
+
+T
+
+> T
+
+X
+
+> t=1
+
+(1 − ℓa,t )2.
+
+34 Deriving the learning rate. Let 
+
+A := {t ∈ [T ] : X(t) = 0 } = {t1, t 2, . . . , t m}
+
+be the set of sections in which the learner performs the task independently. Using the observed losses ℓt, we estimate the learner’s skill at time t ∈ A by 
+
+θ(t) := 1 − pℓt.
+
+For two consecutive sections tj , t j+1 ∈ A such that tj+1 = tj + 1, our model implies 
+
+θ(t + 1) = θ(t) + η θ (t)(1 − θ(t)) 2.
+
+Hence, we estimate the learning rate at time tj as 
+
+ηtj := θ(tj + 1) − θ(tj )
+
+θ(tj )(1 − θ(tj )) 2 .
+
+Let B := {t ∈ A : t + 1 ∈ A} denote the set of such consecutive self-practice sections. Averaging over B yields the learning-rate estimate 
+
+η := 1
+
+|B|
+
+X
+
+> t∈B
+
+ηt.
+
+Deriving the delegation rate. For t ∈ B, using the observed losses ℓt, ℓ a,t and reported delegation levels p(t), p (t + 1), our model implies p(t + 1) = p(t) + η κ p (t)(1 − p(t)) (ℓt − ℓa,t ) . Thus, we estimate the delegation rate at time t by 
+
+κt := p(t + 1) − p(t)
+
+η p (t)(1 − p(t))( ℓt − ℓa,t ) .
+
+Averaging over B gives the delegation-rate estimate 
+
+κ := 1
+
+|B|
+
+X
+
+> t∈B
+
+κt.
+
+Deriving the decay rate. For tj ∈ A \ ({tm} ∪ B), the learner delegates tasks to AI between sections tj and tj+1 , during which skill decay occurs. Using a first-order approximation, we obtain 
+
+θ(tj+1 ) ≈ θ(tj ) + η θ (tj )(1 − θ(tj )) ((1 − θ(tj )) − (tj+1 − tj − 1)∆ θ(tj )) . Solving for ∆ yields the estimate ∆j := η θ (tj )(1 − θ(tj )) 2 − (θ(tj+1 ) − θ(tj )) 
+
+η θ (tj )(1 − θ(tj ))( tj+1 − tj − 1) θ(tj ) .
+
+Averaging over all such tj gives the decay-rate estimate ∆ := 1
+
+|A \ ({tm} ∪ B)|
+
+X 
+
+> tj∈A\({tm}∪ B)
+
+∆j .
+
+35 Table 2: An illustrative example of the procedure for deriving the parameters θa, κ, and ∆. 
+
+t Decision X(t) ℓt ℓa,t p(t) θ(t)1 Manual 0 0.36 0.04 0.20 0.40 2 Manual 0 0.25 0.04 0.25 0.50 3 Delegate 1 — 0.04 0.35 —4 Delegate 1 — 0.04 0.45 —5 Manual 0 0.30 0.04 0.40 0.45 
+
+Working example. To illustrate this procedure, we simulate a short trajectory ( T = 5) of a learner interacting with a high-performing AI. The data is presented in Table 2. 
+
+Step 1: Deriving AI skill θa. The AI loss is consistent at ℓa,t = 0 .04. The implied skill is: 
+
+θa = 1 − √0.04 = 1 − 0.2 = 0.80 .
+
+Step 2: Deriving learning rate η. We observe consecutive manual practice at t = 1 , 2. 
+
+• Skill growth: θ(2) − θ(1) = 0 .50 − 0.40 = 0 .10. 
+
+• Theoretical growth term: θ(1)(1 − θ(1)) 2 = 0 .4(0 .6) 2 = 0 .144. 
+
+• Estimate: η = 0 .10 /0.144 ≈ 0.694 .
+
+Step 3: Deriving delegation rate κ. Using the transition from t = 1 to t = 2: 
+
+• Change of delegation level: p(2) − p(1) = 0 .25 − 0.20 = 0 .05. 
+
+• Performance gap: ℓ1 − ℓa, 1 = 0 .36 − 0.04 = 0 .32. 
+
+• Denominator term: ηp (1)(1 − p(1))(gap) = 0 .694 · 0.2 · 0.8 · 0.32 ≈ 0.0355. 
+
+• Estimate: κ = 0 .05 /0.0355 ≈ 1.41 .
+
+Step 4: Deriving decay rate ∆. We observe a manual session at t = 5 following a delegation block (t = 3 , 4). 
+
+• Delegation duration: k = 5 − 2 − 1 = 2 steps. 
+
+• Observed change: θ(5) − θ(2) = 0 .45 − 0.50 = −0.05. 
+
+• Expected growth (had they not delegated): ηθ (2)(1 − θ(2)) 2 = 0 .694 · 0.5 · 0.25 ≈ 0.0868. 
+
+• Numerator (Growth - Change): 0 .0868 − (−0.05) = 0 .1368. 
+
+• Denominator term: kηθ (2) 2(1 − θ(2)) = 2 · 0.694 · 0.25 · 0.5 ≈ 0.1735. 
+
+• Estimate: ∆ = 0 .1368 /0.1735 ≈ 0.79 .36 Prediction of convergence. With parameters θa = 0 .8, κ = 1 .41 , ∆ = 0 .79, we calculate the precise location of the saddle point and the separatrix. At t = 5, the learner’s state is ( θ0 = 0 .45 , p 0 = 0 .4). Using these information, we can also predict the convergence behavior of the learner. First, we compute the saddle point ( θ†, p †): 
+
+θ† = 0 .8, p† = 1 − 0.81 − (1 − 0.79)0 .8 = 0.20.832 ≈ 0.24 .
+
+Next, we derive the shape parameters for the stable manifold approximation eψ. The tangent slope at the saddle is m† ≈ 0.46. The left-branch exponent is βl = 1 .41(1 − (0 .2) 2) ≈ 1.35. Computing the breakpoint θl yields θl = θ† = 0 .8, meaning the first branch of the piecewise function (16) applies to the learner’s current state θ0 = 0 .45. Substituting these values into eψ, we determine the critical delegation threshold: 
+
+eψ(0 .45) = p†
+
+ 0.45 
+
+θ†
+
+βl
+
+≈ 0.24 
+
+ 0.45 0.8
+
+1.35 
+
+≈ 0.11 .
+
+At t = 5, the learner’s delegation level is p0 = 0 .40, which is strictly higher than the critical threshold 
+
+pcrit ≈ 0.11. Thus, the learner locates inside the low-skill basin. Consequently, we predict that despite having moderate initial skill, the learner is over-reliant on the AI relative to their learning trajectory and will eventually converge to the low-skill equilibrium ( θ → 0, p → 1). 
+
+# 9 Conclusions, limitations, and future work 
+
+We study the impact of AI on learning through a dynamical system that captures how short-term delegation decisions shape long-run human skill. By coupling delegation and skill updates through a shared objective of instantaneous loss minimization, the framework reveals a structural source of heterogeneous AI effects. Our results characterize when skill converges to a low-skill equilibrium stabilized by persistent delegation, show that this degradation intensifies as AI capability increases, and establish that performance gains from AI assistance are transient rather than cumulative. Together, these findings provide a mechanistic account of cognitive debt observed in recent empirical work: AI assistance can improve short-term performance while reducing long-run skill by diminishing practice. These results do not imply that AI is inherently harmful; rather, its long-run effects depend on how delegation evolves relative to opportunities for practice. From a policy perspective, our findings highlight the importance of sustaining practice and redesigning incentives, such as delaying high-quality AI assistance, rewarding independent problem solving, or valuing learning trajectories, to align short-term performance with long-term skill development as AI capability advances. Our analysis focuses on a minimal, deterministic dynamical system capturing average-case behavior. This abstraction enables sharp theoretical results but omits several real-world factors. First, we do not model post-delegation verification or corrective behavior, which may partially mitigate skill degradation. Second, the dynamics abstract away stochasticity from noisy AI outputs, learner exploration, or evaluation variance. Third, we consider a single task with a one-dimensional skill representation; in practice, learning spans multiple tasks with transfer and substitution effects, and AI may accelerate some skills while eroding others. Extending the framework to stochastic, multi-task, or partially observed settings that incorporate verification and strategic effort allocation is an important direction for future work. 37 Acknowledgments 
+
+We thank Mariia Eremeeva for useful discussions. This work was funded by NSF Award CCF-2112665. 
+
+# References 
+
+[1] Daron Acemoglu, David Autor, and Simon Johnson. Building pro-worker artificial intelligence. Working Paper 34854, National Bureau of Economic Research, February 2026. [2] Long Bai, Xiangfei Liu, and Jiacan Su. ChatGPT: The cognitive effects on learning and memory. 
+
+Brain-X , 2023. [3] Hamsa Bastani, Osbert Bastani, Alp Sungu, Haosen Ge, ¨Ozge Kabakcı, and Rei Mariman. Generative AI without guardrails can harm learning: Evidence from high school mathematics. 
+
+Proceedings of the National Academy of Sciences of the United States of America , 122, 2025. [4] Michel Bena¨ ım. Dynamics of stochastic approximation algorithms. In Jacques Az´ ema, Michel ´Emery, Michel Ledoux, and Marc Yor, editors, S´ eminaire de Probabilit´ es XXXIII , pages 1–68, Berlin, Heidelberg, 1999. Springer Berlin Heidelberg. [5] L. Elisa Celis, Amit Kumar, Anay Mehrotra, and Nisheeth K. Vishnoi. Bias in evaluation processes: An optimization-based model. In NeurIPS , 2023. [6] Fabrizio Dell’Acqua, Edward McFowland, Ethan R. Mollick, Hila Lifshitz-Assaf, Katherine C. Kellogg, Saran Rajendran, Lisa Krayer, Fran¸ cois Candelon, and Karim R. Lakhani. Navigating the jagged technological frontier: Field experimental evidence of the effects of AI on knowledge worker productivity and quality. SSRN Electronic Journal , 2023. [7] Hermann Ebbinghaus. Memory: A Contribution to Experimental Psychology . Teachers College, Columbia University, 1913. Transl. of 1885 German edition. [8] Asma Ejaz, Muhammad Farhan, Francesco Ernesto, and Alessi Longa. AI and cognitive load: How reliance on AI tools (Chatgpt, etc.) affects critical thinking. Research Journal of Psychology , 2025. [9] Ido Erev and Alvin E. Roth. Predicting how people play games: Reinforcement learning in experimental games with unique, mixed strategy equilibria. The American Economic Review ,88(4):848–881, 1998. [10] K. Anders Ericsson, Ralf Thomas Krampe, Clemens Tesch-Romer, Catherine Ashworth, Gregory Carey, Robert J. Crutcher, Janet Grassia, Reid Hastie, Stefanie Heizmann, Charles Judd, Ronald Kellogg, Robert Levin, Clayton H. Lewis, William Oliver, Peter G. Poison, Robert Rehder, Kurt Schlesinger, Vivian I. Schneider, and James Wilson. The role of deliberate practice in the acquisition of expert performance. Psychological Review , 100:363–406, 1993. [11] Thomas L. Griffiths, Charles Kemp, and Joshua B. Tenenbaum. Bayesian models of cognition, 2008. 38 [12] Andrew Heathcote, Scott Brown, and D. J. K. Mewhort. The power law repealed: The case for an exponential law of practice. Psychonomic Bulletin & Review , 7(2):185–207, Jun 2000. [13] Nataliya Kosmyna, Eugene Hauptmann, Ye Tong Yuan, Jessica Situ, Xian-Hao Liao, Ashly Vi-vian Beresnitzky, Iris Braunstein, and Pattie Maes. Your brain on ChatGPT: Accumulation of cognitive debt when using an AI assistant for essay writing task. 2025. [14] Abhishek Kumar, Prasanna Sattigeri, and Tom Fletcher. Semi-supervised learning with gans: Manifold invariance with improved inference. In Neural Information Processing Systems , 2017. [15] Hao-Ping (Hank) Lee, Advait Sarkar, Lev Tankelevitch, Ian Drosos, Sean Rintel, Richard Banks, and Nicholas Wilson. The impact of generative AI on critical thinking: Self-reported reductions in cognitive effort and confidence effects from a survey of knowledge workers. In 
+
+CHI 2025 , April 2025. [16] Matthias Lehmann, Philipp B. Cornelius, and Fabian J. Sting. AI meets the classroom: When do large language models harm learning?, 2024. [17] Smitha Milli, John Miller, Anca D. Dragan, and Moritz Hardt. The social cost of strategic classification. In Proceedings of the Conference on Fairness, Accountability, and Transparency ,FAT* ’19, page 230–239, New York, NY, USA, 2019. Association for Computing Machinery. [18] Dylan R. Nelson and Joey Cheung. Non-linear dynamics and chaos. 2007. [19] Allen Newell and Paul S. Rosenbloom. Mechanisms of skill acquisition and the law of practice. In John R. Anderson, editor, Cognitive Skills and Their Acquisition , pages 1–55. Lawrence Erlbaum, Hillsdale, NJ, 1981. [20] Donald A. Norman. Things That Make Us Smart: Defending Human Attributes in the Age of the Machine . Addison-Wesley, 1994. [21] R. Parasuraman, T.B. Sheridan, and C.D. Wickens. A model for types and levels of human interaction with automation. IEEE Transactions on Systems, Man, and Cybernetics - Part A: Systems and Humans , 30(3):286–297, 2000. [22] Robin Pemantle. A survey of random processes with reinforcement. Probability Surveys [electronic only] , 4:1–79, 2007. [23] Juan Perdomo, Tijana Zrnic, Celestine Mendler-D¨ unner, and Moritz Hardt. Performative prediction. In Hal Daum´ e III and Aarti Singh, editors, Proceedings of the 37th International Conference on Machine Learning , volume 119 of Proceedings of Machine Learning Research ,pages 7599–7609. PMLR, 13–18 Jul 2020. [24] Lawrence Perko. Differential equations and dynamical systems . New York: Springer, 2001. [25] R. A. Rescorla and A. R. Wagner. A theory of pavlovian conditioning: Variations in the effectiveness of reinforcement and nonreinforcement. In A. H. Black and W. F. Prokasy, editors, 
+
+Classical Conditioning II: Current Research and Theory , pages 64–99. Appleton-Century-Crofts, New York, 1972. 39 [26] Salah Rifai, Yann Dauphin, Pascal Vincent, Yoshua Bengio, and Xavier Muller. The manifold tangent classifier. In Neural Information Processing Systems , 2011. [27] Evan F. Risko and Sam J. Gilbert. Cognitive offloading. Trends in Cognitive Sciences ,20(9):676–688, 2016. [28] Hang Shao, Abhishek Kumar, and P. Thomas Fletcher. The riemannian geometry of deep generative models. 2018 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW) , pages 428–4288, 2018. [29] Joongi Shin, Anna Polyanskaya, Andr´ es Lucero, and Antti Oulasvirta. No evidence for LLMs being useful in problem reframing. In Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems , CHI ’25, page 1–25. ACM, April 2025. [30] Stack Overflow. Stack Overflow developer survey 2025. Online report, 2025. [31] Veniamin Veselovsky, Manoel Horta Ribeiro, and Robert West. Artificial artificial artificial intelligence: Crowd workers widely use large language models for text production tasks. ArXiv ,abs/2306.07899, 2023. [32] Chunpeng Zhai, Santoso Wibowo, and Lily D. Li. The effects of over-reliance on AI dialogue systems on students’ cognitive abilities: a systematic review. Smart Learning Environments ,11, 2024. [33] Ruixun Zhang, Thomas J Brennan, and Andrew W Lo. The origin of risk aversion. Proceedings of the National Academy of Sciences , 111(50):17777–17782, 2014. 40

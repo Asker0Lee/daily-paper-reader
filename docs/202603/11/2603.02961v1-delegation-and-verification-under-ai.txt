@@ -1,0 +1,1211 @@
+Title: Delegation and Verification Under AI
+
+URL Source: https://arxiv.org/pdf/2603.02961v1
+
+Published Time: Wed, 04 Mar 2026 02:23:38 GMT
+
+Number of Pages: 34
+
+Markdown Content:
+# Delegation and Verification Under AI 
+
+Lingxiao Huang Nanjing University Wenyang Xiao Nanjing University Nisheeth K. Vishnoi Yale University 
+
+Abstract 
+
+As AI systems enter institutional workflows, workers must decide whether to delegate task execution to AI and how much effort to invest in verifying AI outputs, while institutions evaluate workers using outcome-based standards that may misalign with workers’ private costs. We model delegation and verification as the solution to a rational worker’s optimization problem, and define worker quality by evaluating an institution-centered utility (distinct from the worker’s objective) at the resulting optimal action. We formally characterize optimal worker workflows and show that AI induces phase transitions , where arbitrarily small differences in verification ability lead to sharply different behaviors. As a result, AI can amplify workers with strong verification reliability while degrading institutional worker quality for others who rationally over-delegate and reduce oversight, even when baseline task success improves and no behavioral biases are present. These results identify a structural mechanism by which AI reshapes institutional worker quality and amplifies quality disparities between workers with different verification reliability. 
+
+1
+
+> arXiv:2603.02961v1 [cs.GT] 3 Mar 2026
+
+# Contents 
+
+1 Introduction 32 Model 53 Theoretical results 8
+
+3.1 Overview of the proofs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12 
+
+4 From data to model parameters 13 5 Omitted proofs and details from Section 3 15 
+
+5.1 Explicit forms of utility functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 5.2 An illustrative example for Assumption 3.3: monotonicity of detection . . . . . . . . 15 5.3 Proof of Theorem 3.1: Worker optimal action . . . . . . . . . . . . . . . . . . . . 16 5.4 Proof of Theorem 3.5: Worker quality improvement v.s. no AI . . . . . . . . . 18 5.5 Proof of Theorem 3.6: Worker upgraded v.s. downgraded . . . . . . . . . . . . 19 5.6 Proof of Lemma 3.7: effects of α, β on fW . . . . . . . . . . . . . . . . . . . . . . . . 20 5.7 Proof of Lemma 3.8: effects of α, β on Φ . . . . . . . . . . . . . . . . . . . . . . . . . 21 5.8 Proof of Lemma 3.9: effect of α on fI (s⋆) . . . . . . . . . . . . . . . . . . . . . . . . 22 5.9 Proof of Lemma 3.10: effects of α, β on Q(W ) . . . . . . . . . . . . . . . . . . . . . . 23 5.10 Details of the illustrative example in Figure 2 . . . . . . . . . . . . . . . . . . . . . . 24 
+
+6 Interventions to improve worker quality 25 
+
+6.1 Worker-side interventions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 6.2 Institutional-side interventions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 26 
+
+7 Model extension 27 
+
+7.1 Heterogeneous task difficulty . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27 7.2 Miscalibrated beliefs about AI capability . . . . . . . . . . . . . . . . . . . . . . . . . 28 7.3 Partial re-execution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29 
+
+8 Conclusions, limitations, and future work 30 A Omitted details in Section 4: from data to model parameters 33 
+
+21 Introduction 
+
+Across high-stakes domains such as medicine, finance, and law, task completion traditionally followed a simple structure: a human worker executed the task and bore responsibility for correctness. As artificial intelligence (AI) systems enter institutional workflows, execution can be delegated while responsibility remains human. Institutions increasingly expect workers to use AI for efficiency, standardization, or cost reduction, transforming task completion into a process of delegation and oversight [ 20 , 30 ]. Work is therefore organized as a delegation pipeline : a worker may perform the task manually, delegate execution to AI, or delegate while verifying the AI’s output. In experimental and real-world settings, workers tend to rely more heavily on AI advice on harder and less predictable tasks, even when AI accuracy is lower in those regimes [ 3 , 24 , 29 ]. At the same time, verification and oversight often weaken under cognitive load, complexity, or time pressure, leading to reduced scrutiny of AI outputs precisely where failures are most likely [ 9, 2 ]. Together, these findings point to a structural tension between delegation and verification in AI-assisted work. Notably, recent empirical evidence suggests that AI-assisted work can unevenly affect worker outcomes, with some workers benefiting from AI access while others experience degraded performance despite similar exposure to AI tools [4]. These observations raise a basic question: How does AI reshape the value that institutions derive from human workers? We refer to this value as worker quality : the institutional utility generated by a worker’s output, accounting not only for task success but also for verification costs and accountability borne by the institution. While workers choose among manual work, verified delegation, and pure delegation to optimize their own effort–utility trade-offs, institutional evaluation is typically outcome-based and agnostic to internal workflows. This misalignment implies that individually rational delegation strategies need not maximize institutional utility, motivating the framework we develop in this paper. 
+
+Related work. Our setting relates to prior work on human–AI delegation, reliance, and monitoring under costly verification, which differ in how delegation and verification decisions are modeled and in whether worker behavior and institutional outcomes are treated endogenously. A growing body of work studies how tasks should be allocated between humans and AI systems based on task attributes like criticality and verifiability, utilizing frameworks such as selective prediction, learning-to-defer, and complementary expertise frameworks [ 19 , 6, 22 , 14 , 26 ]. These approaches design routing or deferral policies to optimize system-level accuracy or utility, typically assuming fixed human accuracy and exogenous human effort, and therefore do not model how worker-chosen delegation interacts with verification effort or translates into institutional worker quality. Empirical work documents patterns of over-reliance and oversight decay in AI-assisted settings as functions of task difficulty, uncertainty, and cognitive load [ 23 , 29 , 18 ]. While this evidence shows that verification weakens in practice, it typically explains these effects in psychological or organizational terms rather than modeling the underlying decision problem linking effort costs, task difficulty, and outcomes. Economic models of monitoring and verification study how costly inspection or auditing should be deployed to deter misreporting or errors [ 27 , 8 , 21 , 10 ]. In these models, verification is controlled by an institutional principal, rather than chosen by workers on a per-task basis, and human and AI performance are not jointly modeled as functions of task hardness. Recent work also develops mathematical frameworks for human–AI integration, characterizing 3how human and AI capabilities combine to affect job success and productivity [ 5 ], as well as benchmark- and value-of-information–based approaches to joint decision-making [ 15 , 12 , 11 ]. These frameworks characterize optimal decisions given available signals, but do not model how delegation and verification choices are shaped by effort costs or how they induce institutional outcomes. Taken together, existing approaches address task allocation, reliance behavior, auditing, or evaluation in isolation, but do not provide a unified account of how worker-chosen delegation and verification under AI shape institutional worker quality. 
+
+Our contributions. We introduce a mathematical framework that characterizes how AI reshapes institutional worker quality through delegation and verification. Our main contributions are as follows: 
+
+• Utility-driven model of delegation and verification. We model worker–AI interaction via a delegation–verification action pair ( d, s ) ∈ [0 , 1] 2, where d is the probability of delegating execution to AI and s is verification effort. Worker ability is parameterized by verification reliability α ∈ R≥0 and execution efficiency β ∈ R≥0. Worker behavior is given by the solution to a utility maximization problem (Eq. (2) ), while worker quality is defined by evaluating an institution-centered utility at the resulting optimal action (Eq. (4) ). This framework makes explicit the structural misalignment between worker incentives and institutional objectives. 
+
+• Workflow phase transitions under AI assistance. We characterize the worker’s optimal workflow (d⋆, s ⋆) as a function of ability parameters ( α, β ) (Theorem 3.1). We show that AI induces a 
+
+nonlinear and discontinuous mapping from ability to behavior, with sharp transitions between manual work, verified delegation, and pure delegation. These transitions arise from structural properties of the delegation pipeline, persist under general concave detection and convex cost functions, and explain why accountability failures can emerge abruptly rather than gradually in AI-assisted workflows. 
+
+• Reshaping institutional worker quality. We characterize when AI assistance improves or degrades institutional worker quality (Theorem 3.5) and identify which workers are upgraded or downgraded relative to the pre-AI baseline (Theorem 3.6). We identify a compliance gain 
+
+regime, in which workers with high verification reliability become institutionally qualified due to AI access, and a compliance loss regime, in which workers with low verification reliability rationally over-delegate and experience quality degradation. These effects arise endogenously from rational optimization, without invoking behavioral bias or miscalibration. More broadly, our results suggest a verification amplification phenomenon: AI access can disproportionately benefit workers with strong evaluative capabilities, while disadvantaging others through rational over-delegation. 
+
+• Closed-form characterization in a tractable instantiation. In a tractable instantiation with inverse-linear verification reliability and linear execution cost, we obtain closed-form expressions for optimal actions and resulting worker quality (Figure 2). This highlights the central role of verification reliability and reveals countervailing effects: higher verification ability or higher AI quality can induce over-delegation and reduce quality for some workers. 
+
+• Worker and institutional interventions. We formulate a constrained optimization problem for worker up-skilling that trades off improvements in verification reliability α and execution 4efficiency β under a qualification constraint (Eq. (17) ). We further analyze institutional interventions, including improvements in AI capability and changes to worker incentives, and show that both can have non-monotonic effects on institutional utility (Section 6.2). We further extend the model to heterogeneous task difficulty, miscalibrated beliefs about AI capability, and partial re-execution (Section 7), showing that the core qualitative phenomena persist, and provide empirical grounding on real-world data to illustrate applicability (Section 4). Overall, our framework shows that AI functions not only as a productivity enhancer but as a structural filter that induces discontinuous changes in institutional worker quality. By isolating rational over-delegation as the core mechanism, we show that verification ability, rather than execution efficiency, becomes the primary determinant of institutional viability in AI-assisted workflows. 
+
+# 2 Model 
+
+We study a static, per-task model of AI-assisted work in which a rational worker interacts with a fixed AI system, choosing delegation and verification effort, while the institution evaluates the worker based on task outcomes. 
+
+Action space and workflow. A worker W chooses an action ( d, s ) ∈ [0 , 1] 2, where d denotes the probability of delegating task execution to AI and s denotes the verification effort exerted upon delegation. With probability 1 − d, the worker executes the task independently. When the task is delegated, the worker verifies the AI’s output with effort s. If an error is detected, the worker redoes the task independently of the AI’s output. The pre-AI workflow corresponds to ( d, s ) = (0 , 0), in which the worker always executes the task directly. 
+
+Worker utility. The worker chooses an action to trade off task success against completion cost, which we model via a utility function depending on the probability of task success and the cost incurred. Let p : [0 , 1] 2 → [0 , 1] denote the task success function and cost : [0 , 1] 2 → R≥0 the cost function . For an action ( d, s ), p(d, s ) is the probability of success and cost (d, s ) the incurred cost. Both functions are increasing in verification effort s and depend on worker and AI abilities, as specified in Equations (5) and (6) . Let bW ≥ 0 denote the worker’s benefit from success and ℓW ≥ 0the loss from failure. The worker utility is 
+
+UW (d, s ) := bW p(d, s ) − ℓW
+
+ 1 − p(d, s ) − cost( d, s ). (1) The worker selects an optimal action (d⋆, s ⋆) := arg max  
+
+> (d,s )∈[0 ,1] 2
+
+UW (d, s ). (2) Since AI enlarges the action space, the worker’s utility weakly improves relative to the no-AI baseline: 
+
+UW (d⋆, s ⋆) ≥ UW (0 , 0). 
+
+Institutional utility. The institution derives benefits from task success and incurs costs associated with worker effort, for example through compensation required to cover increased workload [ 25 ]. Let 
+
+bI , ℓ I ≥ 0 denote the institutional benefit from task success and loss from task failure, respectively, 5and let ξ ≥ 0 scale the worker’s cost from the institutional perspective. The institutional utility under action ( d, s ) is 
+
+UI (d, s ) := bI p(d, s ) − ℓI
+
+ 1 − p(d, s ) − ξ cost( d, s ). (3) Institutional utility depends on the worker’s action, which is not directly controlled by the institution. 
+
+Worker quality. We define worker quality as the institutional utility induced by the worker’s optimal action, 
+
+Q(W ) := UI (d⋆, s ⋆). (4) If institutional and worker utilities are aligned (e.g., bI = bW , ℓI = ℓW , and ξ = 1), then 
+
+Q(W ) = UW (d⋆, s ⋆) and worker quality coincides with the worker’s realized utility, which weakly improves under AI assistance. In general, however, UI̸ = UW . Institutions employ multiple workers with heterogeneous objectives, so institutional utility cannot coincide with each worker’s individual utility. This misalignment allows worker quality to decrease under AI assistance even when workers act rationally, consistent with empirical observations [3, 24]. 
+
+Reliability and task success. Task success under action ( d, s ) arises through three mutually exclusive pathways: (i) direct worker execution, (ii) direct AI execution, and (iii) worker success after detecting and correcting an AI error. To compute the probability for each pathway, we define the reliability of the worker and the AI. Let pw, p a ∈ [0 , 1] denote the task success probabilities of the worker and the AI, respectively. The probabilities of direct worker and AI success are (1 − d)pw
+
+and dp a. The quantities pw and pa may depend on task difficulty. For simplicity, we assume uniform task difficulty in the main text so that pw and pa are fixed, and relax this assumption in Section 7.1. Worker correction after AI errors is governed by an error detection function ϕ : [0 , 1] → [0 , 1], which maps verification effort s to the probability of detecting an AI error. Conditional on detecting an error, the worker’s subsequent task success is assumed to be independent of the AI’s original output. Thus, the probability of success via correction is d(1 − pa)ϕ(s)pw. Combining these cases, the task success probability induced by action ( d, s ) ∈ [0 , 1] 2 is 
+
+p(d, s ) := (1 − d)pw + dp a + d(1 − pa)ϕ(s)pw. (5) When pa < p w, delegation without verification (i.e., d > 0 and s = 0) can reduce the overall task success probability. We impose the following regularity conditions on the error detection function ϕ(·): (i) ϕ(0) = 0, so no errors are detected without verification effort. (ii) ϕ is increasing, continuously differentiable, and strictly concave in s, implying diminishing returns to verification effort. These conditions capture the well-established speed–accuracy tradeoff and insights from random search theory in human cognition [28, 13, 16]. A commonly used functional form is ϕ(s) := 1 − e−αs , where α ≥ 0 represents the worker’s verification reliability. Larger values of α yield higher detection probabilities for any fixed s > 0, i.e., 
+
+ϕ(s) is strictly increasing in α. An alternative is the inverse-linear form ϕ(s) := 1 − 11+ αs , which is a first-order approximation to 1 − e−αs and is analytically convenient. 6Execution efficiency and cost. We model the cost incurred under action ( d, s ) by aggregating execution, verification, and correction costs. Let Cw, C a ≥ 0 denote the execution costs of the worker and the AI, respectively. The expected execution cost is (1 − d)Cw + dC a. In practice, Ca is typically much smaller than Cw, and we often assume Ca = 0 for simplicity. We parameterize the worker’s execution cost Cw by an efficiency parameter β ≥ 0, where larger 
+
+β corresponds to higher efficiency and lower execution cost. For example, Cw may scale linearly as 1 − β or inverse-linearly as 1 /β . Verification incurs an additional cost modeled by a detection cost function Cv : [0 , 1] → R≥0. We assume Cv(0) = 0 and that Cv is increasing, continuously differentiable, and strictly convex, implying increasing marginal verification costs [ 17 ]. Examples include a linear cost Cv(s) ∝ s or a convex cost such as Cv(s) = s + s2 
+
+> 2
+
+. Since verification occurs only when the task is delegated to AI, the expected verification cost under action ( d, s ) is d C v(s). If an AI error is detected, the worker redoes the task at cost Cw, yielding an expected correction cost of d(1 − pa)ϕ(s)Cw. The total cost under action ( d, s ) is cost( d, s ) := (1 − d)Cw + d (Ca + Cv(s) + (1 − pa)ϕ(s)Cw) . (6) Substituting (5) and (6) into (1) and (3) yields UW (d, s ) = fW (s)d + gW and UI (d, s ) = fI (s)d + gI ,both linear in the delegation level d. Here, gW and gI denote the worker’s and institution’s no-AI baseline utilities; in particular, gI equals the pre-AI worker quality Q0(W ). We restrict to the regime gW ≥ 0, ensuring nonnegative pre-AI worker utility. The terms fW (s)d and fI (s)d capture the incremental utilities from delegation with verification effort s. Expressions for fW (s), gW , fI (s), and gI are given in Section 5.1. Because worker and institutional objectives need not align, it is possible that fW (s) > 0 while fI (s) < 0, so delegation benefits the worker but harms the institution. Figure 1 provides a flow chart for the workflow. 
+
+Figure 1: A flow chart for the workflow under AI assistance with worker action ( d, s ) ∈ [0 , 1] 2.
+
+Remark 2.1 ( Structural properties of delegation with verification) . The discontinuities identified in subsequent sections do not depend on specific functional forms, but arise from structural 7(a) Worker action in Theorem 3.1 (b) Quality gap in Theorem 3.5 (c) Grading in Theorem 3.6 
+
+Figure 2: Plots illustrating the worker action and quality regimes characterized in Theo-rems 3.1, 3.5, and 3.6 as functions of abilities ( α, β ), under the default parameter setting (bW , ℓ W , b I , ℓ I , ξ, τ, p a, C a, p w) = (8 , 6, 14 , 12 , 0.3, 6.4, 0.65 , 0, 0.75) , and the functional choices Cv(s) = 
+
+s, Cw(β) = 5(1 − β), and ϕ(s; α) = 1 − 11+2 αs . Discussion on the choice of parameters and functions, and closed-form expressions for key quantities—including ( d⋆, s ⋆) and the boundaries ψ0, ψ1, ψ, and 
+
+ψτ —are provided in Section 5.10. features of utility-driven delegation with costly verification. Suppose that (i) ϕ(s) is increasing and concave, (ii) Cv(s) is increasing and convex, and (iii) utilities are affine in the delegation probability 
+
+d for fixed s. Then UW (d, s ) = fW (s)d + gW , implying d⋆(s) ∈ { 0, 1} whenever fW (s)̸ = 0. As a result, small changes in worker or AI ability that flip the sign of fW (s) induce abrupt transitions between no delegation, verified delegation, and pure delegation. These phase transitions are therefore generic to delegation pipelines with costly verification. In the remainder of the paper, we analyze how the optimal action ( d⋆, s ⋆) and resulting quality 
+
+Q(W ) vary with verification reliability α and execution efficiency β. By contrast, in the pre-AI baseline only execution efficiency β matters, as verification is unnecessary. 
+
+# 3 Theoretical results 
+
+This section presents our main theoretical results on how AI assistance reshapes worker behavior and institutional worker quality. Throughout, we fix the task profile (benefit parameters bW , b I ,loss parameters ℓW , ℓ I , and discount factor ξ), AI characteristics (task success probability pa and execution cost Ca), and baseline worker characteristics (task success probability pw and verification cost function Cv(·). Under this setup, the worker’s optimal action ( d⋆, s ⋆) and resulting worker quality Q(W ) depend only on verification reliability α and execution efficiency β, which parameterize the detection function ϕ(·) and execution cost Cw.We first show that the optimal worker action is nonlinear and discontinuous in ( α, β ) (Theo-rem 3.1). We then analyze how AI assistance alters worker quality relative to the pre-AI baseline: Theorem 3.5 characterizes when AI improves worker quality, while Theorem 3.6 identifies which workers are upgraded or downgraded, highlighting the central role of verification ability. 
+
+Characterization of worker action. To compute the verification decision, we define the 
+
+verification surplus function Φ( s; α, β ) := (1 − pa) (bW + ℓW )pw − Cw
+
+ ϕ(s) − Cv(s),
+
+8which captures the marginal benefit of detecting AI errors net of verification cost. This function corresponds to the s-dependent component of fW (s). Let 
+
+s†(α, β ) ∈ arg max  
+
+> s∈[0 ,1]
+
+Φ( s; α, β )denote the optimal verification effort, conditional on verification being employed. Since fW (s) = Φ( s; α, β ) + const , where the constant term does not depend on s, this is equivalent to s†(α, β ) ∈
+
+arg max s∈[0 ,1] fW (s). By the definition of Φ, this is equivalent to s†(α, β ) ∈ arg max s∈[0 ,1] fW (s). We also define the manual-to-delegation gain 
+
+∆( β) := UW (1 , 0) − UW (0 , 0) = fW (0) , (7) which represents the worker’s net utility change when switching from manual work to pure dele-gation (i.e., delegating execution to AI without verification). The last equality follows from the decomposition UW (d, s ) = fW (s) d + gW . Since no verification effort is exerted, we have ϕ(0) = 0 and Cv(0) = 0 for any α, and hence ∆ depends only on the execution efficiency β. Below we characterize the utility-driven worker action. 
+
+Theorem 3.1 (Worker optimal action). Fix the task profile, AI characteristics, and baseline worker characteristics. Let t ≥ 0 be a threshold such that ∆( t) = 0 . There exist continuous functions 
+
+ψ0 : [ t, ∞) → R≥0, monotonically increasing, and ψ1 : [0 , t ] → R≥0, monotonically decreasing, such that, for all β in their respective domains, 
+
+fW
+
+ s†(ψ0(β), β ) = 0 and ∂sΦ 0; ψ1(β), β  = 0 .
+
+Then the optimal action (d⋆, s ⋆) takes the following form: 
+
+• (Manual work) (0 , 0) if (β ≥ t) and (α < ψ 0(β)) ;
+
+• (Pure delegation) (1 , 0) if (β < t ) and (α < ψ 1(β)) ;
+
+• (Verified delegation) (1 , s †(α, β )) otherwise. 
+
+This result shows that the worker’s optimal action lies in one of three regimes: manual work (0 , 0), pure delegation (1 , 0), and verified delegation (1 , s †(α, β )). Consequently, AI induces a nonlinear and discontinuous mapping from ability to action. In particular, the optimal delegation decision 
+
+d⋆ is binary, leading to sharp regime shifts. This discreteness follows from the fact that worker utility UW (d, s ) is affine in the delegation variable d, highlighting the structural source of abrupt action transitions under AI assistance (Figure 2a). For example, as β decreases past a threshold t,the worker may abruptly switch from manual work to pure delegation. Similarly, as verification reliability α crosses a threshold ψ0(β), the optimal verification effort s⋆ can jump discontinuously from 0 to s†(α, β ). These phase transitions provide an explanation for empirical findings that accountability failures can emerge abruptly rather than gradually in AI-assisted workflows [29]. The threshold condition ∆( t) = 0 characterizes indifference between manual work and pure delegation. The condition fW
+
+ s†(ψ0(β), β ) = 0 implies that, at ( α, β ) = ( ψ0(β), β ), the worker is indifferent between manual work and verified delegation, so ψ0 separates these regimes. Finally, the condition ∂sΦ 0; ψ1(β), β  = 0 implies that verification yields zero marginal surplus at s = 0, so ψ1 separates pure and verified delegation. When α is sufficiently large, the worker enters the verified-delegation regime, underscoring the role of verification ability in preventing over-delegation. Moreover, the monotonicity of the separatrices ψ0 and ψ1 implies that the optimal delegation decision d⋆ is non-increasing in execution efficiency β: higher execution efficiency makes manual work more attractive, reducing reliance on AI. 9Worker quality under AI assistance. Given the worker’s optimal action ( d⋆, s ⋆), we can compute the resulting worker quality Q(W ). A central question is whether Q(W ) exceeds the no-AI baseline quality Q0(W ). This question is practically relevant for workers, who seek to remain qualified and avoid job loss. It is equally important for institutions, for whom worker quality directly determines productivity, liability, and risk. From the institutional perspective, a key concern is whether workers are upgraded or downgraded under AI assistance, as this directly affects productivity. Let τ ≥ 0 denote a qualification threshold for worker quality. Formally, we ask which workers are upgraded —moving from Q0(W ) < τ to Q(W ) ≥ τ —and which are downgraded —moving from Q0(W ) ≥ τ to Q(W ) < τ .To address these questions, we introduce technical assumptions. The first ensures that the institution places higher marginal value on task success than the worker does. 
+
+Assumption 3.2 (Institutional dominance ). Assume that ( bI + ℓI ) > ξ (bW + ℓW ).
+
+This assumption is typically reasonable in practice: institutions often have larger benefits from success and larger losses from failure than individual workers (i.e., bI > b W and ℓI > ℓ W ), while the institution may bear only a discounted fraction of the worker’s private cost (i.e., ξ < 1). A second assumption ensures that, under the worker’s optimal verification choice, higher verification reliability α leads to higher detection probability. 
+
+Assumption 3.3 (Monotonicity of detection ). Assume that for any α, β ≥ 0, ∂α ϕ s†(α, β ) ≥ 0.
+
+This assumption is intuitive: more reliable verifiers should detect more under optimal behavior. We provide concrete examples validating this condition in Section 5.2. We first study whether AI assistance improves worker quality relative to the no-AI baseline, i.e., whether Q(W ) − Q0(W ) > 0or not. Recall that Q0(W ) = gI , which immediately implies the following claim. 
+
+Proposition 3.4 (Worker quality difference ). Q(W ) − Q0(W ) = fI (s⋆) d⋆.
+
+Consequently, the question reduces to determining the sign of fI (s⋆) d⋆, which leads to the following theorem. 
+
+Theorem 3.5 (Worker quality improvement v.s. no AI). Fix the task profile, AI charac-teristics, and baseline worker characteristics. Let t and ψ0(·) be as given in Theorem 3.1. Under Assumptions 3.2 and 3.3, there exists a continuous function ψ : R≥0 → R≥0 such that 
+
+(fI (s⋆) = 0) ∧ (d⋆ = 1) for any pair (α, β ) = ( ψ(β), β ).
+
+Moreover, 
+
+• (Improved) Q(W ) > Q 0(W ) holds iff α > ψ (β);
+
+• (Unchanged) Q(W ) = Q0(W ) holds iff  (β ≥ t) ∧ (α < ψ 0(β))  or α = ψ(β);
+
+• (Degraded) Q(W ) < Q 0(W ) holds otherwise. 
+
+The result indicates that AI assistance reshapes worker quality in a heterogeneous manner. The regime in which quality remains unchanged largely coincides with the manual-work regime (( d⋆, s ⋆) = (0 , 0)). Beyond this region, worker quality improves under high verification reliability α, but can degrade when α is low, as over-delegation reduces task success. Moreover, higher execution efficiency 10 β does not necessarily translate into improved worker quality under AI assistance since delegation behavior can weaken the induced utility gain. Figure 2b visualizes the three regimes governing how worker quality varies under AI assistance in Theorem 3.5. Notably, there is a specific region in which quality is degraded, located below the intersection point ( α, β ) = (0 .39 , 0.82) of the separatrices ψ and ψ0. This region highlights a countervailing effect: increasing verification reliability can induce workers to switch from manual work to delegation even when reliability remains insufficient to make delegation quality-improving, thereby triggering over-delegation and reducing quality. Moreover, we have t = 1 − Ca+( bW +ℓW )( pw −pa)5 (see (16) ), which is monotonically increasing in AI ability (i.e., higher pa or lower Ca). Consequently, more capable AI enlarges the quality-degradation regime when α is close to 0. This reveals a second countervailing effect: improved AI capability can induce workers with low verification reliability to over-delegate, thereby reducing quality; see also Figure 3b. Next, we characterize the conditions under which workers are upgraded or downgraded under AI assistance. 
+
+Theorem 3.6 (Worker upgraded v.s. downgraded). Fix the task profile, AI characteristics, and baseline worker characteristics. Fix a grading threshold τ ≥ 0. Let tτ ≥ 0 be the solution to 
+
+Q0(W ; β) = τ . Under Assumptions 3.2 and 3.3, there exists a monotonically decreasing function 
+
+ψτ : R≥0 → R≥0 such that Q(W ) = τ for the ability pair (α, β ) = ( ψτ (β), β ). Then 
+
+• (Compliance gain) (Q(W ) > τ ) ∧ (Q0(W ) < τ ) holds iff  β < min {t, t τ } ∧  α > ψ τ (β) or  t ≤ β < t τ
+
+ ∧  α > max {ψ0(β), ψ τ (β)}.
+
+• (Compliance loss) (Q(W ) < τ ) ∧ (Q0(W ) > τ ) holds iff  tτ < β ≤ t ∧  α < ψ τ (β) or  β > max {t, t τ } ∧  ψ0(β) < α < ψ τ (β).
+
+This result identifies both a compliance gain regime and a compliance loss regime, separated by a boundary that depends on verification reliability α. In particular, high α enables workers with low execution efficiency ( β < t τ ) to upgrade, while low α can cause workers with high execution efficiency ( β > t τ ) to be downgraded. The monotonicity of the separatrix ψτ indicates that workers with lower execution efficiency require higher verification reliability to remain qualified. Together with Theorem 3.5, this yields a verification amplification phenomenon: AI access can disproportionately benefit workers with strong evaluative capabilities, while disadvantaging others through rational over-delegation. Notably, these effects arise endogenously from rational optimization, without invoking behavioral bias or miscalibration. Figure 2c visualizes the upgraded and downgraded regimes characterized in Theorem 3.6. When 
+
+β < t , worker quality Q(W ) increases more rapidly with α at low values of α, revealing diminishing returns to verification upskilling. This highlights that verification upskilling is most valuable for workers with low initial reliability. 
+
+Interventions and extensions. Section 6 discusses potential interventions to improve worker quality under AI assistance. From the worker side, we formulate a constrained optimization problem that trades off investments in verification reliability α and execution efficiency β under a qualification constraint (Eq. (17) ). Figure 3a illustrates that improving α can be more cost-effective, reinforcing the central role of verification reliability. 11 From the institutional side, we analyze two levers: deploying more capable AI systems and reshaping worker incentives. We show that both can have non-monotonic effects on institutional utility, underscoring the complexity of designing effective organizational policies in the AI age. Section 7 extends the model to heterogeneous task difficulty, miscalibrated beliefs about AI capability, and partial re-execution. We show that the core qualitative phenomena—phase transitions, compliance gain/loss regimes, and rational over-delegation—persist under these extensions, validating the robustness of our results. 
+
+3.1 Overview of the proofs 
+
+Table 1: Summary of monotonicity properties of key quantities with respect to the ability parameters 
+
+α and β. Here ↑ denotes increasing, ↓ denotes decreasing, / denotes no clear monotonic pattern, and × denotes no dependence.                                             
+
+> s†d⋆s⋆Q0Q|d⋆=1 Q|d⋆=1 −Q0ψ0(β)ψ1(β)ψ(β)ψτ(β)fW(s†)∂sΦ(0) fI(s†)
+> α/↑/×↑↑××××↑↑↑
+> β↑↓↑↑↑/↑↓/↓↓↑/
+
+We summarize the main proof ideas; full proofs appear in Section 5. All arguments rely on monotonicity properties of a small number of quantities with respect to verification reliability α and execution efficiency β, despite the fact that optimal verification effort depends implicitly on both parameters. These relationships are summarized in Table 1. 
+
+To Theorem 3.1. We first characterize the structure of the worker’s optimal workflow. Recall that UW (d, s ) = fW (s) d + gW is affine in the delegation variable d, with all nontrivial dependence on verification captured by fW (s). Under strict concavity of ϕ and strict convexity of Cv, fW (s) is strictly concave, implying a unique optimal verification effort s†(α, β ) ∈ arg max s∈[0 ,1] fW (s). The optimal delegation decision is therefore binary: 
+
+d⋆ = I
+
+h
+
+fW
+
+ s† ≥ 0
+
+i
+
+,
+
+with the boundary between delegation and manual work given by fW
+
+ s† = 0. To locate this boundary in ability space, we study how fW
+
+ s†(α, β ) varies with α and β.
+
+Lemma 3.7 (Effects of α and β on fW ). fW
+
+ s†(α, β ) is non-decreasing in α and non-increasing in β.
+
+When s† = 0, the condition fW (s†) = 0 coincides with the manual–delegation indifference condition ∆( β) = 0, yielding the threshold t separating manual work from pure delegation. When 
+
+s† > 0, the same condition defines the separatrix ψ0 between manual work and verified delegation. The monotonicity of ψ0 follows directly from Lemma 3.7. The remaining boundary ψ1, separating pure from verified delegation, is determined by whether verification yields positive marginal surplus at s = 0. 
+
+Lemma 3.8 (Effects of α and β on Φ) . ∂sΦ(0; α, β ) is non-decreasing in α and non-decreasing in β.
+
+12 Since ψ1 is defined by ∂sΦ(0; α, β ) = 0, this lemma determines its geometry. Together, Lem-mas 3.7 and 3.8 characterize the three workflow regimes and explain the origin of discontinuous transitions. 
+
+To Theorem 3.5. Theorem 3.5 compares worker quality with and without AI assistance. By Proposition 3.4, the quality gap reduces to the sign of fI (s⋆)d⋆, so the key question is how this quantity varies with verification reliability. 
+
+Lemma 3.9 (Effect of α on fI (s⋆)d⋆). d⋆ is non-decreasing in α; and for ability pairs (α, β ) with 
+
+d⋆ = 1 , fI (s⋆) is non-decreasing in α.
+
+Higher α weakly increases the likelihood of delegation and, conditional on delegation, increases the institutional value of verification. Assumptions 3.2 and 3.3 ensure that detection improvements translate into institutional value at least as fast as into worker utility, yielding a separatrix ψ such that worker quality improves exactly when α > ψ (β). 
+
+To Theorem 3.6. Finally, we characterize which workers are upgraded or downgraded relative to a qualification threshold τ . This requires understanding how worker quality varies jointly with α
+
+and β in the delegation regime. 
+
+Lemma 3.10 (Effects of α, β on Q). For ability pairs with d⋆ = 1 , worker quality Q(W ) is non-decreasing in α and non-decreasing in β.
+
+This lemma determines the geometry of the level sets Q(W ) = τ , yielding the separatrix ψτ
+
+that divides compliance gain from compliance loss. Combined with Theorem 3.1, this shows how AI assistance can upgrade workers with strong verification ability while downgrading others through rational over-delegation. 
+
+# 4 From data to model parameters 
+
+While our analysis is structural rather than empirical, the model is designed to interface with observational data from AI-assisted workflows. This section outlines how commonly available institutional data can be mapped to the model’s parameters; full implementation details appear in Section A. 
+
+Observational inputs. We use the Collab-CXR dataset [ 1 ], which contains diagnostic data for 324 patient cases from 33 clinicians. For each clinician–case pair, the dataset records predictions over 14 pathologies in three settings: clinician alone, AI-alone, and clinician with access to the AI’s output. The dataset also reports time spent per case in the clinician-alone and clinician-with-AI conditions. Expert diagnoses from 10 radiologists provide a reference for evaluating correctness, and a washout period of at least two weeks is enforced between clinician-alone and clinician-with-AI sessions. 
+
+Mapping observables to model quantities. From these data, we map each clinician to the model’s core quantities: task success probabilities pw and pa, success probability under AI assistance 
+
+p(1 , s †), execution costs Cw and Ca, and the assisted cost cost (1 , s †). We illustrate this mapping for clinician vn exp 65341958 .13 Deriving pw, pa, and p(1 , s †). Task success is defined as matching expert labels on all 14 pathologies. Under this criterion, we obtain success indicators for n = 38 cases in the clinician-alone, AI-alone, and clinician-with-AI conditions. Averaging yields pw = 0 .447, pa = 0 .368, and p(1 , s †) = 0 .395. In the model, the clinician-with-AI condition corresponds to d = 1, with the clinician exerting optimal verification effort s†.
+
+Deriving Cw, Ca, and cost (1 , s †). We assume worker cost is proportional to task completion time. Since AI execution time is negligible, we set Ca = 0. Average completion times over the n cases yield Cw = 172 .5 and cost(1 , s †) = 116 .8. We next infer the clinician’s ability parameters ( α, β ). 
+
+Deriving ϕ(s†). By (5), ϕ(s†) = p(1 ,s †)−pa 
+
+> (1 −pa)pw
+
+= 0 .093. 
+
+Deriving Cv(s†). By (6) with Ca = 0, Cv(s†) = cost(1 , s †) − (1 − pa)ϕ(s†)Cw = 106 .7. 
+
+Choice of ability functions. We model cost through time expenditure, taking linear verification cost and normalizing verification effort and execution efficiency via Cv(s) = T max  
+
+> v
+
+s and Cw(β) = 
+
+T max  
+
+> w
+
+(1 − β), where T max  
+
+> v
+
+= 118 .1 and T max  
+
+> w
+
+= 262 .3 are the maximum observed verification and execution times. These normalizations ensure s†, β ∈ [0 , 1]. We use ϕ(s; α) = 1 − e−αs [13]. 
+
+Deriving β. From Cw, we obtain β = 1 − Cw  
+
+> Tmax
+> w
+
+= 0 .342. 
+
+Deriving α. From Cv(s) = T max  
+
+> v
+
+s, we obtain s† = 0 .903. Using ϕ(s†; α) and the estimated ϕ(s†)yields α = − ln(1 −ϕ(s†))  
+
+> s†
+
+= 0 .108. 
+
+Identifying regime membership. Given ( α, β ), the model predicts the clinician’s optimal action and resulting quality. 
+
+Identifying the action regime. By rationality, s† satisfies ∂sΦ( s†; α, β ) = 0, yielding 
+
+bW + ℓW = T max  
+
+> v
+
++ (1 − pa)αe −αs †
+
+Cw
+
+(1 − pa)αe −αs † pw
+
+= 4646 .0.
+
+This implies fW (s†) = −189 .26 < 0, so ( d⋆, s ⋆) = (0 , 0). The clinician therefore lies in the manual-work regime of Theorem 3.1. 
+
+Identifying the quality regime. Setting bI = 2787 .6, ℓI = 1858 .4, and ξ = 0 .5 (Assumption 3.2) yields 
+
+Q(W ) = Q0(W ) = 133 .77. Thus, the clinician lies in the quality-unchanged regime of Theorem 3.5, and is neither upgraded nor downgraded in Theorem 3.6. 
+
+Interpreting interventions. Suppose the institution raises the qualification threshold to τ = 150. As discussed in Section 3, the model can evaluate interventions such as upskilling worker abilities (increasing α or β) or deploying more capable AI (increasing pa). To achieve Q(W ) ≥ τ , the institution may consider: (i) increasing α from 0 .108 to 0 .335; (ii) increasing β from 0 .342 to 0 .479; or (iii) increasing pa from 0 .368 to 0 .432. This numerical analysis can serve as a practical guide for institutions when designing intervention policies. 
+
+Scope and limitations. This calibration illustrates applicability rather than identification. The model does not estimate causal effects or capture dynamic learning or organizational adaptation. Parameters such as α and β may be interpreted at the role or population level, depending on the setting. 14 5 Omitted proofs and details from Section 3 
+
+This section provides proofs of the results in Section 3 and gives detailed derivations for Figure 2. 
+
+5.1 Explicit forms of utility functions 
+
+Recall that 
+
+UW (d, s ) = fW (s)d + gW , and UI (d, s ) = fI (s)d + gI .
+
+We provide the explicit form of the coefficients below: 
+
+fW (s) = (1 − pa) (( bW + ℓW )pw − Cw) ϕ(s) − Cv(s) − (bW + ℓW )( pw − pa) + Cw − Ca
+
+gW = ( bW + ℓW )pw − ℓW − Cw
+
+fI (s) = (1 − pa) (( bI + ℓI )pw − ξC w) ϕ(s) − ξC v(s) − (bI + ℓI )( pw − pa) + ξ(Cw − Ca)
+
+gI = ( bI + ℓI )pw − ℓI − ξC w.
+
+Furthermore, note that fW (s) = Φ( s; α, β ) + ∆( β). 
+
+5.2 An illustrative example for Assumption 3.3: monotonicity of detection 
+
+Assumption 5.1 (Restatement of Assumption 3.3 ). Assume that for any α, β ≥ 0, 
+
+∂α ϕ s†(α, β ) ≥ 0.
+
+Consider the specific functional forms: 
+
+ϕ(s; α) := 1 − 11 + 10 αs , and Cv(s) := 0 .5s. (8) The constants 10 and 0 .5 are chosen for convenience and can be replaced by other values, illustrating the generality of the assumption. Let KW (β) := (1 − pa) [( bW + ℓW )pw − Cw]. The worker chooses effort s ∈ [0 , 1] to maximize the net benefit: 
+
+fW (s) = KW (β) · ϕ(s; α) − Cv(s) + Cw − (bW + ℓW )( pw − pa) − Ca. (9) The first order condition with respect to s is: 
+
+∂f W (s)
+
+∂s = KW (β) · 10 α
+
+(1 + 10 αs )2 − 0.5 = 0 . (10) Solving for the interior root s0, we obtain: 
+
+s0(α) = 
+
+r KW (β)5α − 110 α . (11) It is straightforward to verify that s0(α) is unimodal in α (increasing then decreasing), with a maximum value of ( s0)max = KW (β)/2. The constrained optimal effort is s† = min (1 , max(0 , s 0)) .We now verify that the total derivative ddα ϕ(s†; α) is strictly positive. Note that ϕ depends on 
+
+α solely through the product x := αs . Thus, ϕ(x) = 1 − (1 + 10 x)−1, and dϕ dx = 10 (1+10 x)2 > 0. It suffices to show that ddα (αs †) ≥ 0. 15 1. Corner Solution ( s† = 0 ): 
+
+In this regime, s† = 0, implying ϕ(0; α) = 0. The derivative is trivially non-negative. 2. Corner Solution ( s† = 1 ): 
+
+In this regime, s† = 1. The product becomes x = α. The derivative is: 
+
+ddα ϕ(1; α) = dϕ dx · dx dα = 10 (1 + 10 α)2 · 1 > 0. (12) 3. Interior Solution ( s† ∈ (0 , 1) ): 
+
+In this regime, s† = s0. The product x = αs 0 simplifies to: 
+
+x(α) = α
+
+r KW (β)5α − 110 α
+
+!
+
+=
+
+r αK W (β)5 − 0.1. (13) Differentiating x with respect to α:
+
+dx dα = 12
+
+r KW (β)5α > 0. (14) Consequently, by the Chain Rule: 
+
+∂αϕ(s†) = 10 (1 + 10 x)2 · 12
+
+r KW (β)5α > 0. (15) Combining all cases, we conclude that ddα ϕ(s†) ≥ 0 for all α > 0. 
+
+5.3 Proof of Theorem 3.1: Worker optimal action 
+
+Theorem 5.2 (Restatement of Theorem 3.1). Fix the task profile, AI characteristics, and baseline worker characteristics. Let t ≥ 0 be a threshold such that ∆( t) = 0 . There exist continuous functions ψ0 : [ t, ∞) → R≥0, monotonically increasing, and ψ1 : [0 , t ] → R≥0, monotonically decreasing, such that, for all β in their respective domains, 
+
+fW
+
+ s†(ψ0(β), β ) = 0 and ∂sΦ 0; ψ1(β), β  = 0 .
+
+Then the optimal action (d⋆, s ⋆) takes the following form: 
+
+• (Manual work) (0 , 0) if (β ≥ t) and (α < ψ 0(β)) ;
+
+• (Pure delegation) (1 , 0) if (β < t ) and (α < ψ 1(β)) ;
+
+• (Verified delegation) (1 , s †(α, β )) otherwise. Proof. We proceed by analyzing the properties of the threshold functions and then deriving the optimal actions for each regime. 16 Monotonicity of ψ0(β). Recall that ψ0(β) is defined implicitly by the condition 
+
+fW (s†(ψ0(β), β )) = 0 .
+
+Consider two values β1, β 2 with β1 > β 2. By Lemma 3.7, the function fW (s†(α, β )) is non-decreasing in α and non-increasing in β. Comparing the values at ( ψ0(β1), β 1) and ( ψ0(β1), β 2), we have: 0 = fW
+
+ s†(ψ0(β1), β 1) ≤ fW
+
+ s†(ψ0(β1), β 2).
+
+Since fW
+
+ s†(ψ0(β2), β 2) = 0, it follows that fW
+
+ s†(ψ0(β1), β 2) ≥ fW
+
+ s†(ψ0(β2), β 2). Because 
+
+fW is non-decreasing in α, this inequality implies ψ0(β1) ≥ ψ0(β2). Thus, ψ0(β) is monotonically increasing in β.
+
+Monotonicity of ψ1(β). Recall that ψ1(β) is defined implicitly by ∂sΦ(0; ψ1(β), β ) = 0. Consider 
+
+β1 > β 2. By Lemma 3.8, the marginal benefit ∂sΦ(0; α, β ) is non-decreasing in α and non-decreasing in β. Comparing the values at ( ψ1(β1), β 1) and ( ψ1(β1), β 2), we have: 0 = ∂sΦ(0; ψ1(β1), β 1) ≥ ∂sΦ(0; ψ1(β1), β 2).
+
+Since ∂sΦ(0; ψ1(β2), β 2) = 0, it follows that ∂sΦ(0; ψ1(β1), β 2) ≤ ∂sΦ(0; ψ1(β2), β 2). Because ∂sΦ is non-decreasing in α, this implies ψ1(β1) ≤ ψ1(β2). Thus, ψ1(β) is monotonically decreasing in β.
+
+Relationship between fW (0) and t. The term fW (0) represents the net benefit of pure delegation relative to manual work. Note that fW (0) = Cw(β) − Ca − (bW + ℓW )( pw(β) − pa). Since the manual cost Cw is decreasing in β, we have ∂β fW (0) < 0. The threshold t is defined such that ∆( t) = fW (0) |β=t = 0. Therefore: 
+
+• If β ≥ t, then fW (0) ≤ 0. 
+
+• If β < t , then fW (0) > 0. 
+
+Optimal action regimes. We now characterize the optimal strategy ( d⋆, s ⋆) based on the sign of the optimal verification intensity s† and the maximal value function fW (s†). 1. Manual work (0 , 0) . The worker chooses manual work if and only if the utility of delegation (even with optimal verification) does not exceed manual utility, i.e., fW (s†(α, β )) ≤ 0. Since 
+
+fW (s†) is maximized at s† and bounded below by pure delegation fW (0), a necessary condition is fW (0) ≤ 0, which implies β ≥ t. Given β ≥ t, the condition fW (s†(α, β )) ≤ 0 holds if and only if α ≤ ψ0(β) since fW is increasing in α and zero at ψ0. Thus, the condition is: β ≥ t and 
+
+α < ψ 0(β). 2. Pure delegation (1 , 0) . The worker chooses pure delegation if and only if verification is not worthwhile ( s† = 0) and delegation is better than manual work ( fW (0) > 0). First, fW (0) > 0implies β < t . Second, s† = 0 corresponds to the corner solution where the marginal benefit of verification at zero is non-positive: ∂sΦ(0; α, β ) ≤ 0. Since ∂sΦ is increasing in α and zero at ψ1,this requires α ≤ ψ1(β). Thus, the condition is: β < t and α < ψ 1(β). 3. Verified delegation (1 , s †). The worker chooses verified delegation in all other cases, specifically when s† > 0 and fW (s†) > 0. This occurs if: 17 • β < t and α > ψ 1(β) (Delegation is profitable, and verification is valuable). 
+
+• β ≥ t and α > ψ 0(β) (Delegation is only profitable because verification is sufficiently valuable to overcome the manual baseline). Note that when β ≥ t, we must have ψ0(β) ≥ ψ1(β) for a solution to exist, ensuring consistency. This concludes the proof of the characterization. 
+
+5.4 Proof of Theorem 3.5: Worker quality improvement v.s. no AI 
+
+Theorem 5.3 (Restatement of Theorem 3.5). Fix the task profile, AI characteristics, and baseline worker characteristics. Let t and ψ0(·) be as given in Theorem 3.1. Under Assumptions 3.2 and 3.3, there exists a continuous function ψ : R≥0 → R≥0 such that 
+
+(fI (s⋆) = 0) ∧ (d⋆ = 1) for any pair (α, β ) = ( ψ(β), β ).
+
+Moreover, 
+
+• (Improved) Q(W ) > Q 0(W ) holds iff α > ψ (β);
+
+• (Unchanged) Q(W ) = Q0(W ) holds iff  (β ≥ t) ∧ (α < ψ 0(β))  or α = ψ(β);
+
+• (Degraded) Q(W ) < Q 0(W ) holds otherwise. Proof. We analyze the relationship between the equilibrium quality Q(W ) and the baseline manual quality Q0(W ). Recall that the difference is given by Q(W ) − Q0(W ) = fI (s⋆) · d⋆. Thus, the deviation depends on the delegation decision d⋆ and the sign of the institution’s net benefit fI (s⋆). 
+
+Construction of ψ(β). We define the threshold function ψ(β) implicitly by the condition that the institution breaks even under delegation. Specifically, for an ability pair ( α, β ) = ( ψ(β), β ), we satisfy d⋆ = 1 and fI (s†(ψ(β), β )) = 0. By Lemma 3.9, fI (s†(α, β )) is non-decreasing in α, and the optimal delegation d⋆ is non-decreasing in α. Given that d⋆ = 1 at the threshold, it follows that for any α > ψ (β), we have d⋆ = 1 and fI (s†) > 0. Conversely, if α ≤ ψ(β) and delegation occurs, 
+
+fI (s†) ≤ 0. 
+
+Improved ( Q(W ) > Q 0(W )). This regime holds if and only if the worker delegates ( d⋆ = 1) and the institutional benefit is strictly positive ( fI (s†) > 0). Based on the monotonicity established above, fI (s†) > 0 holds if and only if α > ψ (β). Since α > ψ (β) implies d⋆ = 1 (delegation is optimal for the worker), the condition simplifies to: 
+
+α > ψ (β).
+
+Unchanged ( Q(W ) = Q0(W )). This regime holds if either the worker chooses manual work (d⋆ = 0) or delegates with zero net institutional gain ( d⋆ = 1 ∧ fI (s†) = 0). 
+
+• From Theorem 3.1, manual work ( d⋆ = 0) is chosen if and only if β ≥ t and α < ψ 0(β). 
+
+• Verified delegation with zero gain occurs exactly at the threshold α = ψ(β). Combining these disjoint cases yields the condition: 
+
+ (β ≥ t) ∧ (α < ψ 0(β))  ∨ (α = ψ(β)) .
+
+18 Degraded ( Q(W ) < Q 0(W )). This regime holds if and only if the worker delegates ( d⋆ = 1) despite the institutional benefit being negative ( fI (s†) < 0). First, fI (s†) < 0 implies α < ψ (β). Second, for the worker to delegate in this region, they must satisfy the delegation conditions from Theorem 3.1: either ( β < t ) or ( β ≥ t ∧ α > ψ 0(β)). Thus, degradation occurs if: (α < ψ (β)) ∧ (β < t ) ∨ (β ≥ t ∧ α > ψ 0(β)) .
+
+5.5 Proof of Theorem 3.6: Worker upgraded v.s. downgraded 
+
+Theorem 5.4 (Restatement of Theorem 3.6). Fix the task profile, AI characteristics, and baseline worker characteristics. Fix a grading threshold τ ≥ 0. Let tτ ≥ 0 be the solution to 
+
+Q0(W ; β) = τ . Under Assumptions 3.2 and 3.3, there exists a monotonically decreasing function 
+
+ψτ : R≥0 → R≥0 such that Q(W ) = τ for the ability pair (α, β ) = ( ψτ (β), β ). Then 
+
+• (Compliance gain) (Q(W ) > τ ) ∧ (Q0(W ) < τ ) holds iff  β < min {t, t τ } ∧  α > ψ τ (β) or  t ≤ β < t τ
+
+ ∧  α > max {ψ0(β), ψ τ (β)}.
+
+• (Compliance loss) (Q(W ) < τ ) ∧ (Q0(W ) > τ ) holds iff  tτ < β ≤ t ∧  α < ψ τ (β) or  β > max {t, t τ } ∧  ψ0(β) < α < ψ τ (β).
+
+Proof. We characterize the regions where the worker’s performance relative to the grading threshold 
+
+τ changes due to AI availability. 
+
+Threshold properties. Let tτ be the solution to Q0(W ; β) = τ . Recall that Q0(W ) = ( bI +
+
+ℓI )pW (β) − ℓI − ξC w(β). Since the manual cost Cw is decreasing in β, Q0(W ) is strictly increasing in β. Therefore: 
+
+Q0(W ) > τ ⇐⇒ β > t τ and Q0(W ) < τ ⇐⇒ β < t τ .
+
+Next, let ψτ (β) be the ability level α such that the delegated quality equals τ , i.e., Q(W )|d⋆=1 = τ .By Lemma 3.10, Q(W ) under delegation is non-decreasing in α. Thus: 
+
+Q(W )|d⋆=1 > τ ⇐⇒ α > ψ τ (β).
+
+Compliance Gain ( (Q(W ) > τ ) ∧ (Q0(W ) < τ )). This scenario implies the worker fails manually but succeeds with AI. First, Q0(W ) < τ necessitates β < t τ . Second, Q(W ) > τ implies the worker must delegate ( d⋆ = 1), because manual work would yield Q0 < τ . Thus, we require d⋆ = 1 and 
+
+α > ψ τ (β). We analyze delegation in two sub-regions of β:
+
+• If β < t : Delegation is always preferred. Combining with β < t τ , we have β < min {t, t τ }. The only remaining condition is α > ψ τ (β). 
+
+• If β ≥ t: Delegation occurs only if α > ψ 0(β). Combining with β < t τ , we have t ≤ β < t τ .The condition becomes α > max {ψ0(β), ψ τ (β)}.Combining these yields: 
+
+ β < min {t, t τ } ∧ α > ψ τ (β) ∨  t ≤ β < t τ ∧ α > max {ψ0(β), ψ τ (β)}.
+
+19 Compliance Loss ( (Q(W ) < τ ) ∧ (Q0(W ) > τ )). This scenario implies the worker succeeds manually but fails with AI. First, Q0(W ) > τ necessitates β > t τ . Second, Q(W ) < τ implies the worker must delegate ( d⋆ = 1), because manual work would yield Q0 > τ . Thus, we require d⋆ = 1 and α < ψ τ (β). We analyze delegation in two sub-regions of β:
+
+• If β ≤ t: Delegation is always preferred. Combining with β > t τ , we have tτ < β ≤ t. The condition is simply α < ψ τ (β). 
+
+• If β > t : Delegation occurs only if α > ψ 0(β). Combining with β > t τ , we have β > max {t, t τ }.The condition becomes ψ0(β) < α < ψ τ (β). Combining these yields: 
+
+ tτ < β ≤ t ∧ α < ψ τ (β) ∨  β > max {t, t τ } ∧ ψ0(β) < α < ψ τ (β).
+
+5.6 Proof of Lemma 3.7: effects of α, β on fW
+
+Lemma 5.5 (Restatement of Lemma 3.7 ). fW
+
+ s†(α, β ) is non-decreasing in α and non-increasing in β.Proof. Recall the definition of the worker’s net benefit from delegation: 
+
+fW (s) = Kw(β) ϕ(s; α) − Cv(s) − Ca + Cw(β) − (bW + ℓW )( pw − pa),
+
+where 
+
+Kw(β) := (1 − pa) (bW + ℓW )pw − Cw(β).
+
+Let FW (α, β ) := max s∈[0 ,1] fW (s). Note that Kw(β) ≥ 0 holds under the viability assumption. 
+
+Monotonicity in α. Fix β. For any fixed s ∈ [0 , 1], differentiating with respect to α yields: 
+
+∂∂α fW (s) = Kw(β) ∂∂α ϕ(s; α).
+
+Since Kw(β) ≥ 0 and the detection probability ϕ(s; α) is non-decreasing in verification ability α, we have ∂∂α fW (s) ≥ 0. By the Envelope Theorem, since the objective function shifts upward pointwise, the maximum value FW (α, β ) must be non-decreasing in α. Specifically, for α2 > α 1:
+
+FW (α2, β ) = fW (s† 
+
+> α2
+
+| α2) ≥ fW (s† 
+
+> α1
+
+| α2) ≥ fW (s† 
+
+> α1
+
+| α1) = FW (α1, β ).
+
+Monotonicity in β. Fix α and s ∈ [0 , 1]. We differentiate fW (s) with respect to β. Note that β
+
+affects fW primarily through the manual cost Cw(β). Expanding the term involving Cw:Terms with Cw(β) = −(1 − pa)Cw(β)ϕ(α, s ) + Cw(β) = Cw(β) [1 − (1 − pa)ϕ(s; α)] .
+
+Differentiating with respect to β:
+
+∂∂β fW (s) = [1 − (1 − pa)ϕ(s; α)] ∂C w(β)
+
+∂β .
+
+20 First, observe the bracketed term. Since ϕ ∈ [0 , 1] and pa ∈ [0 , 1], we have (1 − pa)ϕ ≤ 1, which implies [1 − (1 − pa)ϕ] ≥ 0. Second, by assumption, manual cost decreases with skill β, so ∂C w 
+
+> ∂β
+
+< 0. Combining these, we obtain: ∂∂β fW (s) ≤ 0.
+
+Thus, fW (s) is pointwise non-increasing in β. It follows that the maximum value FW (α, β ) is non-increasing in β.
+
+5.7 Proof of Lemma 3.8: effects of α, β on Φ
+
+Lemma 5.6 (Restatement of Lemma 3.8 ). ∂sΦ(0; α, β ) is non-decreasing in α and non-decreasing in β.Proof. Recall the definition of the net verification benefit function: Φ( s; α, β ) := Kw(β)ϕ(s; α) − Cv(s),
+
+where the coefficient Kw(β) is defined as: 
+
+Kw(β) := (1 − pa) (( bW + ℓW )pw − Cw(β)) .
+
+Recall that Kw(β) ≥ 0 for all β ≥ 0. Let g(α, β ) := ∂sΦ(0; α, β ). Differentiating Φ with respect to s
+
+and evaluating at s = 0, we obtain: 
+
+g(α, β ) = Kw(β) · ∂sϕ(0; α) − C′
+
+> v
+
+(0) .
+
+Monotonicity in α. Differentiating g(α, β ) with respect to α:
+
+∂∂α g(α, β ) = Kw(β) · ∂∂α (∂sϕ(0; α)) .
+
+Since Kw(β) ≥ 0, the sign of the derivative depends on the term ∂∂α ∂sϕ(0; α). By definition of the derivative at zero and the property that ϕ(0) = 0: 
+
+∂sϕ(0; α) = lim 
+
+> t→0+
+
+ϕ(t; α) − ϕ(0; α)
+
+t = lim 
+
+> t→0+
+
+ϕ(t; α)
+
+t .
+
+We know ϕ(t; α) is non-decreasing in α for any fixed t > 0. Therefore, for α2 > α 1, we have 
+
+ϕ(t; α2) ≥ ϕ(t; α1), which implies: 
+
+ϕ(t; α2)
+
+t ≥ ϕ(t; α1)
+
+t .
+
+Since the inequality holds for all t > 0, it is preserved in the limit as t → 0. Thus, ∂sϕ(0; α) is non-decreasing in α, implying ∂∂α g(α, β ) ≥ 0. 21 Monotonicity in β. Differentiating g(α, β ) with respect to β:
+
+∂∂β g(α, β ) = ∂K w(β)
+
+∂β · ∂sϕ(0; α).
+
+First, consider the derivative of Kw(β). Assuming pw is constant or absorbs into the cost scaling, the dependence on β comes from the manual cost Cw(β): 
+
+∂K w(β)
+
+∂β = −(1 − pa) ∂C w(β)
+
+∂β .
+
+Since the manual cost decreases with skill ( ∂C w 
+
+> ∂β
+
+< 0) and pa ≤ 1, we have ∂K w 
+
+> ∂β
+
+> 0. Second, consider 
+
+∂sϕ(0). Since ϕ(t) is a probability increasing from ϕ(0) = 0, we have ϕ(t) ≥ 0 for t > 0, implying: 
+
+∂sϕ(0) = lim 
+
+> t→0
+
+ϕ(t)
+
+t ≥ 0.
+
+Thus, ∂∂β g(α, β ) ≥ 0. We conclude that ∂sΦ(0; α, β ) is non-decreasing in β.
+
+5.8 Proof of Lemma 3.9: effect of α on fI (s⋆)
+
+Lemma 5.7 (Restatement of Lemma 3.8 ). d⋆ is non-decreasing in α; and for ability pairs with 
+
+d⋆ = 1 , fI (s⋆) is non-decreasing in α.Proof. We address the two assertions sequentially. 
+
+Monotonicity of d⋆. Recall the optimal policy from Theorem 3.1: the worker delegates ( d⋆ = 1) if and only if the net benefit of delegation exceeds the manual baseline, i.e., fW (s†) > max (0 , f W (0)). From Lemma 3.7, the value function fW (s†(α, β )) is non-decreasing in α. Consequently, if delegation is optimal for a given α1 (implying fW (s†(α1)) > threshold ), it must also be optimal for any α2 > α 1,as fW (s†(α2)) ≥ fW (s†(α1)). Thus, d⋆ is non-decreasing in α.
+
+Monotonicity of fI (s⋆) under delegation. Assume d⋆ = 1. We analyze the institutional utility 
+
+fI (s⋆) by comparing it to the worker’s utility fW (s⋆). Recall that the effective benefit coefficients for the institution and the worker are: 
+
+KI (β) := (1 − pa) (bI + ℓI )pw − ξC w(β), KW (β) := (1 − pa) (bW + ℓW )pw − Cw(β).
+
+Using these coefficients, the utility functions under delegation ( d = 1) can be written as: 
+
+fW (s) = KW (β)ϕ(s; α) − Cv(s) + ∆ W ,fI (s) = KI (β)ϕ(s; α) − ξC v(s) + ∆ I ,
+
+where ∆ W and ∆ I are terms independent of s and α. Observe that we can express fI (s) as a linear combination of fW (s) and the detection probability ϕ(s): 
+
+fI (s) = ξf W (s) + ( KI (β) − ξK W (β)) ϕ(s; α) + Constant .
+
+We now differentiate the equilibrium value fI (s⋆) with respect to α.22 1. Case 1: Pure delegation ( s⋆ = 0 ). In this case, s⋆ is constant locally. Since ϕ(0; α) = 0, fI (0) is constant with respect to α. Thus, ddα fI (s⋆) = 0. 2. Case 2: Verified delegation ( s⋆ > 0). In this case, s⋆ = s†(α, β ). Differentiating the linked expression with respect to α:
+
+ddα fI (s†) = ξ ddα fW (s†) + ( KI (β) − ξK W (β)) ddα ϕ(s†; α).
+
+We analyze the signs of these terms: 
+
+• ddα fW (s†) ≥ 0 by Lemma 3.7. 
+
+• By Assumption 3.2, ( bI + ℓI ) ≥ ξ(bW + ℓW ), which implies KI (β) ≥ ξK W (β). Since KW > 0, the coefficient ( KI − ξK W ) is non-negative. 
+
+• The term ddα ϕ(s†; α) represents the total change in equilibrium detection probability. By Assumption 3.3, the equilibrium detection probability is non-decreasing in α.Combining these non-negative terms, we conclude that ddα fI (s⋆) ≥ 0. 
+
+5.9 Proof of Lemma 3.10: effects of α, β on Q(W )
+
+Lemma 5.8 (Restatement of Lemma 3.10). For ability pairs with d⋆ = 1 , worker quality Q(W )
+
+is non-decreasing in α and non-decreasing in β.Proof. Let G(α, β ) := Q(W )|d⋆=1 . Using the effective benefit coefficients defined in the proof of Lemma 3.9, we write the institution’s quality and the worker’s objective function under delegation as: 
+
+G(α, β ) = KI (β)ϕ(s†; α) − ξC v(s†) + Γ I ,fW (s†) = KW (β)ϕ(s†; α) − Cv(s†) + Γ W ,
+
+where Γ I , ΓW are constants with respect to s and α. Recall that KI (β) ≥ ξK W (β) > 0, and  
+
+> dK I
+> dβ
+
+> 0, dK W 
+
+> dβ
+
+> 0 (due to decreasing manual costs). 
+
+Monotonicity of s† in β. We first establish that the optimal effort s† is non-decreasing in β.Consider the interior first order condition for the worker: 
+
+g(s, β ) := ∂f W
+
+∂s = KW (β)ϕs(s; α) − C′
+
+> v
+
+(s) = 0 .
+
+By the implicit function theorem, the sensitivity of the interior solution s0 is: 
+
+∂s 0
+
+∂β = − ∂g/∂β ∂g/∂s .
+
+The denominator ∂g ∂s = ∂2fW 
+
+> ∂s 2
+
+< 0 by the second-order condition for a maximum. The numerator is ∂g ∂β = K′ 
+
+> W
+
+(β)∂sϕ(s). Since K′ 
+
+> W
+
+(β) > 0 and ∂sϕ(s) > 0, the numerator is positive. Therefore,  
+
+> ∂s 0
+> ∂β
+
+> 0. Since s† = min (1 , max (0 , s 0)), the monotonicity holds for the constrained solution as well. 23 Monotonicity of Q(W ) in β. Differentiating G(α, β ) with respect to β:
+
+∂G ∂β = K′ 
+
+> I
+
+(β)ϕ(s†) + ∂s †
+
+∂β 
+
+h
+
+KI (β)∂sϕ(s†) − ξC ′
+
+> v
+
+(s†)
+
+i
+
+.
+
+From the worker’s FOC, we know that for an interior solution, C′
+
+> v
+
+(s†) = KW (β)∂sϕ(s†). If s† = 0, the derivative term vanishes or is positive; if s† = 1, ∂s † 
+
+> ∂β
+
+= 0. Focusing on the interior case, we substitute C′
+
+> v
+
+:
+
+∂G ∂β = K′ 
+
+> I
+
+(β)ϕ(s†) + ∂s †
+
+∂β ϕs(s†) [ KI (β) − ξK W (β)] .
+
+All terms are non-negative: 
+
+• K′ 
+
+> I
+
+(β) ≥ 0 (decreasing manual cost increases net institutional benefit). 
+
+• ∂s † 
+
+> ∂β
+
+≥ 0 (from above). 
+
+• KI (β) ≥ ξK W (β) (Assumption 3.2). Thus, ∂G ∂β ≥ 0. 
+
+Monotonicity of Q(W ) in α. Differentiating G(α, β ) with respect to α:
+
+∂G ∂α = KI (β)
+
+
+
+∂αϕ(s†) + ∂sϕ(s†) ∂s †
+
+∂α 
+
+
+
+− ξC ′
+
+> v
+
+(s†) ∂s †
+
+∂α .
+
+Rearranging terms: 
+
+∂G ∂α = KI (β)∂αϕ(s†) + ∂s †
+
+∂α 
+
+h
+
+KI (β)∂sϕ(s†) − ξC ′
+
+> v
+
+(s†)
+
+i
+
+.
+
+Again, using the worker’s first-order condition C′ 
+
+> v
+
+≤ KW ∂sϕ, which implies that KI ∂sϕ − ξC ′ 
+
+> v
+
+≥
+
+KI ϕs − ξK W ϕs:
+
+∂G ∂α ≥ KI (β)∂αϕ(s†) + ∂s †
+
+∂α ∂sϕ(s†) [ KI (β) − ξK W (β)] .
+
+Since ∂αϕ ≥ 0, ∂s † 
+
+> ∂α
+
+≥ 0 (Lemma 3.9), and KI ≥ ξK W , the total derivative is non-negative. 
+
+5.10 Details of the illustrative example in Figure 2 
+
+We first illustrate the choice of parameters and functions in Figure 2. Consider a worker with a linear verification cost Cv(s) = s, an execution cost Cw(β) = 5(1 − β) for efficiency β ∈ [0 , 1] (where the factor 5 reflects that execution is substantially more costly than verification), and an inverse-linear error-detection function ϕ(s; α) = 1 − 11+2 αs . To match the scale of β, we restrict to 
+
+α ∈ [0 , 1], where the constant 50 serves as a scaling parameter for this normalization. Below, we select a representative parameter setting for analysis. 
+
+Task profile. We set bW = 8, ℓW = 6, bI = 14, ℓI = 12, ξ = 0 .3, and τ = 6 .4, which satisfies Assumption 3.2. 
+
+AI characteristics. We set pa = 0 .65 (moderate reliability) and Ca = 0 (negligible execution cost). 
+
+Worker characteristics. We set pw = 0 .75, so that the worker outperforms the AI in task success probability. 24 Characterization of key quantities. We next compute the key quantities that govern the regime characterization in our theoretical results. 
+
+To Theorem 3.1. To compute the threshold t, we first obtain ∆( β) = 5(1 − β) − Ca − (bW + ℓW )( pw − pa).
+
+Under the above parameter choices, this yields 
+
+t = 1 − Ca + ( bW + ℓW )( pw − pa)5 = 0 .72 . (16) We also derive closed-form expressions for the two regime boundaries (on their respective domains): 
+
+ψ0(β) = 20 
+
+ √77 + 70 β − √200 β − 144 2 , ψ1(β) = 20 77 + 70 β .
+
+Finally, within the verified-delegation regime, the optimal action takes the form ( d⋆, s ⋆) = (1 , s †(α, β )) with 
+
+s†(α, β ) = 
+
+r 1.925 + 1 .75 βα − 1
+
+α .
+
+To Theorem 3.5. The key is to characterize the separatrix ψ. To this end, we first define a function 
+
+ψ′ : [0 , 1] → [0 , 1] (monotonically decreasing in β) such that 
+
+fI
+
+
+
+s†(α, β )
+
+
+
+= 0 for any ability pair ( α, β ) = ( ψ′(β), β ).
+
+Extending ψ0(β) = 0 for β < t , Theorem 3.5 implies that ψ(β) = max {ψ0(β), ψ ′(β)}. Finally, the closed-form condition of fI
+
+ s†(α, β ) = 0 is: 5.2 − 0.975 β = 6.3 + 0 .525 β
+
+10 pα(0 .077 + 0 .07 β) − 1 + 15 pα(0 .077 + 0 .07 β) − 310 α
+
+To Theorem 3.6. To compute the threshold tτ , we first obtain 
+
+Q0(W ) = gI = ( bI + ℓI )pw − ℓI − 5ξ(1 − β).
+
+Solving Q0(W ) = τ yields the threshold tτ = 415 . under our parameter choices. We also derive a closed-form condition for Q(W ) = τ , which defines the separatrix ψτ :(252 + 21 β)(2 − p7α(1 .1 + β)) 40( p7α(1 .1 + β) − 1) − 3p1.75(1 .1 + β)10 √α + 0.3
+
+α + 4 .9 = τ. 
+
+# 6 Interventions to improve worker quality 
+
+This section studies interventions for workers who are unqualified under AI assistance (i.e., Q(W ) <τ ), with the goal of improving their quality to at least τ .25 (a) Optimal intervention (b) Heatmap of Gp with Dp = 0 .05 (c) Heatmap of Gb with Db = 1 
+
+Figure 3: Plots illustrating the effects of interventions from the worker side and the institutional side as functions of abilities ( α, β ), under the default parameter setting ( bW , ℓ W , b I , ℓ I , ξ, τ, p a, C a, p w) = (8 , 6, 14 , 12 , 0.3, 6.4, 0.65 , 0, 0.75) , and the functional choices Cv(s) = s, Cw(β) = 5(1 − β), ϕ(s; α) = 1 − 11+2 αs , and h1(x) = h2(x) = x. In Figure 3a, we restrict the domain to [0 , 0.5] × [0 , 0.8] for clarity. In Figures 3b and 3c, we analyze how worker quality varies under a more capable AI and under a larger marginal gain, respectively. 
+
+6.1 Worker-side interventions 
+
+It follows from Lemma 3.10 that increasing either verification reliability α or execution efficiency 
+
+β can improve worker quality Q(W ), and thus both can serve as worker-side interventions. To determine which intervention is more cost-effective, we formulate a constrained optimization problem. We consider two interventions: increasing α by Dα ≥ 0 and increasing β by Dβ ≥ 0. Let 
+
+Q(Dα, D β ) denote the resulting worker quality under abilities ( α + Dα, β + Dβ ). The goal is to ensure Q(Dα, D β ) ≥ τ while minimizing intervention cost. Let h1, h 2 : R≥0 → R≥0 be monotone functions that model the costs of increasing α and β,respectively. A simple specification is linear, hi(x) = cix for i ∈ { 1, 2}, which is justified as a first-order approximation when x is small. More generally, one may take hi(x) = cixρ for ρ > 1, capturing increasing marginal costs of continued upskilling. 
+
+Optimization problem. We formalize the intervention design as: min   
+
+> Dα,D β≥0
+
+h1(Dα) + h2(Dβ ) s.t. Q(Dα, D β ) ≥ τ. (17) 
+
+Analysis. We use the same setting as in Figure 2 and set h1(x) = h2(x) = x. Figure 3a plots the optimal intervention ways for workers with various ( α, β ). Observe that improving α is usually more cost-efficient, validating the central role of verification reliability in the AI age. 
+
+6.2 Institutional-side interventions 
+
+From the institutional-side, we propose two potential interventions: deploying more capable AI systems and reshaping worker incentives. Below we illustrate these two interventions. 26 Deploying more capable AI systems. This intervention can be implemented by training a task-specific agent and corresponds to increasing the AI success probability pa. Under this intervention, both the worker’s optimal action and the resulting quality may change. Let Dp ∈ [0 , 1 − pa] denote the increase in pa, and let Q(Dp) denote the worker quality under AI capability pa + Dp. We define the quality variation value as 
+
+Gp(Dp) := Q(Dp) − Q(0) .
+
+Figure 3b plots a heatmap of Gp with Dp = 0 .05. We observe that Gp can be positive in some regions of ( α, β ) but negative in others, indicating that improving AI capability may either increase or decrease worker quality depending on worker abilities. Thus, deploying more capable AI systems can have a non-monotonic effect on worker quality. Specifically, workers with high execution efficiency β
+
+but low verification reliability α may switch from manual work to pure delegation, which can reduce quality. 
+
+Reshaping worker incentives. Another strategy is to increase the worker’s success benefit 
+
+bW , which strengthens incentives to verify AI outputs. Such an increase can be implemented by transferring institutional benefit to the worker, thereby reducing the institution’s marginal gain and shifting the institutional utility. Let Db ≥ 0 denote the increase in bW , resulting in benefits 
+
+bW + Db for the worker and bI − Db for the institution. Let Q(Db) denote the worker quality under the reshaped incentive bW + Db, and define the quality variation value as 
+
+Gb(Db) := Q(Db) − Q(0) .
+
+Figure 3c plots a heatmap of Gp with Db = 1. We observe that Gp can be positive in some regions of ( α, β ) but negative in others, indicating that incentive reshaping can either improve or degrade quality depending on worker abilities. Thus, reshaping worker incentives can also have a non-monotonic effect on worker quality. Specifically, workers with high execution efficiency β but low verification reliability α may switch from pure delegation to manual work when incentives increase, which can improve quality. We also note that, compared to increasing pa, the quality-improvement region induced by benefit transfer is much narrower, suggesting that this policy is less effective. Overall, these results underscore the complexity of designing effective organizational policies in the AI age. 
+
+# 7 Model extension 
+
+In this section, we study three extensions to validate the robustness of our analysis. 
+
+7.1 Heterogeneous task difficulty 
+
+Our model implicitly assumes that tasks have uniform difficulty, leading to constant success probabilities and costs. In practice, workers may face tasks of varying difficulty—for example, clinical cases can differ substantially in diagnostic hardness. To study the effect of heterogeneous task difficulty, we extend the model as follows. Let h ∈ [0 , 1] denote task difficulty, where h = 0 is easiest and h = 1 is hardest. We model success probabilities as pw(h) = 1 − 0.5h and pa(h) = 1 − 0.7h for the worker and the AI, respectively. Both 
+
+pw(h) and pa(h) are monotonically decreasing in h. We model the execution cost and verification 27 (a) Quality gap with heterogeneous task difficulty 
+
+> (b) Quality grading with heteroge-neous task difficulty
+
+Figure 4: Plots illustrating the worker quality regimes with heterogeneous task difficulty as functions of abilities (α, β ), under the default parameter setting (bW , ℓ W , b I , ℓ I , ξ, τ, C a) =(8 , 6, 14 , 12 , 0.3, 6.4, 0) , and the functional choices pw(h) = 1 − 0.5h, pa(h) = 1 − 0.7h, Cv(s; h) = (0 .5 + h)s, Cw(β; h) = 10(1 − β)h, and ϕ(s; α) = 1 − 11+2 αs .cost as Cw(β; h) = 10(1 − β)h and Cv(s; h) = (0 .5 + h)s, respectively, both are monotonically increasing in h for any fixed s. All other parameters and functional forms are set as in Figure 2. In particular, when h ≡ 0.5, this specification reduces to the setting of Figure 2. For each difficulty level h, we can compute the worker’s optimal action ( d⋆(h), s ⋆(h)) and the resulting quality Q(W ; h). Let the task-difficulty distribution be μ = Unif [0 , 1]. The expected worker quality under heterogeneous task difficulty is then 
+
+Q(W ) = 
+
+Z 10
+
+Q(W ; h) dh. 
+
+Analogous to Section 3, we can study quality variation and grading outcomes by comparing Q(W )with the no-AI baseline Q0(W ). 
+
+Analysis. Figure 4 visualizes how worker quality varies under AI assistance when task difficulty is heterogeneous. The core qualitative phenomena from Figure 2 persist—including phase transitions, compliance gain/loss regimes, and rational over-delegation—supporting the robustness of our results. 
+
+7.2 Miscalibrated beliefs about AI capability 
+
+Our model implicitly assumes that the AI ability pa is known, so that the worker can optimize its action given pa. However, AI performance is often jagged across instances in practice [ 7]. Let 
+
+bpa ∈ [0 , 1] denote the success probability that the worker believes the AI to have. This miscalibrated belief modifies the worker utility to 
+
+bUW (d, s ) = (1 − bpa) (bW + ℓW )pw − Cw
+
+ϕ(s) − Cv(s) − (bW + ℓW )( pw − bpa) + Cw − Ca
+
+ d + gW .
+
+Let ( bd, bs) ∈ arg max 
+
+> (d,s )∈[0 ,1] 2
+
+bUW (d, s )denote the worker’s optimal action under the miscalibrated utility. The resulting worker quality is 
+
+bQ(W ) := UI ( bd, bs).
+
+28 (a) Worker action with bpa = 0 .7 (b) Quality gap with bpa = 0 .7 (c) Quality grading with bpa = 0 .7
+
+Figure 5: Plots illustrating the worker action and quality regimes under miscalibrated be-liefs about AI capability as functions of abilities ( α, β ), under the default parameter setting (bW , ℓ W , b I , ℓ I , ξ, τ, p a, C a, p w, bpa) = (8 , 6, 14 , 12 , 0.3, 6.4, 0.65 , 0, 0.75 , 0.7) , and the functional choices 
+
+Cv(s) = s, Cw(β) = 5(1 − β), and ϕ(s; α) = 1 − 11+2 αs .        
+
+> (a) Worker action with κ= 0 .8(b) Quality gap with κ= 0 .8(c) Quality grading with κ= 0 .8
+
+Figure 6: Plots illustrating the worker action and quality regimes with partial re-execution cost as functions of abilities ( α, β ), under the default parameter setting ( bW , ℓ W , b I , ℓ I , ξ, τ, p a, C a, p w, κ ) = (8 , 6, 14 , 12 , 0.3, 6.4, 0.65 , 0, 0.75 , 0.8) , and the functional choices Cv(s) = s, Cw(β) = 5(1 − β), and 
+
+ϕ(s; α) = 1 − 11+2 αs .In particular, bQ(W ) = Q(W ) when bpa = pa.
+
+Analysis. Figure 5 visualizes how worker action and worker quality varies under AI assistance when beliefs about AI capability are miscalibrated, with bpa = 0 .7 > p a = 0 .65. The core qualitative phenomena from Figure 2 persist—including phase transitions, compliance gain/loss regimes, and rational over-delegation—supporting the robustness of our results. Moreover, over-delegation becomes more pronounced, expanding both the quality-degradation region and the compliance-loss region. This highlights the risks of overestimating AI capability and the importance of calibrating users’ beliefs about AI performance. 
+
+7.3 Partial re-execution 
+
+Our model assumes that after detecting an AI error, the worker fully re-executes the task and incurs the full cost Cw. In practice, re-execution may be only partial, since the worker can often leverage the AI output (e.g., in essay writing) to reduce effort. 29 Let κ ≥ 0 denote a re-execution discount factor. Under this extension, the worker utility becomes 
+
+UW (d, s ) = (1 − pa) (bW + ℓW )pw − κC w
+
+ϕ(s) − Cv(s) − (bW + ℓW )( pw − pa) + Cw − Ca
+
+ d + gW ,
+
+which introduces the additional parameter κ. We study how this extension reshapes worker action and quality. 
+
+Analysis. Figure 6 visualizes how the worker’s action and quality vary under partial re-execution cost with κ = 0 .8. The core qualitative phenomena from Figure 2 persist—including phase transitions, compliance gain/loss regimes, and rational over-delegation—supporting the robustness of our results. Notably, Figure 6 is nearly identical to Figure 2, suggesting that partial re-execution has only a mild effect on worker quality in this regime. 
+
+# 8 Conclusions, limitations, and future work 
+
+This paper develops a formal framework for understanding how AI assistance reshapes institutional worker quality through endogenous delegation and verification decisions. By modeling worker behavior as the solution to a rational optimization problem and evaluating outcomes through an institution-centered notion of quality, we identify a structural mechanism by which AI can induce sharp, nonlinear changes in behavior and outcomes. We show that AI assistance transforms the mapping from worker ability to workflow choice. Small differences in verification reliability can trigger abrupt regime shifts between manual work, verified delegation, and pure delegation. These phase transitions arise from structural properties of delegation with costly verification and persist under general assumptions on detection and cost functions. As a result, AI assistance reshapes worker quality heterogeneously. Workers with strong verification ability may experience compliance gains , becoming institutionally qualified despite lower execution efficiency, while workers with weaker verification ability may rationally over-delegate and incur compliance loss , even when baseline task success improves. Notably, these effects arise endogenously from rational optimization, without invoking behavioral bias or miscalibration. Taken together, our results suggest that in AI-assisted workflows, the ability to evaluate and verify AI outputs becomes a central determinant of institutional outcomes. AI thus functions not only as a productivity-enhancing tool, but as a structural filter that amplifies differences in verification ability. Our framework abstracts away from several real-world considerations to isolate this core mecha-nism. We study a single worker performing a single task, treat verification reliability as exogenous, and do not model dynamic effects such as learning, deskilling, or reputation. Institutional evaluation is outcome-based and does not condition on workflow observability. Moreover, our analysis is structural rather than empirical and does not estimate effect sizes in specific domains. These limitations suggest several directions for future work. Promising extensions include dynamic models in which execution efficiency and verification reliability evolve over time, analyses of institutional interventions such as verification requirements or incentive schemes, and multi-worker or team-based settings with distributed oversight. Empirical studies mapping real-world tasks and verification practices to model parameters could further enable quantitative assessment of compliance gain, compliance loss, and verification amplification in practice. 30 Acknowledgments 
+
+We thank Arnab Bhattacharyya and Savik Kinger for useful discussions. This work was funded by NSF Award CCF-2112665. 
+
+# References 
+
+[1] Nikhil Agarwal, Alex Moehring, Pranav Rajpurkar, and Tobias Salz. Combining human expertise with artificial intelligence: Experimental evidence from radiology. SSRN Electronic Journal , 2023. [2] Robert Bergman. The meaning-and illusion-of human oversight of AI, 2025. [3] Eric Bogert, Aaron Schecter, and Richard T Watson. Humans rely more on algorithms than social influence as a task becomes more difficult. Scientific reports , 11(1):8028, 2021. [4] Erik Brynjolfsson, Danielle Li, and Lindsey Raymond. Generative AI at work. The Quarterly Journal of Economics , 140(2):889–942, 2025. [5] L Elisa Celis, Lingxiao Huang, and Nisheeth K Vishnoi. A mathematical framework for AI-human integration in work. arXiv preprint arXiv:2505.23432 , 2025. [6] Corinna Cortes, Giulia DeSalvo, and Mehryar Mohri. Learning with rejection. In International conference on algorithmic learning theory , pages 67–82. Springer, 2016. [7] Fabrizio Dell’Acqua, Edward McFowland III, Ethan R Mollick, Hila Lifshitz-Assaf, Katherine Kellogg, Saran Rajendran, Lisa Krayer, Fran¸ cois Candelon, and Karim R Lakhani. Navigating the jagged technological frontier: Field experimental evidence of the effects of AI on knowledge worker productivity and quality. Harvard Business School Technology & Operations Mgt. Unit Working Paper , (24-013), 2023. [8] Douglas Gale and Martin Hellwig. Incentive-compatible debt contracts: The one-period problem. 
+
+The Review of Economic Studies , 52(4):647–663, 1985. [9] Susanne Gaube, Harini Suresh, Martina Raue, Alexander Merritt, Seth J Berkowitz, Eva Lermer, Joseph F Coughlin, John V Guttag, Errol Colak, and Marzyeh Ghassemi. Do as AI say: susceptibility in deployment of clinical decision-aids. NPJ digital medicine , 4(1):31, 2021. [10] George Georgiadis and Balazs Szentes. Optimal monitoring design. Econometrica , 88(5):2075– 2107, 2020. [11] Wilson Guo, Jason D. Hartline, and Jessica Hullman. The value of information in human–AI decision-making. arXiv preprint , arXiv:2502.06152, 2025. [12] Wilson Guo, Tongshuang Wu, Jason Hartline, and Jessica Hullman. A decision-theoretic framework for measuring AI reliance. In Proceedings of the 2024 ACM Conference on Fairness, Accountability, and Transparency (FAccT ’24) . ACM, 2024. [13] Richard P Heitz. The speed-accuracy tradeoff: history, physiology, methodology, and behavior. 
+
+Frontiers in neuroscience , 8:150, 2014. 31 [14] Patrick Hemmer, Monika Westphal, Max Schemmer, Sebastian Vetter, Michael V¨ ossing, and Gerhard Satzger. Human-AI collaboration: The effect of AI delegation on human task performance and task satisfaction. In Proceedings of the 28th International Conference on Intelligent User Interfaces , IUI ’23, page 453–463. ACM, March 2023. [15] Jon Kleinberg, Himabindu Lakkaraju, Jure Leskovec, Jens Ludwig, and Sendhil Mullainathan. Human decisions and machine predictions. The Quarterly Journal of Economics , 133(1):237–293, 2018. [16] Bernard O Koopman. The theory of search. II. target detection. Operations research , 4(5):503– 531, 1956. [17] Jean-Jacques Laffont and David Martimort. The theory of incentives: the principal-agent model .Princeton university press, 2002. [18] David Lyell and Enrico Coiera. Automation bias and verification complexity: a systematic review. Journal of the American Medical Informatics Association , 24(2):423–431, 2017. [19] David Madras, Toni Pitassi, and Richard Zemel. Predict responsibly: improving fairness and accuracy by learning to defer. Advances in neural information processing systems , 31, 2018. [20] Hannah Mayer, Lareina Yee, Michael Chui, and Roger Roberts. Superagency in the workplace: Empowering people to unlock AI’s full potential. Research Report January 28, 2025, McKinsey & Company, 2025. [21] Dilip Mookherjee and Ivan Png. Optimal auditing, insurance, and redistribution. The Quarterly Journal of Economics , 104(2):399–415, 1989. [22] Hussein Mozannar and David Sontag. Consistent estimators for learning to defer to an expert. In International conference on machine learning , pages 7076–7087. PMLR, 2020. [23] R. Parasuraman, T.B. Sheridan, and C.D. Wickens. A model for types and levels of human interaction with automation. IEEE Transactions on Systems, Man, and Cybernetics - Part A: Systems and Humans , 30(3):286–297, 2000. [24] Samir Passi and Mihaela Vorvoreanu. Overreliance on AI literature review. Microsoft Research ,339:340, 2022. [25] Sherwin Rosen. The theory of equalizing differences. Handbook of labor economics , 1:641–692, 1986. [26] Nenad Tomavsev, Matija Franklin, and Simon Osindero. Intelligent AI delegation. 2026. [27] Robert M Townsend. Optimal contracts and competitive markets with costly state verification. 
+
+Journal of Economic theory , 21(2):265–293, 1979. [28] Wayne A Wickelgren. Speed-accuracy tradeoff and information processing dynamics. Acta psychologica , 41(1):67–85, 1977. [29] Tony Zhang and Sencer Melih Deniz. The effect of perceived task difficulty on human overreliance on AI. Humane AI Network, 2024. 32 [30] Araz Zirar, Syed Imran Ali, and Nazrul Islam. Worker and workplace artificial intelligence (AI) coexistence: Emerging themes and research agenda. Technovation , 124:102747, 2023. Table 2: Notations used in this paper 
+
+Symbol Domain Description 
+
+d [0 , 1] Delegation rate (fraction of task delegated to AI) 
+
+s [0 , 1] Verification (scrutiny) effort 
+
+p(d, s ) [0 , 1] 2 → [0 , 1] Task success probability induced by ( d, s )cost( d, s ) [0 , 1] 2 → R≥0 Total cost induced by ( d, s )
+
+d⋆ [0 , 1] Worker-optimal delegation choice 
+
+s⋆ [0 , 1] Worker-optimal verification choice 
+
+bW R≥0 Worker valuation per unit success probability 
+
+bI R≥0 Institutional valuation per unit success probability 
+
+ℓW R≥0 Worker loss per unit failure probability 
+
+ℓI R≥0 Institutional loss per unit failure probability 
+
+ξ R≥0 Institutional cost discount factor 
+
+pw [0 , 1] Baseline task success probability of worker 
+
+pa [0 , 1] Baseline task success probability of AI 
+
+ϕ(s) [0 , 1] → [0 , 1] Detection probability as a function of verification effort sCw R≥0 Worker task execution cost 
+
+Ca R≥0 AI task execution cost 
+
+Cv(s) [0 , 1] → R≥0 Verification cost as a function of scrutiny sα R≥0 Detection sensitivity parameter in ϕβ R≥0 Worker task efficiency parameter 
+
+UW (d, s ) [0 , 1] 2 → R Worker utility 
+
+UI (d, s ) [0 , 1] 2 → R Institutional utility 
+
+Q(α, β ) R2 
+
+> ≥0
+
+→ R Worker quality with AI 
+
+Q0(α, β ) R2 
+
+> ≥0
+
+→ R Worker quality without AI ∆Q(α, β ) R2 
+
+> ≥0
+
+→ R Quality gap induced by AI assistance 
+
+τ R≥0 Qualification threshold 
+
+# A Omitted details in Section 4: from data to model parameters 
+
+We provide additional details for the example stated in Section 4. 
+
+Collab-CXR dataset. The Collab-CXR dataset is organized into multiple experimental designs. We focus on diagnoses collected under Design 2 , in which each clinician is randomly assigned 60 cases out of the 324 total cases. For each case, the clinician makes predictions under one of four information environments: (1) X-ray only; (2) X-ray + AI-predicted probabilities; (3) X-ray + medical history; and (4) X-ray + medical history + AI-predicted probabilities. The study is conducted over four sessions separated by at least two weeks. In each session, the clinician diagnoses cases under exactly one of the four information environments, and across the four sessions each of the 33 60 cases is eventually observed under all four environments. This design enables direct comparisons of clinician performance with and without AI assistance. Since the AI diagnoses cases using only the X-ray, we focus on information environments (1) and (2) to enable a fair comparison between the AI and clinicians. Accordingly, we treat environment (1) as the clinician-alone condition and environment (2) as the clinician-with-AI condition. 
+
+Details of case success. Given a case j, let X(j) 
+
+> a
+
+, X (j) 
+
+> w
+
+∈ { 0, 1}14 denote the AI’s and the clinician’s diagnosis-indicator vectors, respectively. The i-th coordinate equals 1 if the prediction for the i-th pathology matches the expert label. Let I(j) 
+
+> a
+
+, I (j) 
+
+> w
+
+∈ { 0, 1} denote the corresponding 
+
+case-success indicators for the AI and the clinician. We define 
+
+I(j) 
+
+> a
+
+= Y
+
+> i∈[14]
+
+(X(j) 
+
+> a
+
+)i, I(j) 
+
+> w
+
+= Y
+
+> i∈[14]
+
+(X(j) 
+
+> w
+
+)i.
+
+Case clean. Case difficulty may vary, which can induce substantial variation in the clinician-alone time cost Cw. To restrict attention to cases of comparable hardness, we retain only those cases whose clinician-alone completion time lies within [0 .5×, 2×] the clinician’s average completion time. In addition, there are a small number of cases j with I(j) 
+
+> a
+
+= 1 but I(j) 
+
+> w
+
+= 0, i.e., cases where the clinician appears to override an AI output that matches the expert labels. This behavior is not captured by our baseline model, which assumes clinicians only detect AI errors. Since such cases account for only 4 .9% of all cases, we treat them as erroneous-detection cases and exclude them from the analysis. After this data cleaning, we retain 38 cases for clinician vn exp 65341958 .
+
+Details of deriving cost (1 , s †). We observe that the average time spent in the clinician-with-AI condition, denoted Cwa , is larger than the clinician-alone average time Cw. This is because recorded time includes not only diagnostic reasoning but also time spent interacting with the interface (e.g., reviewing the AI output and entering information). In particular, even when the clinician does not modify the AI output (captured by Xw = Xa), there is still nontrivial interface/entry time. We approximate this fixed entry-time component by Cw and use the decomposition 
+
+Cwa = cost(1 , s †) + Pr[ Xw = Xa] · Cw.
+
+Consequently, we estimate cost(1 , s †) = Cwa − Pr[ Xw = Xa] · Cw.
+
+34

@@ -6,97 +6,98 @@
 </div>
 
 ## 每次日报
-- 最新运行日期：2026-03-02 ~ 2026-03-11
-- 运行时间：2026-03-11 07:46:07 UTC
+- 最新运行日期：2026-03-11
+- 运行时间：2026-03-11 19:43:55 UTC
 - 运行状态：成功
-- 本次总论文数：25
+- 本次总论文数：26
 - 精读区：14
-- 速读区：11
+- 速读区：12
 
 ### 今日简报（AI）
-深度研读 25 篇前沿论文，聚焦 LLM 压缩与量化，探索模型极致轻量化的新路径。
-满分推荐 3BASiL 稀疏加低秩压缩框架与 FreeAct 激活值量化方案，有效突破大模型部署的显存瓶颈。
-建议开发者重点关注低秩注意力与 Token 缩减技术，以更低成本实现高效的视频与文本推理。
-- 详情：[/20260302-20260311/README](/20260302-20260311/README)
+今日聚焦 26 篇前沿成果，重点攻克 11B 大模型的 2-bit 极端量化难题与存
+- 详情：[/202603/11/README](/202603/11/README)
 
 ### 精读区论文标签
-1. [3BASiL: An Algorithmic Framework for Sparse plus Low-Rank Compression of LLMs](/20260302-20260311/2603.01376v1-3basil-an-algorithmic-framework-for-sparse-plus-low-rank-compression-of-llms)  
+1. [Bielik-Q2-Sharp: A Comparative Study of Extreme 2-bit Quantization Methods for a Polish 11B Language Model](/202603/11/2603.04162v1-bielik-q2-sharp-a-comparative-study-of-extreme-2-bit-quantization-methods-for-a-polish-11b-language-model)  
    标签：评分：10.0/10、query:llm-cp
-   evidence：用于大模型压缩的稀疏加低秩分解
-2. [FreeAct: Freeing Activations for LLM Quantization](/20260302-20260311/2603.01776v1-freeact-freeing-activations-for-llm-quantization)  
+   evidence：极端2比特量化的比较研究
+2. [Bielik-Q2-Sharp: A Comparative Study of Extreme 2-bit Quantization Methods for a Polish 11B Language Model](/202603/11/2603.04162v2-bielik-q2-sharp-a-comparative-study-of-extreme-2-bit-quantization-methods-for-a-polish-11b-language-model)  
    标签：评分：10.0/10、query:llm-cp
-   evidence：针对LLM和多模态LLM的动态激活感知量化
-3. [FreeAct: Freeing Activations for LLM Quantization](/20260302-20260311/2603.01776v2-freeact-freeing-activations-for-llm-quantization)  
+   evidence：2比特量化方法的对比研究
+3. [Activation Outliers in Transformer Quantization: Reproduction, Statistical Analysis, and Deployment Tradeoffs](/202603/11/2603.04308v1-activation-outliers-in-transformer-quantization-reproduction-statistical-analysis-and-deployment-tradeoffs)  
    标签：评分：10.0/10、query:llm-cp
-   evidence：针对 LLM 的动态激活感知量化
-4. [WaterSIC: information-theoretically (near) optimal linear layer quantization](/20260302-20260311/2603.04956v1-watersic-information-theoretically-near-optimal-linear-layer-quantization)  
+   evidence：分析Transformer中的训练后量化(PTQ)和激活离群值
+4. [High-Fidelity Pruning for Large Language Models](/202603/11/2603.08083v1-high-fidelity-pruning-for-large-language-models)  
    标签：评分：10.0/10、query:llm-cp
-   evidence：大模型线性层的信息论最优量化
-5. [Sparse-BitNet: 1.58-bit LLMs are Naturally Friendly to Semi-Structured Sparsity](/20260302-20260311/2603.05168v1-sparse-bitnet-158-bit-llms-are-naturally-friendly-to-semi-structured-sparsity)  
-   标签：评分：10.0/10、query:llm-cp
-   evidence：联合1.58比特量化与半结构化N:M稀疏化
-6. [Deterministic Differentiable Structured Pruning for Large Language Models](/20260302-20260311/2603.08065v1-deterministic-differentiable-structured-pruning-for-large-language-models)  
-   标签：评分：10.0/10、query:llm-cp
-   evidence：LLM 的确定性可微结构化剪枝
-7. [SERQ: Saliency-Aware Low-Rank Error Reconstruction for LLM Quantization](/20260302-20260311/2603.08185v1-serq-saliency-aware-low-rank-error-reconstruction-for-llm-quantization)  
-   标签：评分：10.0/10、query:llm-cp
-   evidence：利用低秩误差重构进行大语言模型的训练后量化(PTQ)
-8. [Understanding the Physics of Key-Value Cache Compression for LLMs through Attention Dynamics](/20260302-20260311/2603.01426v1-understanding-the-physics-of-key-value-cache-compression-for-llms-through-attention-dynamics)  
+   evidence：提出了一种基于重要性评估的LLM高保真剪枝方法
+5. [Practical FP4 Training for Large-Scale MoE Models on Hopper GPUs](/202603/11/2603.02731v1-practical-fp4-training-for-large-scale-moe-models-on-hopper-gpus)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：大语言模型Key-Value缓存压缩分析
-9. [Boosting Entropy with Bell Box Quantization](/20260302-20260311/2603.01599v1-boosting-entropy-with-bell-box-quantization)  
+   evidence：大规模模型的FP4训练与量化
+6. [LiteVLA-Edge: Quantized On-Device Multimodal Control for Embedded Robotics](/202603/11/2603.03380v1-litevla-edge-quantized-on-device-multimodal-control-for-embedded-robotics)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：信息论最优的量化感知预训练
-10. [Cross-Family Speculative Prefill: Training-Free Long-Context Compression with Small Draft Models](/20260302-20260311/2603.02631v1-cross-family-speculative-prefill-training-free-long-context-compression-with-small-draft-models)  
+   evidence：VLA模型的训练后4位量化
+7. [Accelerating OpenPangu Inference on NPU via Speculative Decoding](/202603/11/2603.03383v1-accelerating-openpangu-inference-on-npu-via-speculative-decoding)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：用于高效推理的免训练提示词压缩
-11. [Dissecting Quantization Error: A Concentration-Alignment Perspective](/20260302-20260311/2603.04359v1-dissecting-quantization-error-a-concentration-alignment-perspective)  
+   evidence：通过投机解码加速NPU上的LLM推理
+8. [Measuring the Redundancy of Decoder Layers in SpeechLLMs](/202603/11/2603.05121v1-measuring-the-redundancy-of-decoder-layers-in-speechllms)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：大模型训练后量化误差分析
-12. [MASQuant: Modality-Aware Smoothing Quantization for Multimodal Large Language Models](/20260302-20260311/2603.04800v1-masquant-modality-aware-smoothing-quantization-for-multimodal-large-language-models)  
+   evidence：通过剪枝解码器层来衡量SpeechLLM中的冗余
+9. [On-Policy Self-Distillation for Reasoning Compression](/202603/11/2603.05433v1-on-policy-self-distillation-for-reasoning-compression)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：针对多模态大模型的模态感知平滑量化
-13. [SlideSparse: Fast and Flexible (2N-2):2N Structured Sparsity](/20260302-20260311/2603.05232v1-slidesparse-fast-and-flexible-2n-22n-structured-sparsity)  
+   evidence：通过自蒸馏进行推理压缩以减少 Token 数量
+10. [Shorter Thoughts, Same Answers: Difficulty-Scaled Segment-Wise RL for CoT Compression](/202603/11/2603.07598v1-shorter-thoughts-same-answers-difficulty-scaled-segment-wise-rl-for-cot-compression)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：针对 LLM 加速的硬件友好型结构化稀疏
-14. [DyQ-VLA: Temporal-Dynamic-Aware Quantization for Embodied Vision-Language-Action Models](/20260302-20260311/2603.07904v1-dyq-vla-temporal-dynamic-aware-quantization-for-embodied-vision-language-action-models)  
+   evidence：显式推理链（CoT）的训练后压缩
+11. [AI Agents, Language, Deep Learning and the Next Revolution in Science](/202603/11/2603.07940v1-ai-agents-language-deep-learning-and-the-next-revolution-in-science)  
+   标签：评分：9.0/10、query:gaires
+   evidence：AI智能体作为科学方法的下一次演进
+12. [DyLLM: Efficient Diffusion LLM Inference via Saliency-based Token Selection and Partial Attention](/202603/11/2603.08026v1-dyllm-efficient-diffusion-llm-inference-via-saliency-based-token-selection-and-partial-attention)  
    标签：评分：9.0/10、query:llm-cp
-   evidence：针对视觉-语言-动作模型的动态量化框架
+   evidence：通过令牌选择和部分注意力实现高效大模型推理
+13. [Rethinking Attention Output Projection: Structured Hadamard Transforms for Efficient Transformers](/202603/11/2603.08343v1-rethinking-attention-output-projection-structured-hadamard-transforms-for-efficient-transformers)  
+   标签：评分：9.0/10、query:llm-cp
+   evidence：Transformer模型的参数减少与高效推理
+14. [BinaryAttention: One-Bit QK-Attention for Vision and Diffusion Transformers](/202603/11/2603.09582v1-binaryattention-one-bit-qk-attention-for-vision-and-diffusion-transformers)  
+   标签：评分：9.0/10、query:llm-cp
+   evidence：注意力模块的1比特量化
 
 ### 速读区论文标签
-1. [Token Reduction via Local and Global Contexts Optimization for Efficient Video Large Language Models](/20260302-20260311/2603.01400v1-token-reduction-via-local-and-global-contexts-optimization-for-efficient-video-large-language-models)  
+1. [Robust Heterogeneous Analog-Digital Computing for Mixture-of-Experts Models with Theoretical Generalization Guarantees](/202603/11/2603.02633v1-robust-heterogeneous-analog-digital-computing-for-mixture-of-experts-models-with-theoretical-generalization-guarantees)  
    标签：评分：8.0/10、query:llm-cp
-   evidence：针对高效视频大语言模型的Token削减与剪枝
-2. [Multi-Head Low-Rank Attention](/20260302-20260311/2603.02188v1-multi-head-low-rank-attention)  
+   evidence：针对稀疏MoE模型的硬件友好型计算
+2. [Ouroboros: Wafer-Scale SRAM CIM with Token-Grained Pipelining for Large Language Model Inference](/202603/11/2603.02737v1-ouroboros-wafer-scale-sram-cim-with-token-grained-pipelining-for-large-language-model-inference)  
    标签：评分：8.0/10、query:llm-cp
-   evidence：低秩注意力机制减少KV缓存大小
-3. [NuMuon: Nuclear-Norm-Constrained Muon for Compressible LLM Training](/20260302-20260311/2603.03597v1-numuon-nuclear-norm-constrained-muon-for-compressible-llm-training)  
+   evidence：通过SRAM存内计算实现硬件友好的模型压缩与推理
+3. [SemanticDialect: Semantic-Aware Mixed-Format Quantization for Video Diffusion Transformers](/202603/11/2603.02883v1-semanticdialect-semantic-aware-mixed-format-quantization-for-video-diffusion-transformers)  
    标签：评分：8.0/10、query:llm-cp
-   evidence：通过低秩结构优化实现可压缩的 LLM 训练
-4. [EvoPrune: Early-Stage Visual Token Pruning for Efficient MLLMs](/20260302-20260311/2603.03681v1-evoprune-early-stage-visual-token-pruning-for-efficient-mllms)  
-   标签：评分：8.0/10、query:llm-cp
-   evidence：针对高效多模态大语言模型的视觉Token剪枝
-5. [AdaPonderLM: Gated Pondering Language Models with Token-Wise Adaptive Depth](/20260302-20260311/2603.01914v1-adaponderlm-gated-pondering-language-models-with-token-wise-adaptive-depth)  
+   evidence：针对扩散Transformer的混合格式量化
+4. [The Geometry of Learning Under AI Delegation](/202603/11/2603.02950v1-the-geometry-of-learning-under-ai-delegation)  
+   标签：评分：8.0/10、query:gaires
+   evidence：AI系统从工具转变为协作伙伴以及人机协同演化
+5. [PlayWrite: A Multimodal System for AI Supported Narrative Co-Authoring Through Play in XR](/202603/11/2603.02366v1-playwrite-a-multimodal-system-for-ai-supported-narrative-co-authoring-through-play-in-xr)  
+   标签：评分：7.0/10、query:gaires
+   evidence：AI支持的叙事共同创作和协作伙伴角色
+6. [SUN: Shared Use of Next-token Prediction for Efficient Multi-LLM Disaggregated Serving](/202603/11/2603.02599v1-sun-shared-use-of-next-token-prediction-for-efficient-multi-llm-disaggregated-serving)  
    标签：评分：7.0/10、query:llm-cp
-   evidence：用于高效推理的逐 Token 自适应深度
-6. [Balancing Coverage and Draft Latency in Vocabulary Trimming for Faster Speculative Decoding](/20260302-20260311/2603.05210v1-balancing-coverage-and-draft-latency-in-vocabulary-trimming-for-faster-speculative-decoding)  
+   evidence：通过模块共享实现高效的多LLM服务
+7. [Large Language Model Empowered CSI Feedback in Massive MIMO Systems](/202603/11/2603.02686v2-large-language-model-empowered-csi-feedback-in-massive-mimo-systems)  
    标签：评分：7.0/10、query:llm-cp
-   evidence：通过词表裁剪加速投机解码推理
-7. [InfoFlow KV: Information-Flow-Aware KV Recomputation for Long Context](/20260302-20260311/2603.05353v1-infoflow-kv-information-flow-aware-kv-recomputation-for-long-context)  
-   标签：评分：7.0/10、query:llm-cp
-   evidence：针对高效长文本推理的选择性KV缓存重计算
-8. [Evolution Strategy-Based Calibration for Low-Bit Quantization of Speech Models](/20260302-20260311/2603.08173v1-evolution-strategy-based-calibration-for-low-bit-quantization-of-speech-models)  
-   标签：评分：7.0/10、query:llm-cp
-   evidence：使用进化策略的语音模型低比特量化
-9. [Hardware-Software Co-design for 3D-DRAM-based LLM Serving Accelerator](/20260302-20260311/2603.04797v1-hardware-software-co-design-for-3d-dram-based-llm-serving-accelerator)  
+   evidence：基于大语言模型的CSI压缩框架
+8. [APRES: An Agentic Paper Revision and Evaluation System](/202603/11/2603.03142v1-apres-an-agentic-paper-revision-and-evaluation-system)  
+   标签：评分：7.0/10、query:gaires
+   evidence：基于LLM的科学论文修改和评估系统
+9. [From Fewer Samples to Fewer Bits: Reframing Dataset Distillation as Joint Optimization of Precision and Compactness](/202603/11/2603.02411v1-from-fewer-samples-to-fewer-bits-reframing-dataset-distillation-as-joint-optimization-of-precision-and-compactness)  
    标签：评分：6.0/10、query:llm-cp
-   evidence：针对高效LLM服务与推理的软硬件协同设计
-10. [Beyond Scattered Acceptance: Fast and Coherent Inference for DLMs via Longest Stable Prefixes](/20260302-20260311/2603.05454v1-beyond-scattered-acceptance-fast-and-coherent-inference-for-dlms-via-longest-stable-prefixes)  
+   evidence：将数据集蒸馏视为精度与紧凑性的联合优化
+10. [ProGIC: Progressive and Lightweight Generative Image Compression with Residual Vector Quantization](/202603/11/2603.02897v1-progic-progressive-and-lightweight-generative-image-compression-with-residual-vector-quantization)  
    标签：评分：6.0/10、query:llm-cp
-   evidence：通过KV缓存优化实现扩散语言模型的快速推理
-11. [Mozart: Modularized and Efficient MoE Training on 3.5D Wafer-Scale Chiplet Architectures](/20260302-20260311/2603.07006v1-mozart-modularized-and-efficient-moe-training-on-35d-wafer-scale-chiplet-architectures)  
+   evidence：基于残差向量量化的轻量级生成式图像压缩
+11. [Delegation and Verification Under AI](/202603/11/2603.02961v1-delegation-and-verification-under-ai)  
+   标签：评分：6.0/10、query:gaires
+   evidence：机构工作流中AI输出的委派与验证
+12. [MaBERT:A Padding Safe Interleaved Transformer Mamba Hybrid Encoder for Efficient Extended Context Masked Language Modeling](/202603/11/2603.03001v1-maberta-padding-safe-interleaved-transformer-mamba-hybrid-encoder-for-efficient-extended-context-masked-language-modeling)  
    标签：评分：6.0/10、query:llm-cp
-   evidence：针对大语言模型的硬件友好型MoE训练与部署
+   evidence：高效长上下文建模的混合架构
 
 
 <div class="dpr-home-promo-card">

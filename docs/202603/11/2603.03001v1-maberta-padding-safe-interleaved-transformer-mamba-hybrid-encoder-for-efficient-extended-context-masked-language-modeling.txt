@@ -1,0 +1,916 @@
+Title: MaBERT:A Padding Safe Interleaved Transformer Mamba Hybrid Encoder for Efficient Extended Context Masked Language Modeling
+
+URL Source: https://arxiv.org/pdf/2603.03001v1
+
+Published Time: Wed, 04 Mar 2026 02:27:42 GMT
+
+Number of Pages: 13
+
+Markdown Content:
+# MaBERT: A Padding-Safe Interleaved Transformer–Mamba Hybrid Encoder for Efficient Extended-Context Masked Language Modeling 
+
+Jinwoong Kim 1, Sangjin Park 1* 
+
+> 1
+
+Graduate School of Industrial Data Engineering, Hanyang University, Seoul, Republic of Korea 
+
+dnddl9456@hanyang.ac.kr, psj3493@hanyang.ac.kr 
+
+> *Corresponding author
+
+Abstract 
+
+Self-attention encoders such as Bidirectional Encoder Representations from Transformers (BERT) scale quadratically with sequence length, making long-context modeling expen-sive. Linear-time state-space models, such as Mamba, are efficient; however, they show lim-itations in modeling global interactions and can suffer from padding-induced state contam-ination. We propose MaBERT, a hybrid en-coder that interleaves Transformer layers for global dependency modeling with Mamba lay-ers for linear-time state updates. This design alternates global contextual integration with fast state accumulation, enabling efficient train-ing and inference on long inputs. To stabilize variable-length batching, we introduce padding-safe masking, which blocks state propagation through padded positions, and mask-aware at-tention pooling, which aggregates information only from valid tokens. On GLUE, MaBERT achieves the best mean score on five of the eight tasks, with strong performance on the CoLA and sentence-pair inference tasks. When ex-tending the context from 512 to 4,096 tokens, MaBERT reduces training time and inference latency by 2.36 × and 2.43 ×, respectively, rela-tive to the average of encoder baselines, demon-strating a practical long-context-efficient en-coder. 
+
+1 Introduction 
+
+Pretrained encoders are central to modern nat-ural language processing and related sequence-modeling tasks, where downstream performance often depends on the quality of input-sequence representations (Liu et al., 2021). In Transformer encoder-decoder architectures, the decoder repeat-edly queries encoder outputs via cross-attention; therefore, limitations in encoder representations can bottleneck end-to-end quality, even when de-coder capacity increases (Vaswani et al., 2017; Ka-sai et al., 2020). Accordingly, pretrained encoders led by Bidirectional Encoder Representations from Transformers (BERT) have become standard back-bones across diverse natural language understand-ing and time-series applications, offering practical advantages in training and deployment efficiency compared with recent large language models (Sanh et al., 2019; Sun et al., 2020; Dang et al., 2021; Devlin et al., 2019; Li et al., 2020). Despite their broad utility, self-attention intro-duces a critical efficiency bottleneck. Computing all token-pair interactions yields O(n2) complex-ity with respect to sequence length, which severely constrains long-context scalability (Vaswani et al., 2017; Duman Keles et al., 2023; Beltagy et al., 2020). Prior efforts have improved pretraining strategies or attention designs (e.g., RoBERTa and DeBERTa) (Liu et al., 2019; He et al., 2021) and introduced sparse attention mechanisms to extend context (e.g., Longformer and BigBird) (Beltagy et al., 2020; Zaheer et al., 2020). However, these methods either restrict global context capture or remain within self-attention-based variants, leav-ing the fundamental length-dependent cost growth unresolved (Tay et al., 2022). State-Space Models (SSMs) provide a promis-ing alternative by modeling long-range dependen-cies with linear complexity O(n), compressing se-quences into fixed-size hidden states and propa-gating them over time (Gu et al., 2022a). Mamba further strengthens SSMs via selective scanning, which adaptively retains or forgets information conditioned on input, thereby improving context-dependent inference (Gu and Dao, 2024). This sequential state-update mechanism is complemen-tary to Transformers’ global contextual modeling, motivating hybrid designs that interleave the two at the layer level to jointly achieve efficiency and expressiveness (Vaswani et al., 2017; Lieber et al., 2024; Ren et al., 2024). However, applying such hybrids to bidirectional encoder pretraining with masked language model-1
+
+> arXiv:2603.03001v1 [cs.CL] 3 Mar 2026
+
+ing (MLM) reveals a key obstacle. Variable-length batching requires padding, and padding tokens can continue to drive sequential state updates in SSM layers, leading to padding-induced state contamina-tion that distorts valid-token representations (De-vlin et al., 2019; Gu and Dao, 2024; Xu et al., 2024; Himelstein et al., 2025; Cinar et al., 2017). Unlike decoders with causal masking, encoders must inte-grate information from all tokens to form a bidirec-tional context; therefore, these distortions can prop-agate through residual paths and degrade sentence-level representations (Vaswani et al., 2017). To address this issue while maintaining high accuracy and long-context efficiency, we pro-pose MaBERT, a hybrid encoder that integrates Transformer-based global dependency modeling with Mamba-based linear-time sequential updates within a single stack. MaBERT interleaves Trans-former self-attention and Mamba layers, alternating between global contextual interactions and efficient state accumulation. To ensure robustness under variable-length inputs, we introduce padding-safe masking (PSM) to block padding-driven state prop-agation and adopt mask-aware attention pooling (MAP) to aggregate information only from valid to-kens, thereby producing stable sentence representa-tions across input lengths. The main contributions of this study are as follows. • We propose MaBERT, an MLM-pretrained hybrid encoder that interleaves Transformer and Mamba layers to combine bidirectional context modeling with linear-time sequential updates. • We address padding-induced state contami-nation in SSM layers using PSM and MAP, enabling stable representations under variable-length inputs. • MaBERT outperforms strong BERT-family baselines on GLUE (best on 5/8 tasks) and achieves 2.36 × faster training and 2.43 ×
+
+lower inference latency when extending con-text from 512 to 4,096 tokens. The remainder of this work is organized as fol-lows: Section 2 reviews related work, Section 3 describes the MaBERT architecture, Section 4 presents the experimental setup and results, and Section 5 concludes the paper. 
+
+2 Related Work 
+
+2.1 Transformer Encoder Models 
+
+BERT (Devlin et al., 2019) established MLM-based bidirectional pretraining as a strong foun-dation for encoder representations. Subsequent work improved either representation quality or ef-ficiency: RoBERTa (Liu et al., 2019) refined the pretraining recipe without architectural changes, DeBERTa (He et al., 2021) enhanced attention via disentangled content and relative position model-ing, and ALBERT (Lan et al., 2020) reduced pa-rameter and memory costs through factorized em-beddings and cross-layer sharing. Despite these ad-vances, self-attention retains quadratic cost O(n2)
+
+with respect to sequence length (Vaswani et al., 2017). Long-context variants such as Longformer and BigBird (Beltagy et al., 2020; Zaheer et al., 2020) reduce cost via sparse patterns; however, they restrict interaction structure and do not fully eliminate length-dependent growth in computation and memory (Tay et al., 2022). Recent encoders improve long-context efficiency via architectural refinements and system-level optimizations such as kernel accelerations and packing (Dao et al., 2022; Krell et al., 2023; Warner et al., 2025); hy-brid encoders instead emphasize attention–SSM interleaving and padding-robust state handling. 
+
+2.2 SSMs 
+
+SSMs provide linear-time O(n) sequence process-ing by maintaining and updating hidden states (Pa-tro and Agneeswaran, 2025). Early linear time-invariant SSMs used input-independent transitions, which limited context-dependent selection (Gu et al., 2022b). S4 (Gu et al., 2022a) enabled stable and efficient training through structured parameter-ization, and H3 (Fu et al., 2022) introduced gating mechanisms around SSM operations to improve ex-pressiveness. Mamba (Gu and Dao, 2024) further advanced SSMs with selective scanning, making state updates input-dependent and achieving strong long-range modeling with hardware-efficient linear-time inference. However, most validations have focused on causal decoders, leaving open questions regarding encoder-style MLM pretraining (Patro and Agneeswaran, 2025; Wang et al., 2023). 
+
+2.3 Hybrid Attention–SSM Models 
+
+Recent hybrids have combined attention-based global interactions with SSM efficiency (Pa-tro and Agneeswaran, 2025; Lee et al., 2025). 2Figure 1: Overall architecture of MaBERT. 
+
+Jamba (Lieber et al., 2024) interleaves the Trans-former and Mamba blocks to scale context length, while Hymba (Dong et al., 2024) couples atten-tion and SSM computations within a layer via hybrid heads, and Nemotron-H (Blakeman et al., 2025) explores scaling and mixing strategies with hardware-friendly kernels. These models primarily target causal generation with masking (Lieber et al., 2024; Dong et al., 2024). In encoder-MLM settings, variable-length batching introduces padding tokens, and sequential SSM updates can accumulate over padding, causing state contamination that degrades valid-token representations (Xu et al., 2024; Himel-stein et al., 2025). This has motivated encoder-oriented hybrids that explicitly prevent padding-driven noise in state updates and representation ag-gregation (Devlin et al., 2019; Wang et al., 2023). 
+
+3 MaBERT 
+
+This section presents MaBERT, an encoder-only hybrid backbone that interleaves Transformer and Mamba layers to combine global self-attention with linear-time state-space updates for long-sequence modeling, as described in Figure 1. We also de-scribe PSM for variable-length batching and MAP for sentence representation. 
+
+(Part 1) Interleaved Encoder: MaBERT alter-nates between global interaction modeling and se-quential state accumulation by interleaving Trans-former and Mamba layers; Figures 1(a) and (b) illustrate the computations of the two blocks. 
+
+(Part 2) MAP and Head: MAP incorporates the padding mask to aggregate sentence representa-tions from valid tokens only, and the resulting vec-tor is fed into a classification head for downstream prediction. 
+
+3.1 Interleaved Encoder 
+
+Part 1 of Figure 1 shows MaBERT, a 12-layer (De-vlin et al., 2019) encoder that interleaves Trans-former and Mamba blocks to combine global token interactions with sequential processing. We adopt an MMT (Mamba–Mamba–Transformer) sched-ule repeated four times, which provides the best performance–efficiency trade-off in Section 4.2. To stabilize heterogeneous interleaving, MaBERT uses a unified Pre-LN residual update scheme (Xiong et al., 2020). Each block applies LN to its input, performs its sub-operations on the normalized representations, and adds the result back via a residual connection, helping maintain stable training across block types (Figure 1(a,b)). 
+
+3.2 Cross-Token Context Encoding 
+
+Figure 1(a) illustrates the Transformer layer for cross-token context encoding. This module models global token-to-token interactions via self-attention and updates each token representation to reflect sentence-level context. Within MaBERT’s inter-leaved design, the Transformer layers periodically re-inject global contextual consistency, whereas se-quential updates accumulate in the Mamba layers. Let L denote the layer index and HL ∈
+
+RB×T ×D be the input token representations to the 3L-th layer, where B, T and D indicate the batch size, the sequence length, and the hidden size, re-spectively. MaBERT applies a Pre-LN residual update for the Transformer layer, as follows: 
+
+¯HL = LN( HL),HL 
+
+> att
+
+= HL + MHSA( ¯HL),HL+1 = HL 
+
+> att
+
++ FFN  LN( HL
+
+> att
+
+).
+
+(1) Here, LN( ·) denotes Layer Normalization, 
+
+MHSA( ·) denotes multi-head self-attention, and 
+
+FFN( ·) denotes a position-wise feed-forward network. Self-attention constructs queries, keys, and values via learned linear projections and applies an additive padding mask to the attention logits so that pad positions do not contribute to softmax normalization. The FFN then enhances token-wise expressiveness through a nonlinear transformation. This cross-token context encoding injects global contextual information into each token representation, and the subsequent Mamba layer further updates these representations by accu-mulating sequential information with linear-time complexity. 
+
+3.3 Sequential Dynamics Modeling 
+
+Figure 1(b) illustrates the sequential dynamics mod-eling of the fused Mamba SSM core in a MaBERT encoder layer, which updates token representations in linear time with respect to the sequence length 
+
+T . Under variable-length batching during encoder pretraining, padding tokens can still drive sequen-tial state updates and contaminate the internal state, thereby distorting valid-token representations. To prevent this, MaBERT applies PSM both immedi-ately before the fused SSM core (Pre-SSM Mask-ing) and at the block output (Post-Block Masking), as shown in Figure 1(b). We define the layer input as HL ∈ RB×T ×D
+
+and the token representation at position t as hLt ∈
+
+RB×D. Here, m ∈ { 0, 1}B×T denotes the padding mask, with ˜m ∈ { 0, 1}B×T ×1 as its last-dimension expansion broadcast over the hidden dimension in element-wise products. Following Figure 1(b), MaBERT adopts a Pre-LN residual structure: after LayerNorm, the masked input is fed to the SSM core and accumulated via a residual addition. 
+
+¯HL = LN( HL),
+
+ˆHL = ˜ m ⊙ ¯HL,HL 
+
+> ssm
+
+= HL + SSM( ˆHL).
+
+(2) The layer then applies the FFN and re-applies mask-ing at the output:     
+
+> HL+1 = ˜ m⊙
+> 
+> HL
+> ssm + FFN  LN( HL
+> ssm )
+> .(3)
+
+This two-stage design is necessary because resid-ual paths and the FFN can reintroduce nonzero values at padded positions even if the SSM input is masked; post-block masking re-zeros them so they do not persist as inputs to upper layers (e.g., LN/residual), reducing length-dependent drift. 
+
+(i) Input–Gate Split and Local Mixing. The SSM core takes the normalized and masked token representation ˆhLt and splits it into an input path and a gating path. Internally, the computation di-mension is expanded to Dm = εD , where ε is the expansion ratio. Using a learnable projection 
+
+Win ∈ RD×2Dm , we form 
+
+[ut, z t] = ˆhLt Win ,U = [ u1; . . . ; uT ] ∈ RB×T ×Dm , (4) where ut, z t ∈ RB×Dm denote the input and gating paths, respectively. To incorporate local context, we apply a depth-wise one-dimensional convolu-tion along the sequence dimension to U :
+
+˜U = DWConv( U ),
+
+˜ut = ˜U [: , t, :] . (5) Here, DWConv( ·) processes each channel inde-pendently and is implemented along the sequence dimension following the Mamba block design to support efficient sequential computation. 
+
+(ii) Token-wise Parameterization. In selective SSMs, position-specific coefficients are generated and conditioned on the input. Given ˜ut, MaBERT produces a low-rank representation dt for step-size generation, an input-injection coefficient bt, and an output coefficient ct. Using Wx ∈ RDm×(r+2 N ),where r is the ∆-rank and N is the state expansion dimension: 
+
+[dt, b t, c t] = ˜ utWx,dt ∈ RB×r, bt, c t ∈ RB×N . (6) The step size ∆t ∈ RB×Dm is obtained by re-projecting dt with W∆ ∈ Rr×Dm , adding a bias, and applying softplus to ensure positivity: 
+
+∆t = softplus( dtW∆ + b∆). (7) 4(iii) Selective State Update and Gated Readout. 
+
+We use a channel-wise diagonal transition and pa-rameterize the transition matrix A ∈ RDm×N in the negative domain to ensure stable decaying dy-namics: 
+
+A = − exp( Alog ). (8) A learnable channel-wise skip connection Dskip ∈
+
+RDm is also included. The selective scan sequen-tially updates the internal state using ∆t, A, b t, c t
+
+together with the input-path signal ˜ut, and forms the output by reading out along the state dimen-sion via ct. Given the scan readout ˜ot, the gat-ing path applies a nonlinear gate defined as ot =SiLU( zt) ⊙ ˜ot, where SiLU( x) = x · σ(x) and 
+
+σ(·) denotes the sigmoid function. Finally, outputs are projected back to the original hidden size using 
+
+Wout ∈ RDm×D:
+
+yt = otWout ,Y = [ y1; . . . ; yT ] ∈ RB×T ×D. (9) 
+
+(iv) PSM in Variable-Length Batches. Even with end-padding, padding can affect boundary 
+
+valid tokens through local mixing (e.g., DWConv) inside Mamba blocks; subsequent Transformer lay-ers may then spread this boundary noise globally. Figure 1(b) shows a two-stage PSM: (1) pre-SSM masking blocks padding activations from entering sequential updates (Eq. 2); and (2) post-block mask-ing re-zeros pad outputs after residual/FFN so they do not persist to upper layers (Eq. 3). At the token level,           
+
+> ˆhLt=mt⊙¯hLt,hL+1
+> t=mt⊙
+> 
+> hLt, ssm + FFN  LN( hLt, ssm )
+> ,(10)
+
+where ¯hLt = LN( hLt ) and hLt, ssm denote the token representation at position t in HL
+
+> ssm
+
+. This padding-safe treatment suppresses padding-driven state con-tamination and stabilizes representation learning under variable-length inputs. 
+
+3.4 MAP and Head 
+
+In Part 2 of Figure 1, MaBERT forms a sentence-level representation from the encoder’s final token embeddings and maps it to downstream predictions. Rather than relying solely on a single [CLS] to-ken, MaBERT uses MAP, which explicitly excludes padded tokens while assigning higher weights to semantically informative tokens. This design pre-vents the padded regions from distorting sentence 
+
+> Figure 2: Mask-aware attention pooling in MaBERT.
+
+representations and yields robust aggregation when information is distributed across multiple positions. Let the encoder’s final output be H ∈ RB×T ×D,where Ht ∈ RB×D denotes the token embedding at position t. We compute the token scores via a linear projection: 
+
+pt = HtWs, Ws ∈ RD×1, (11) and stack them to obtain p ∈ RB×T ×1. To ensure that the padded tokens receive zero weight, we apply a masked softmax by adding a large negative constant to the masked locations: 
+
+α = softmax( p + (1 − ˜m) · (−κ)) , (12) where κ is a sufficiently large positive constant, and α ∈ RB×T ×1 denotes normalized attention weights. As illustrated in Figure 2, MAP computes the token scores, injects the padding mask before nor-malization, and aggregates only valid-token repre-sentations through a weighted sum. The pooled sentence representation is computed as follows: 
+
+hpool =
+
+> T
+
+X
+
+> t=1
+
+αt Ht, hpool ∈ RB×D. (13) It is then passed to a classification head: 
+
+ˆy = Wc Dropout( hpool ) + bc, (14) where Wc ∈ RC×D and bc ∈ RC are learnable parameters, ˆy denotes class logits, and C is the number of classes. 
+
+4 Experiments 
+
+This section presents the experimental setup and GLUE results, followed by in-depth analyses of in-terleaving patterns, pretraining budgets, ablations, and efficiency and scalability. 5Encoder pattern CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE         
+
+> MMMMMMMMMMMM 0.401
+> ±0.014 0.878
+> ±0.007 0.805
+> ±0.017 0.831
+> ±0.003 0.745
+> ±0.012 0.740
+> ±0.017 0.796
+> ±0.008 0.561
+> ±0.032 TTTTTTTTTTTT 0.428
+> ±0.020 0.891
+> ±0.012 0.834
+> ±0.015 0.843
+> ±0.002 0.796
+> ±0.015 0.802
+> ±0.018 0.864
+> ±0.007 0.575
+> ±0.030 MTTMTTMTTMTT 0.555
+> ±0.017 0.913
+> ±0.008 0.823
+> ±0.015 0.855
+> ±0.003 0.804
+> ±0.015 0.806
+> ±0.019 0.868
+> ±0.008 0.586
+> ±0.030 TMTMTMTMTMTM 0.525
+> ±0.017 0.896
+> ±0.011 0.826
+> ±0.017 0.862
+> ±0.004 0.801
+> ±0.014 0.802
+> ±0.018 0.873
+> ±0.006 0.587
+> ±0.031 MTMTMTMTMTMT 0.573
+> ±0.019 0.897
+> ±0.010 0.797
+> ±0.018 0.861
+> ±0.003 0.803
+> ±0.015 0.804
+> ±0.016 0.859
+> ±0.007 0.582
+> ±0.031 TMMTMMTMMTMM 0.528
+> ±0.014 0.903
+> ±0.008 0.832
+> ±0.016 0.863
+> ±0.004 0.803
+> ±0.014 0.802
+> ±0.026 0.870
+> ±0.009 0.595
+> ±0.031
+> MMTMMTMMTMMT 0.574
+> ±0.016
+> 0.904
+> ±0.009
+> 0.837
+> ±0.016
+> 0.868
+> ±0.003
+> 0.809
+> ±0.014
+> 0.814
+> ±0.015 0.867
+> ±0.007
+> 0.602
+> ±0.030 TTMTTMTTMTTM 0.512
+> ±0.016 0.902
+> ±0.009 0.809
+> ±0.016 0.859
+> ±0.003 0.800
+> ±0.014 0.805
+> ±0.020
+> 0.874
+> ±0.007 0.580
+> ±0.030
+
+Table 1: GLUE benchmark scores across interleaved Transformer–Mamba encoder patterns. Models are pretrained with 10% of total steps. M and T denote Mamba and Transformer layers, respectively. CoLA uses Matthews correlation coefficient; SST-2, MNLI-m, MNLI-mm, QNLI, and RTE use accuracy; MRPC and QQP use F1. 
+
+4.1 Experimental Setup Baselines. We compare MaBERT against BERT (Devlin et al., 2019), ALBERT (Lan et al., 2020), BigBird (Zaheer et al., 2020), Long-former (Beltagy et al., 2020), and DeBERTa (He et al., 2021) under a matched MLM pretraining recipe to isolate architecture-dependent differences. Each model uses its default tokenizer; all other pretraining settings and compute budgets are aligned (Table A1). 
+
+Dataset. We evaluate eight GLUE tasks (CoLA, SST-2, MRPC, QQP, MNLI-m/mm, QNLI, RTE) (Wang et al., 2018) with official met-rics: MCC for CoLA, accuracy for SST-2/MNLI-m/MNLI-mm/QNLI/RTE, and accuracy and F1 for MRPC and QQP. 
+
+Protocol. All models are pretrained on BookCor-pus (Zhu et al., 2013) and English Wikipedia using MLM only. We match the BERT-based 1M-step budget (Devlin et al., 2019) across models and re-port results at 10%, 25%, 50%, and 100% of steps using a two-stage length schedule (128 then 512 to-kens). We report mean and standard deviation over five seeds; the shared configuration is summarized in Table A1 (Appendix). 
+
+Efficiency. We measure training-step time, in-ference latency, and peak memory on a fixed GPU with matched length, batch size, and preci-sion. BERT, ALBERT, and DeBERTa use PyTorch SDPA on CUDA (Ansel et al., 2024); BigBird and Longformer use their sparse-attention implementa-tions with warm-up and synchronized repeats. Al-though MaBERT has more parameters at the same 12-layer depth, this increase is inherent to adding SSM capacity; we therefore report how memory and runtime scale with length rather than strict parameter matching, with details (incl. 4,096 posi-tional extension) in Table A2 (Appendix). We keep the backend uniform and avoid implementation-dependent optimizations (e.g., FlashAttention) for fair comparisons. 
+
+4.2 Interleaving Pattern Analysis 
+
+We evaluated GLUE performance across Transformer–Mamba interleaving schedules. To screen many candidates efficiently, we used 10% of the pretraining budget, fixed the encoder depth to 12 layers, and tested eight representative schedules that varied the mixing ratio and placement, including Transformer-only and Mamba-only. Table 1 reports the mean and standard deviation over five seeds for eight GLUE tasks. As shown in Table 1, single-family pat-terns consistently underperform mixed schedules: the Mamba-only encoder is worst overall, and Transformer-only improves but is still weaker than interleaved designs on most tasks. Among mixed patterns, MMTMMTMMTMMT performs best over-all, ranking highest on CoLA, MRPC, MNLI-m, MNLI-mm, and RTE while remaining competi-tive on the remaining tasks. We therefore adopt 
+
+MMTMMTMMTMMT as the default encoder pattern in subsequent experiments. 
+
+4.3 Pretraining Budgets Analysis 
+
+This section compares and analyzes MaBERT us-ing the GLUE benchmark. Figure 3 shows the 6Model CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE       
+
+> BERT 0.522
+> ±0.017 0.912
+> ±0.012 0.853
+> ±0.017 0.856
+> ±0.006 0.826
+> ±0.014 0.829
+> ±0.011 0.876
+> ±0.012 0.618
+> ±0.027 ALBERT 0.503
+> ±0.018 0.920
+> ±0.012 0.855
+> ±0.017 0.857
+> ±0.006 0.829
+> ±0.012 0.832
+> ±0.013 0.880
+> ±0.013 0.618
+> ±0.030 Longformer 0.534
+> ±0.018 0.924
+> ±0.012 0.863
+> ±0.016 0.858
+> ±0.006 0.830
+> ±0.013 0.831
+> ±0.014 0.882
+> ±0.012 0.626
+> ±0.031 BigBird 0.528
+> ±0.016 0.926
+> ±0.011 0.864
+> ±0.015 0.857
+> ±0.005 0.831
+> ±0.014 0.832
+> ±0.012 0.881
+> ±0.013 0.624
+> ±0.029 DeBERTa 0.617
+> ±0.015
+> 0.934
+> ±0.013 0.862
+> ±0.014 0.868
+> ±0.004
+> 0.838
+> ±0.015
+> 0.842
+> ±0.013 0.886
+> ±0.019 0.648
+> ±0.034
+> MaBERT 0.676
+> ±0.018 0.933
+> ±0.010
+> 0.869
+> ±0.017
+> 0.879
+> ±0.005 0.835
+> ±0.016 0.837
+> ±0.017
+> 0.893
+> ±0.012
+> 0.654
+> ±0.033
+
+Table 2: Performance comparison of baselines and the proposed MaBERT on the GLUE benchmark. Results are reported after full-budget pretraining (100% steps). The best result for each task is highlighted in bold. 
+
+results under pre-training budgets of 10%, 25%, 50%, and 100%, while all other settings followed the protocol in Section 4.1. 
+
+Figure 3: Average GLUE score across pretraining bud-gets. 
+
+As shown in Figure 3, MaBERT ranked among the top models in terms of the average GLUE score across all budget regimes and improves steadily as the pretraining budget increases. Notably, it achieves strong initial performance even in low-budget settings, reaching competitive accuracy with limited pretraining. Table 2 presents task-level GLUE results after full-budget pretraining. MaBERT achieves the best performance on CoLA and on several sentence-pair tasks, namely MRPC, QQP, QNLI, and RTE, while remaining competitive on the other tasks. These results suggest that interleaving Transformer layers for global interaction modeling with Mamba layers for sequential state updates enables MaBERT to effectively incorporate sentence-level consistency signals. Full task-wise results across budgets are provided in Tables B1–B3 in the Appendix. 
+
+4.4 Component and Integration Ablations 
+
+This section validates the contribution of each com-ponent to MaBERT via ablation studies. We first quantify the component-wise effects by compar-ing the full model and its variants in Table 3, and then further diagnose the impact of PSM from the perspective of representation stability in Figures 4 and 5.  
+
+> (a) Final (b) Unmasked mean
+
+Figure 4: Mean cosine distance under padding-length increase on the CoLA dev set.  
+
+> (a) Final (b) Unmasked mean
+
+Figure 5: Mean cosine distance under padding-length increase on the CoLA dev set, decomposed by padding-safe masking placement. 
+
+Table 3 shows that the full model performs best across GLUE. Replacing MAP with [CLS] pooling (“PSM only” and “None”) consistently degrades performance, with the largest drop on CoLA, indicating the importance of valid-token-aware aggregation under variable-length inputs. Removing PSM (“None”) further degrades perfor-mance across all tasks, suggesting that suppressing padding-driven accumulation is critical. Overall, PSM and MAP provide complementary gains. Ta-ble B4 further confirms that MAP is the strongest pooling choice across tasks. Figures 4 and 5 quantify representation drift as padding length increases with valid tokens held 7Model CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE     
+
+> Full 0.676
+> ±0.018
+> 0.933
+> ±0.010
+> 0.869
+> ±0.017
+> 0.879
+> ±0.005
+> 0.835
+> ±0.016
+> 0.837
+> ±0.017
+> 0.893
+> ±0.012
+> 0.654
+> ±0.033 PSM only 0.641
+> ±0.022 0.918
+> ±0.011 0.849
+> ±0.019 0.863
+> ±0.006 0.816
+> ±0.017 0.818
+> ±0.018 0.874
+> ±0.013 0.638
+> ±0.036 MAP only 0.661
+> ±0.018 0.922
+> ±0.031 0.841
+> ±0.023 0.860
+> ±0.004 0.819
+> ±0.017 0.820
+> ±0.027 0.878
+> ±0.014 0.597
+> ±0.078 None 0.596
+> ±0.027 0.903
+> ±0.013 0.841
+> ±0.021 0.847
+> ±0.007 0.803
+> ±0.020 0.805
+> ±0.021 0.855
+> ±0.015 0.614
+> ±0.041
+
+Table 3: Integration ablation results of MaBERT on the GLUE benchmark. PSM denotes padding-safe masking and MAP denotes mask-aware attention pooling. In the PSM only and None variants, MAP is disabled and CLS pooling is used for prediction.   
+
+> (a) Peak GPU memory. (b) Inference latency. (c) Training step time.
+
+Figure 6: Efficiency and scalability across sequence lengths. 
+
+fixed. We compute cosine distance between padded and unpadded runs using the final-layer [CLS] em-bedding (Final) or the mean of non-padding token embeddings (unmasked mean). Without PSM, drift increases with padding; with PSM, drift is strongly suppressed, indicating reduced padding-induced contamination. The decomposition further shows post-masking outperforms pre-masking, and their combination (Pre+Post) is most stable, highlighting the importance of blocking propagation to upper layers in deep stacks. 
+
+4.5 Efficiency and Scalability 
+
+We compared efficiency and length scalability in terms of peak GPU memory, inference latency, and training step time following Section 4.1. Peak memory and latency were measured using a single forward pass with a batch size of one (peak memory is the maximum GPU usage during the pass). The training cost was measured as the wall-clock time per optimizer step with an effective batch size of 32. We varied only the input length and evaluated the same checkpoint without additional pre-training. Figure 6(a) shows that although MaBERT uses more memory for short inputs, its memory growth is substantially slower with increasing length, re-sulting in lower peak memory than DeBERTa and BigBird in the long-sequence regime. Figure 6(b) shows a similar trend for the inference latency: BERT is the fastest for short sequences, whereas MaBERT becomes the most efficient at longer lengths owing to slower latency growth. Figure 6(c) shows that MaBERT also best mitigates the in-crease in the training step time as the length in-creases, whereas DeBERTa exhibits a markedly steeper slowdown. The complete numerical results are reported in Tables B5–B7 in the Appendix. 
+
+5 Conclusion 
+
+We introduced MaBERT, a hybrid MLM-pretrained encoder that interleaves Transformer and Mamba layers, combining global contextual modeling with linear-time state updates while remaining robust to variable-length batching via padding-safe state handling and valid-token aggregation. With pretraining on BookCorpus and English Wikipedia, MaBERT achieves strong GLUE perfor-mance relative to dense and long-context baselines, showing consistent gains on CoLA and sentence-pair tasks. Ablations confirm the value of peri-odic global interaction, and efficiency results indi-cate improved memory and runtime scaling with increasing sequence length. Future work will evaluate MaBERT on long-context understanding and generation benchmarks and study training curricula tailored to extended contexts. 86 Limitations 
+
+We evaluate MaBERT on GLUE classification benchmarks following MLM pretraining on Book-Corpus and English Wikipedia. Although GLUE is a standard testbed for assessing encoder represen-tations, it does not directly measure long-context reasoning, document-level understanding, or gener-ation quality; therefore, our findings primarily re-flect sentence- and sentence-pair-level understand-ing under this protocol. In addition, the reported efficiency results are ob-tained under a fixed hardware and software config-uration (e.g., packing and FlashAttention disabled). While we analyze scaling trends across sequence lengths, absolute memory usage and latency may vary depending on optimization strategies, acceler-ators, and kernel backends. 
+
+References 
+
+Jason Ansel, Edward Yang, Horace He, Natalia Gimelshein, Animesh Jain, Michael Voznesensky, Bin Bao, Peter Bell, David Berard, and Evgeni Burovski. 2024. PyTorch 2: Faster machine learning through dynamic python bytecode transformation and graph compilation. In Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 2 , pages 929–947. Iz Beltagy, Matthew E. Peters, and Arman Cohan. 2020. Longformer: The long-document transformer. arXiv preprint arXiv:2004.05150 .Aaron Blakeman, Aarti Basant, Abhinav Khattar, Adithya Renduchintala, Akhiad Bercovich, Alek-sander Ficek, Alexis Bjorlin, Ali Taghibakhshi, Amala Sanjay Deshmukh, Ameya Sunil Mahabalesh-warkar, and 1 others. 2025. Nemotron-h: A family of accurate and efficient hybrid mamba-transformer models. arXiv preprint arXiv:2504.03624 .Yagmur Gizem Cinar, Hamid Mirisaee, Parantapa Goswami, Eric Gaussier, Ali Ait-Bachir, and Vadim Strijov. 2017. Time series forecasting using RNNs: An extended attention mechanism to model peri-ods and handle missing values. arXiv preprint arXiv:1703.10089 .Weixia Dang, Biyu Zhou, Lingwei Wei, Weigang Zhang, Ziang Yang, and Songlin Hu. 2021. TS-BERT: Time series anomaly detection via pre-training model BERT. In Computational Science – ICCS 2021: 21st International Conference, Krakow, Poland, June 16– 18, 2021, Proceedings, Part II , volume 12743 of 
+
+Lecture Notes in Computer Science , pages 209–223. Springer. Tri Dao, Daniel Y. Fu, Stefano Ermon, Atri Rudra, and Christopher Ré. 2022. Flashattention: Fast and memory-efficient exact attention with io-awareness. In Advances in Neural Information Processing Sys-tems (NeurIPS) .Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019. BERT: Pre-training of deep bidirectional transformers for language under-standing. In Proceedings of the 2019 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies , pages 4171–4186. Xin Dong, Yonggan Fu, Shizhe Diao, Wonmin Byeon, Zijia Chen, Ameya Sunil Mahabaleshwarkar, Shih-Yang Liu, Matthijs Van Keirsbilck, Min-Hung Chen, Yoshi Suhara, and 1 others. 2024. Hymba: A hybrid-head architecture for small language models. arXiv preprint arXiv:2411.13676 .Feyza Duman Keles, Pruthuvi Mahesakya Wijewardena, and Chinmay Hegde. 2023. On the computational complexity of self-attention. In Proceedings of the In-ternational Conference on Algorithmic Learning The-ory , volume 201 of Proceedings of Machine Learning Research , pages 597–619. PMLR. Daniel Y. Fu, Tri Dao, Khaled K. Saab, Armin W. Thomas, Atri Rudra, and Christopher Ré. 2022. Hungry hungry hippos: Towards language mod-eling with state space models. arXiv preprint arXiv:2212.14052 .Albert Gu and Tri Dao. 2024. Mamba: Linear-time sequence modeling with selective state spaces. In 
+
+Conference on Language Modeling (COLM) .Albert Gu, Karan Goel, and Christopher Ré. 2022a. Ef-ficiently modeling long sequences with structured state spaces. In International Conference on Learn-ing Representations (ICLR) .Albert Gu, Isys Johnson, Aman Timalsina, Atri Rudra, and Christopher Ré. 2022b. How to train your HiPPO: State space models with general-ized orthogonal basis projections. arXiv preprint arXiv:2206.12037 .Pengcheng He, Xiaodong Liu, Jianfeng Gao, and Weizhu Chen. 2021. DeBERTa: Decoding-enhanced BERT with disentangled attention. In International Conference on Learning Representations (ICLR) .Rom Himelstein, Amit LeVi, Yonatan Belinkov, and Avi Mendelson. 2025. Silent tokens, loud effects: Padding in LLMs. arXiv preprint arXiv:2510.01238 .Jungo Kasai, Nikolaos Pappas, Hao Peng, James Cross, and Noah A. Smith. 2020. Deep encoder, shallow decoder: Reevaluating non-autoregressive machine translation. arXiv preprint arXiv:2006.10369 .Mario Michael Krell, Matej Kosec, Sergio P. Perez, and Andrew Fitzgibbon. 2023. Efficient sequence pack-ing without cross-contamination: Accelerating large language models without impacting performance. 
+
+OpenReview (Submitted to ICLR 2023) .
+
+9Zhenzhong Lan, Mingda Chen, Sebastian Goodman, Kevin Gimpel, Piyush Sharma, and Radu Soricut. 2020. ALBERT: A lite BERT for self-supervised learning of language representations. In Inter-national Conference on Learning Representations (ICLR) .Hyunji Lee, Wenhao Yu, Hongming Zhang, Kaixin Ma, Jiyeon Kim, Dong Yu, and Minjoon Seo. 2025. Un-derstanding and enhancing mamba-transformer hy-brids for memory recall and language modeling. In 
+
+Proceedings of the First BabyLM Workshop , pages 380–398. Yikuan Li, Shishir Rao, José Roberto Ayala Solares, Abdelaali Hassaine, Rema Ramakrishnan, Dexter Canoy, Yajie Zhu, Kazem Rahimi, and Gholam-reza Salimi-Khorshidi. 2020. BEHRT: Transformer for electronic health records. Scientific Reports ,10(1):7155. Opher Lieber, Barak Lenz, Hofit Bata, Gal Cohen, Jhonathan Osin, Itay Dalmedigos, Erez Safahi, Shaked Meirom, Yonatan Belinkov, and Shai Shalev-Shwartz. 2024. Jamba: A hybrid transformer-mamba language model. arXiv preprint arXiv:2403.19887 .Xuebo Liu, Longyue Wang, Derek F. Wong, Liang Ding, Lidia S. Chao, and Zhaopeng Tu. 2021. Understand-ing and improving encoder layer fusion in sequence-to-sequence learning. In International Conference on Learning Representations (ICLR) .Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Man-dar Joshi, Danqi Chen, Omer Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019. RoBERTa: A robustly optimized BERT pretraining approach. arXiv preprint arXiv:1907.11692 .Badri Narayana Patro and Vijay Srinivas Agneeswaran. 2025. Mamba-360: Survey of state space models as transformer alternative for long sequence modelling: Methods, applications, and challenges. Engineering Applications of Artificial Intelligence , 159:111279. Liliang Ren, Yang Liu, Yadong Lu, Yelong Shen, Chen Liang, and Weizhu Chen. 2024. Samba: Sim-ple hybrid state space models for efficient unlim-ited context language modeling. arXiv preprint arXiv:2406.07522 .Victor Sanh, Lysandre Debut, Julien Chaumond, and Thomas Wolf. 2019. DistilBERT, a distilled version of BERT: Smaller, faster, cheaper and lighter. arXiv preprint arXiv:1910.01108 .Zhiqing Sun, Hongkun Yu, Xiaodan Song, Renjie Liu, Yiming Yang, and Denny Zhou. 2020. MobileBERT: a compact task-agnostic BERT for resource-limited devices. arXiv preprint arXiv:2004.02984 .Yi Tay, Mostafa Dehghani, Dara Bahri, and Donald Met-zler. 2022. Efficient transformers: A survey. ACM Computing Surveys .Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In Advances in Neural Information Pro-cessing Systems .Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel Bowman. 2018. GLUE: A multi-task benchmark and analysis platform for nat-ural language understanding. In Proceedings of the 2018 EMNLP Workshop BlackboxNLP: Analyzing and Interpreting Neural Networks for NLP , pages 353–355. Junxiong Wang, Jing Nathan Yan, Albert Gu, and Alexander M. Rush. 2023. Pretraining without at-tention. In Findings of the Association for Computa-tional Linguistics: EMNLP 2023 , pages 58–69. Benjamin Warner, Antoine Chaffin, Benjamin Clavié, Orion Weller, Oskar Hallström, Said Taghadouini, Alexis Gallagher, Raja Biswas, Faisal Ladhak, Tom Aarsen, Nathan Cooper, Griffin Adams, Jeremy Howard, and Iacopo Poli. 2025. Smarter, better, faster, longer: A modern bidirectional encoder for fast, memory efficient, and long context finetuning and inference. In Proceedings of the Annual Meet-ing of the Association for Computational Linguistics (ACL) .Ruibin Xiong, Yunchang Yang, Di He, Kai Zheng, Shuxin Zheng, Chen Xing, Huishuai Zhang, Yanyan Lan, Liwei Wang, and Tie-Yan Liu. 2020. On layer normalization in the transformer architecture. In 
+
+Proceedings of the International Conference on Ma-chine Learning , Proceedings of Machine Learning Research, pages 10524–10533. PMLR. Haoran Xu, Ziqian Liu, Rong Fu, Zhongling Su, Zerui Wang, Zheng Cai, Zhilin Pei, Xingcheng Zhang, and 1 others. 2024. PackMamba: Efficient processing of variable-length sequences in mamba training. In 
+
+Computer Vision – ECCV 2024 Workshops , Lecture Notes in Computer Science, pages 34–42. Springer. Manzil Zaheer, Guru Guruganesh, Kumar Avinava Dubey, Joshua Ainslie, Chris Alberti, Santiago On-tanon, Philip Pham, Anirudh Ravula, Qifan Wang, and Li Yang. 2020. BigBird: Transformers for longer sequences. In Advances in Neural Information Pro-cessing Systems , volume 33, pages 17283–17297. Yukun Zhu, Ryan Kiros, Rich Zemel, Ruslan Salakhut-dinov, Raquel Urtasun, Antonio Torralba, and Sanja Fidler. 2013. Aligning books and movies: Towards story-like visual explanations by watching movies and reading books. In Proceedings of the IEEE In-ternational Conference on Computer Vision , pages 19–27. 
+
+10 A Implementation Details                                          
+
+> Setting Value
+> Data BookCorpus + English Wikipedia Objective MLM only, no NSP Masking p= 0 .15 , 80/10/10 replacement Steps (budget) 1M total steps, 10/25/50/100% of 1M Length schedule 128 for 90% of steps, 512 for 10% of steps Batch size 256 Optimizer Adam, β1= 0 .9,β2= 0 .98 ,ϵ= 1e −6, weight decay = 0 .01
+> LR schedule peak LR = 6e −4, warmup = 24 k steps, linear decay Dropout 0.1 Tokenizer Each model’s default tokenizer (standard implementation)
+> Table A1: Common pretraining recipe used for all models.
+> Setting Value
+> GPU NVIDIA A100 80GB (1 ×GPU) Precision bf16 PyTorch 2.6.0 CUDA 12.2 Kernel backend PyTorch SDPA (math/mem-efficient); FlashAttention disabled Compilation torch.compile disabled Packing disabled Timing protocol Median of 100 runs after 20 warmup; torch.cuda.synchronize() before/after timing
+> Table A2: Hardware and software setup for efficiency measurements.
+> Model 4,096 positional extension
+> BERT / ALBERT Resize absolute position embeddings (512 →4,096); initialize new positions via 1D interpolation. Longformer Use default long-context setup; set max length to 4,096. BigBird Use default long-context setup; set max length to 4,096. DeBERTa Extend relative position range to cover 4,096. MaBERT Use the same max length and masking rules as in the main text.
+> Table A3: Baseline-specific positional extension for length-4,096 efficiency measurements.
+
+All models are pretrained under a controlled and unified recipe so that performance differences pri-marily reflect architectural choices rather than op-timization artifacts. The step-budget protocol en-ables a compute-matched comparison by truncat-ing training at 10/25/50/100% of a fixed 1M-step budget while keeping the same length schedule, which isolates the effect of training compute from sequence-length exposure. Using each model’s default tokenizer avoids introducing additional con-founds that would not reflect standard usage. Efficiency measurements are conducted under a fixed hardware and software stack with conserva-tive kernel choices to improve repeatability across architectures. We disable packing, compilation, and FlashAttention, and report median latency over repeated runs with explicit CUDA synchronization, reducing variance from kernel warmup and asyn-chronous launches. For length-4,096 runs, base-lines are extended with minimal positional-capacity changes appropriate to their design, without alter-ing their core attention or relative-position formu-lation. 
+
+B Additional Results 
+
+Across compute budgets (Tables B1–B3), MaBERT consistently outperforms all baselines on every GLUE task. The largest and most stable gains ap-pear on CoLA across budgets, indicating stronger sensitivity to grammatical acceptability and syntac-tic regularities under limited and moderate pretrain-ing. Improvements on MNLI and QNLI persist as compute increases, suggesting that the advantage extends to entailment-focused evaluation settings rather than being confined to single-sentence clas-sification. Table B4 compares several pooling strategies for summarizing token-level representations into a sin-11 Model CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE 
+
+BERT 0.419 
+
+±0.017 0.874 
+
+±0.013 0.821 
+
+±0.016 0.837 
+
+±0.006 0.780 
+
+±0.012 0.791 
+
+±0.013 0.846 
+
+±0.011 0.578 
+
+±0.028 ALBERT 0.388 
+
+±0.019 0.868 
+
+±0.013 0.814 
+
+±0.017 0.832 
+
+±0.007 0.772 
+
+±0.015 0.781 
+
+±0.014 0.842 
+
+±0.013 0.566 
+
+±0.032 Longformer 0.401 
+
+±0.020 0.892 
+
+±0.014 0.820 
+
+±0.016 0.834 
+
+±0.008 0.776 
+
+±0.012 0.787 
+
+±0.015 0.858 
+
+±0.011 0.573 
+
+±0.033 BigBird 0.406 
+
+±0.019 0.897 
+
+±0.012 0.822 
+
+±0.016 0.835 
+
+±0.005 0.781 
+
+±0.014 0.792 
+
+±0.014 0.862 
+
+±0.012 0.577 
+
+±0.031 DeBERTa 0.423 
+
+±0.018 0.881 
+
+±0.011 0.817 
+
+±0.013 0.829 
+
+±0.004 0.789 
+
+±0.015 0.801 
+
+±0.014 0.829 
+
+±0.012 0.569 
+
+±0.036 
+
+MaBERT 0.574 
+
+±0.016 
+
+0.904 
+
+±0.009 
+
+0.837 
+
+±0.016 
+
+0.868 
+
+±0.003 
+
+0.809 
+
+±0.014 
+
+0.814 
+
+±0.015 
+
+0.867 
+
+±0.007 
+
+0.602 
+
+±0.030 
+
+Table B1: GLUE results after pretraining with 10% of the total steps (mean ± standard deviation over five seeds; best per task in bold). 
+
+Model CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE 
+
+BERT 0.452 
+
+±0.018 0.887 
+
+±0.012 0.833 
+
+±0.017 0.841 
+
+±0.005 0.796 
+
+±0.011 0.801 
+
+±0.021 0.851 
+
+±0.010 0.591 
+
+±0.027 ALBERT 0.438 
+
+±0.018 0.884 
+
+±0.012 0.828 
+
+±0.016 0.840 
+
+±0.006 0.792 
+
+±0.014 0.798 
+
+±0.020 0.848 
+
+±0.012 0.586 
+
+±0.029 Longformer 0.455 
+
+±0.019 0.906 
+
+±0.013 0.836 
+
+±0.015 0.844 
+
+±0.005 0.799 
+
+±0.013 0.804 
+
+±0.021 0.861 
+
+±0.011 0.592 
+
+±0.030 BigBird 0.462 
+
+±0.021 0.910 
+
+±0.011 0.839 
+
+±0.013 0.846 
+
+±0.006 0.803 
+
+±0.013 0.806 
+
+±0.024 0.863 
+
+±0.013 0.596 
+
+±0.032 DeBERTa 0.497 
+
+±0.017 0.908 
+
+±0.012 0.831 
+
+±0.014 0.852 
+
+±0.004 0.803 
+
+±0.014 0.808 
+
+±0.019 0.847 
+
+±0.011 0.603 
+
+±0.034 
+
+MaBERT 0.612 
+
+±0.015 
+
+0.917 
+
+±0.008 
+
+0.848 
+
+±0.015 
+
+0.873 
+
+±0.005 
+
+0.815 
+
+±0.013 
+
+0.816 
+
+±0.020 
+
+0.868 
+
+±0.008 
+
+0.612 
+
+±0.029 
+
+Table B2: GLUE results after pretraining with 25% of the total steps (mean ± standard deviation over five seeds; best per task in bold). 
+
+Model CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE 
+
+BERT 0.515 
+
+±0.018 0.902 
+
+±0.010 0.845 
+
+±0.016 0.846 
+
+±0.005 0.807 
+
+±0.011 0.813 
+
+±0.012 0.859 
+
+±0.009 0.598 
+
+±0.030 ALBERT 0.490 
+
+±0.019 0.898 
+
+±0.012 0.840 
+
+±0.017 0.842 
+
+±0.006 0.803 
+
+±0.014 0.809 
+
+±0.013 0.856 
+
+±0.011 0.598 
+
+±0.031 Longformer 0.506 
+
+±0.020 0.918 
+
+±0.011 0.848 
+
+±0.016 0.844 
+
+±0.005 0.809 
+
+±0.013 0.815 
+
+±0.014 0.868 
+
+±0.010 0.606 
+
+±0.033 BigBird 0.514 
+
+±0.016 0.920 
+
+±0.012 0.852 
+
+±0.014 0.843 
+
+±0.006 0.812 
+
+±0.012 0.817 
+
+±0.018 0.869 
+
+±0.012 0.607 
+
+±0.030 DeBERTa 0.548 
+
+±0.018 0.918 
+
+±0.011 0.842 
+
+±0.015 0.862 
+
+±0.004 0.811 
+
+±0.013 0.820 
+
+±0.014 0.868 
+
+±0.010 0.619 
+
+±0.031 
+
+MaBERT 0.634 
+
+±0.020 
+
+0.924 
+
+±0.008 
+
+0.863 
+
+±0.018 
+
+0.877 
+
+±0.004 
+
+0.825 
+
+±0.011 
+
+0.828 
+
+±0.021 
+
+0.886 
+
+±0.007 
+
+0.624 
+
+±0.037 
+
+Table B3: GLUE results after pretraining with 50% of the total steps (mean ± standard deviation over five seeds; best per task in bold). 
+
+Mode CoLA SST-2 MRPC QQP MNLI-m MNLI-mm QNLI RTE MAP 0.676 
+
+±0.018 
+
+0.933 
+
+±0.010 
+
+0.869 
+
+±0.017 
+
+0.879 
+
+±0.005 
+
+0.835 
+
+±0.016 
+
+0.837 
+
+±0.017 
+
+0.893 
+
+±0.012 
+
+0.654 
+
+±0.033 ATTN 0.648 
+
+±0.015 0.924 
+
+±0.025 0.857 
+
+±0.022 0.861 
+
+±0.011 0.823 
+
+±0.011 0.818 
+
+±0.023 0.888 
+
+±0.016 0.639 
+
+±0.036 CLS 0.661 
+
+±0.011 0.922 
+
+±0.031 0.841 
+
+±0.023 0.860 
+
+±0.004 0.819 
+
+±0.017 0.820 
+
+±0.027 0.878 
+
+±0.014 0.597 
+
+±0.078 MaskedMean 0.651 
+
+±0.018 0.924 
+
+±0.029 0.857 
+
+±0.021 0.866 
+
+±0.010 0.823 
+
+±0.018 0.817 
+
+±0.023 0.869 
+
+±0.013 0.631 
+
+±0.009 
+
+Table B4: Effect of pooling choices on GLUE performance for MaBERT (mean ± standard deviation over five seeds). MAP: mask-aware attention pooling; ATTN: attention pooling; CLS: [CLS]-token pooling; MaskedMean: mean pooling over non-padding tokens. 
+
+12 Model Params Mem@128 Mem@512 Mem@1024 Mem@2048 Mem@4096                                     
+
+> BERT 109.484 441.364 454.748 471.274 507.313 579.392 ALBERT 11.685 70.649 90.971 117.992 173.382 283.109
+> Longformer 148.661 602.629 652.634 709.375 828.660 1066.699 BigBird 128.061 507.797 551.183 662.196 1115.224 2885.278 DeBERTa 184.417 742.110 825.994 1047.506 1908.529 5262.076 MaBERT 205.322 808.787 841.846 923.875 1238.917 2445.003
+
+Table B5: Model complexity and peak GPU memory footprint (MB) measured during a forward pass at each sequence length (lowest per column in bold; applied to Mem@* columns).                                    
+
+> Model Train@128 ×32 Train@512 ×32 Train@1024 ×32 Train@2048 ×32 Train@4096 ×32
+> BERT 42.372 189.501 487.204 1451.200 4894.397 ALBERT 50.941 225.783 545.223 1491.872 4662.279 Longformer 834.994 838.428 1709.029 3466.178 6985.296 BigBird 60.710 263.221 658.337 1993.710 6430.660 DeBERTa 74.079 371.969 1151.794 4251.722 16136.670 MaBERT 64.117 240.334 516.242 1240.849 3319.429
+
+Table B6: Training runtime (ms) per optimizer step with effective batch size fixed (lowest per column in bold). Positional extension to 4,096 follows Table A3.                                    
+
+> Model Infer@128 ×1Infer@512 ×1Infer@1024 ×1Infer@2048 ×1Infer@4096 ×1
+> BERT 5.220 5.331 5.702 15.122 43.424 ALBERT 6.140 6.217 6.692 17.994 48.749 Longformer 36.794 36.866 38.420 42.468 55.676 BigBird 7.921 7.948 8.059 23.378 67.887 DeBERTa 13.737 14.038 17.456 57.592 206.592 MaBERT 9.160 9.193 9.263 13.914 34.703
+
+Table B7: Inference latency (ms) per forward pass with batch size 1 (lowest per column in bold). Positional extension to 4,096 follows Table A3. 
+
+gle sequence representation for classification. Over-all, mask-aware attention pooling (MAP) yields the strongest and most consistent performance across GLUE tasks, indicating that selectively weighting informative tokens while ignoring padding is ben-eficial. Attention pooling (ATTN) and masked mean pooling (MaskedMean) remain competitive on multiple benchmarks but tend to lag behind MAP on tasks that are sensitive to fine-grained sentence properties or entailment cues, such as CoLA, MNLI, and QNLI. In contrast, CLS pool-ing shows the largest degradation, most notably on RTE, suggesting that relying on a single terminal representation can be less robust under small-data or high-variance settings. These results support MAP as the default pooling strategy for MaBERT in downstream evaluation. Efficiency results (Tables B5–B7) highlight dis-tinct scaling behaviors as sequence length grows. Sparse-attention models reduce memory at mod-erate long-context lengths, but at 4,096 tokens overhead and implementation details can domi-nate, leading to less favorable trade-offs than sug-gested by asymptotic complexity alone. Compared to dense attention baselines, MaBERT exhibits a substantially lower peak memory footprint at 2,048 and 4,096 than DeBERTa under the same protocol. Runtime trends mirror the memory observations. Dense attention remains highly optimized at short contexts, but its cost increases rapidly with length. At 2,048 and 4,096 tokens, MaBERT achieves the lowest training-step time and the lowest inference latency among compared models, indicating that its long-context efficiency does not rely on sparse at-tention patterns and translates to practical through-put gains. 13
