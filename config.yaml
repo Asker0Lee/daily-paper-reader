@@ -86,3 +86,55 @@ subscriptions:
           source: manual
           note: ''
       updated_at: '2026-03-11T07:18:18.150Z'
+    - tag: GAIRES
+      description: 生成式人工智能对科研合作关系（强度、稳定性、持久性）影响的学术文献检索
+      enabled: true
+      keywords:
+        - keyword: Generative AI
+          keyword_cn: 生成式人工智能
+          query: impact of generative artificial intelligence on scientific research
+        - keyword: research collaboration
+          keyword_cn: 科研合作
+          query: changes in scientific research collaboration patterns
+        - keyword: collaboration strength
+          keyword_cn: 合作强度
+          query: quantifying the strength of research partnerships with AI
+        - keyword: partnership stability
+          keyword_cn: 合作稳定性
+          query: stability of academic research networks in the age of AI
+        - keyword: long-term collaboration
+          keyword_cn: 持久性合作
+          query: durability and persistence of scientific collaborations using AI tools
+        - keyword: team science
+          keyword_cn: 团队科学
+          query: dynamics of scientific teams and generative AI integration
+        - keyword: knowledge co-creation
+          keyword_cn: 知识共创
+          query: AI-mediated knowledge co-creation in academia
+      intent_queries:
+        - query: impact of generative AI on the strength and frequency of scientific collaborations
+          query_cn: 生成式AI对科研合作强度与频率的影响
+          enabled: true
+          source: manual
+          note: ''
+        - query: stability and durability of research partnerships using generative AI tools
+          query_cn: 使用生成式AI工具的科研伙伴关系的稳定性与持久性
+          enabled: true
+          source: manual
+          note: ''
+        - query: literature review on AI driven changes in academic team dynamics and co authorship
+          query_cn: 关于AI驱动的学术团队动态与共同署名变化的文献综述
+          enabled: true
+          source: manual
+          note: ''
+        - query: how generative AI affects the formation and persistence of international research networks
+          query_cn: 生成式AI如何影响国际科研网络的形成与持久性
+          enabled: true
+          source: manual
+          note: ''
+        - query: empirical studies on generative AI influencing scientific collaboration quality and longevity
+          query_cn: 关于生成式AI影响科研合作质量与长久性的实证研究
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-03-11T13:28:26.801Z'
