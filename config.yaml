@@ -25,3 +25,64 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: LLM CP
+      description: 最新的大模型压缩领域论文检索
+      enabled: true
+      keywords:
+        - keyword: LLM quantization
+          keyword_cn: LLM量化
+          query: q
+        - keyword: sparse compress
+          keyword_cn: 稀疏压缩
+          query: s
+        - keyword: LLM pruning
+          keyword_cn: 大模型剪枝
+          query: L
+        - keyword: unstructured pruning
+          keyword_cn: 非结构化剪枝
+          query: u
+        - keyword: structure pruning
+          keyword_cn: 结构化剪枝
+          query: s
+        - keyword: LLM compression
+          keyword_cn: 大语言模型压缩
+          query: Large language model compression techniques
+        - keyword: model quantization
+          keyword_cn: 模型量化
+          query: Post-training quantization and quantization-aware training for LLMs
+        - keyword: network pruning
+          keyword_cn: 网络剪枝
+          query: Structured and unstructured pruning for large language models
+      intent_queries:
+        - query: Latest paper on large model compression
+          query_cn: 最新关于大模型压缩的论文
+          enabled: true
+          source: manual
+          note: ''
+        - query: State of the art methods in large language model compression
+          query_cn: 大语言模型压缩领域的最新前沿方法
+          enabled: true
+          source: manual
+          note: ''
+        - query: Recent advances in LLM quantization and pruning research
+          query_cn: 大模型量化与剪枝研究的最新进展
+          enabled: true
+          source: manual
+          note: ''
+        - query: Efficient inference for large language models via compression
+          query_cn: 通过压缩实现大语言模型的高效推理
+          enabled: true
+          source: manual
+          note: ''
+        - query: Comparative study of LLM compression algorithms
+          query_cn: 大模型压缩算法的对比研究
+          enabled: true
+          source: manual
+          note: ''
+        - query: Survey of hardware friendly model compression for LLMs
+          query_cn: 硬件友好的大模型压缩技术综述
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-03-11T07:18:18.150Z'
