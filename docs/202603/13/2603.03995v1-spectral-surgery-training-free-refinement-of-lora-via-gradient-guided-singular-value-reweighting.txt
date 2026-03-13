@@ -1,0 +1,632 @@
+Title: Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting
+
+URL Source: https://arxiv.org/pdf/2603.03995v1
+
+Published Time: Thu, 05 Mar 2026 02:05:22 GMT
+
+Number of Pages: 16
+
+Markdown Content:
+# Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+Zailong Tian 1 Yanzhe Chen 2 Zhuoheng Han 3 Lizi Liao 1
+
+## Abstract 
+
+Low-Rank Adaptation (LoRA) improves down-stream performance by restricting task updates to a low-rank parameter subspace, yet how this limited capacity is allocated within a trained adapter remains unclear. Through a geometric and empirical study across multiple tasks and back-bones, we find that trained LoRA updates often exhibit an inefficient spectrum: task effects con-centrate in a small subset of singular directions, while many remaining components are neutral or detrimental, motivating post-hoc refinement within the learned subspace. We propose Spec-tral Surgery , a simple training-free refinement that decomposes a LoRA update with SVD, esti-mates per-component sensitivity using gradients on a small calibration set, and reweights singular values under a magnitude constraint while keep-ing the learned directions fixed. Across Llama-3.1-8B and Qwen3-8B on four benchmarks, Spec-tral Surgery yields consistent gains (up to +4.4 points on CommonsenseQA and +2.4 pass@1 on HumanEval) by adjusting only ≈ 1,000 scalar coefficients. These results demonstrate that SVD-structured, low-cost parameter editing can serve as a practical route to improving trained LoRA adapters in a purely post-hoc manner. 
+
+## 1. Introduction 
+
+Low-Rank Adaptation (LoRA) has become a standard for task-specific adaptation of large language models (LLMs) due to its strong empirical performance and favorable ef-ficiency profile: instead of updating the full weight space, LoRA injects a low-rank update ∆W into selected linear layers while keeping the backbone frozen (Hu et al., 2022). 
+
+> 1
+
+School of Computing and Information Systems, Singapore Management University 2School of Computing, National Univer-sity of Singapore 3State Key Laboratory for Multimedia Informa-tion Processing, Peking University. Correspondence to: Lizi Liao 
+
+<lzliao@smu.edu.sg >.
+
+Preprint. March 5, 2026. 
+
+In practice, a LoRA adapter is often treated as a static end-point of training: once optimization converges, the resulting low-rank matrix is deployed as-is and rarely revisited. This “train-then-freeze” convention hides a natural question. From the task-vector view of adaptation, a trained adapter is a compact representation of a task-induced displacement in parameter space (Ilharco et al., 2023). Yet, the convergence of stochastic gradient descent (SGD) does not guarantee that the limited representational budget of a rank-r update is used efficiently: even within a fixed low-rank subspace, different allocations can encode dramatically different be-haviors. This raises a basic efficiency gap that is orthogonal to choosing a larger rank or a better training recipe: given a converged LoRA adapter, is the capacity within its learned rank being allocated in the most useful way? 
+
+Inspired by the finding of Sharma et al. (2024) that singular-structure manipulation can improve model performance, we adopt the singular value decomposition (SVD; Eckart & Young, 1936) of LoRA updates as a lens for probing this internal allocation. Our empirical study reveals a striking di-chotomy between these two ingredients. In residual-writing projections—notably the attention output projection and the MLP down projection—the learned singular subspaces of-ten exhibit strong alignment across layers and even across module types, suggesting that optimization is comparatively reliable at discovering task-aligned directions ( Figure 1c). In contrast, the spectral allocation is often inefficient: sub-stantial energy is assigned to neutral or harmful components that dilute the signal. Put differently, even when the adapter finds the right directions, it may assign the wrong spectral weights. This reframes a trained LoRA adapter not as a uni-formly useful rank-r object, but as a mixture in which only part of the low-rank capacity carries task-relevant signal. This motivates a natural question: can we improve a trained 
+
+LoRA adapter without re-training , by reallocating capacity 
+
+within its learned low-rank space? We answer this question with Spectral Surgery , a training-free and post-hoc refine-ment method that edits LoRA adapters after convergence. The core principle is simple: keep the subspace, fix the spec-trum . That is, we preserve the learned directions U and V to maintain the observed geometric alignment, and adjust only the spectrum Σ to redistribute energy across components 1
+
+> arXiv:2603.03995v1 [cs.LG] 4 Mar 2026 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting
+
+under conservative magnitude/energy constraints. Spectral Surgery proceeds in three steps: (1) Decompose :compute the SVD of the trained update ∆W = U ΣV ⊤; (2) 
+
+Estimate : using a small calibration set, compute lightweight gradient-based signals to estimate the sensitivity of each sin-gular component (i.e., how changes along that component affect the calibration objective); and (3) Reweight : preserve 
+
+U and V but reweight the singular values in Σ under magni-tude control, yielding an edited update that stays within the learned subspace while reallocating spectral energy. Impor-tantly, this refinement requires no additional fine-tuning and modifies only O(r) scalar coefficients per edited module (often ≈ 10 3 scalars in total). We evaluate Spectral Surgery on two 8B-class backbones (Llama-3.1-8B (Dubey et al., 2024) and Qwen3-8B (Yang et al., 2025a)) across four benchmarks spanning reasoning, code generation, instruction following, and commonsense question answering. Despite its simplicity, spectrum-only refinement yields clear but task- and model-dependent im-provements, with gains as large as ≈ +4 .2–+4 .4 points on CommonsenseQA (Talmor et al., 2019) and up to ≈ +2 .4
+
+points on HumanEval (Chen et al., 2021) pass@1, while ad-justing only ≈ 1,000 scalar coefficients. We further include a random reweighting baseline that randomly increases some singular values while decreasing others, entirely ig-noring sensitivity. Notably, such random spectrum edits can occasionally surpass the unedited adapter, suggesting a form of spectral brittleness in standard LoRA solutions: the learned spectrum may contain overfit or noisy allocations that even unguided regularization can partially correct. Existing work that touches LoRA’s structure largely falls into two regimes. Training-time interventions improve low-rank adaptation by modifying how the adapter is learned—e.g., altering optimization dynamics, reallocating rank/budget, or shaping initialization via decomposition— but necessarily require re-training and do not answer how to improve an already-converged ∆W (Hayou et al., 2024; Zhang et al., 2023; Meng et al., 2024; Yang et al., 2025b). In parallel, diagnostic analyses use spectral or geometric lenses to reveal qualitative structure and potential pathologies in low-rank updates, but typically stop at interpretation rather than providing an actionable correction mechanism (Shuttle-worth et al., 2024; Biderman et al., 2024). Our work targets an underexplored practical middle ground: post-training refinement —a lightweight procedure that treats a trained adapter as an editable object and improves it after conver-gence, under explicit structural constraints. In summary, our contributions are: 1. Perspective. We uncover a consistent subspace– spectrum dichotomy in trained LoRA updates: in residual-writing projections, the learned singular sub-spaces are comparatively stable and task-aligned, while the learned spectrum can be inefficient or even detri-mental, emerging as a primary post-training bottleneck. 2. Method. We propose Spectral Surgery , a training-free refinement framework that keeps the learned direc-tions fixed and reallocates capacity within the low-rank space by reweighting singular values using lightweight calibration signals (gradient-projection sensitivities) under conservative magnitude/energy control. 3. Findings. Across multiple backbones and bench-marks, we show that spectrum-only editing can yield clear task-dependent gains while modifying only O(r)
+
+scalars per module, and we further diagnose spectral brittleness of standard LoRA solutions via randomized spectrum reweighting controls that can occasionally outperform the unedited baseline. 
+
+## 2. Related Work 
+
+Training-time PEFT and decomposition-based low-rank adapters. LoRA (Hu et al., 2022) adapts LLMs by in-jecting a low-rank update ∆W = BA while freezing the backbone. A large line of work improves low-rank adapta-tion during training by modifying optimization dynamics or the parameterization of updates. For example, LoRA+ (Hayou et al., 2024) revisits LoRA’s optimization and im-proves efficiency by addressing the scale/learning-rate im-balance between the two factors. AdaLoRA (Zhang et al., 2023) adaptively allocates parameter budget (effectively rank/degree-of-freedom) across modules based on impor-tance, using an SVD-structured formulation. PiSSA (Meng et al., 2024) leverages the principal components of the pre-trained weights to initialize and update the “signal” subspace while freezing the residual parts, improving convergence and final quality. Context-aware decomposition methods such as CorDA (Yang et al., 2024) and its extensions (e.g., CorDA++ (Yang et al., 2025b)) orient the decomposition using activation statistics from a few samples and then train selected components for adaptation/retention. MAP (Si et al., 2025) takes a complementary view by rigorously decoupling update direction and magnitude via vector nor-malization and a small number of scaling coefficients. In contrast to these training-time designs, we intentionally keep LoRA training fixed and study what can be improved after convergence by editing the realized update. 
+
+Post-hoc singular-value optimization and training-free interventions. Several works also exploit spectral struc-ture beyond standard SGD training, but differ in objective and signal. ESSA (Korotyshova et al., 2025) performs black-box evolutionary search for alignment, and makes the search scalable by restricting optimization to singular values of LoRA-style adapters. GRASP (Liu et al., 2025) 2Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+uses gradient-based attribution on a small calibration set to retain sensitivity-critical singular components for compres-sion (e.g., replacing redundant layers with adaptive singular parameters). Our setting is different: we target post-training refinement of a trained LoRA adapter for downstream capa-bility, not reward-driven alignment or model compression. Methodologically, we use a white-box gradient-projection sensitivity signal to reweight (not select/prune) the spec-trum, while freezing singular vectors to preserve the learned subspace geometry. 
+
+Task vectors, spectral diagnostics, and turning analy-sis into intervention. Fine-tuning updates can be inter-preted as task vectors whose composition enables task arith-metic; most such methods treat an update as an atomic object at model/layer granularity. We instead perform intra-adapter editing by decomposing a single LoRA update and modulating its internal spectral components. Mean-while, recent analyses compare LoRA and full fine-tuning through spectral lenses and reveal qualitative structural dif-ferences (e.g., “intruder” directions) (Shuttleworth et al., 2024; Biderman et al., 2024). Our work operationalizes this perspective by introducing a concrete, lightweight post-hoc procedure—spectrum-only editing under a fixed sub-space—together with random controls and failure-case anal-ysis that clarify when spectral perturbations help or hurt. 
+
+## 3. Methodology 
+
+3.1. Preliminaries: Spectral Decomposition of LoRA 
+
+Consider a pre-trained linear layer with weight W ∈
+
+Rdout ×din . LoRA parameterizes the weight update as a low-rank product ∆W = BA , where B ∈ Rdout ×r and 
+
+A ∈ Rr×din (r ≪ min( dout , d in )). We analyze the spectral structure of this update by computing the thin SVD of the product matrix: 
+
+∆W = U ΣV ⊤, Σ = diag( σ), (1) where U ∈ Rdout ×r and V ∈ Rdin ×r have orthonormal columns, and σ ∈ Rr 
+
+> ≥0
+
+denotes the singular values. 
+
+3.2. Geometric Motivation: Subspace Alignment in Residual Projections 
+
+We focus our spectral editing on the attention out-put projection ( o proj ) and the MLP down projection (down proj ). Unlike input-side projections (e.g., q proj ,
+
+up proj ), these modules write directly back into the resid-ual stream Rdmodel . This shared output space allows a clean geometric comparison of LoRA update directions across layers and module types. 
+
+Empirical Observation. For each LoRA module, we con-sider the low-rank update ∆W = BA and compute a thin SVD: 
+
+∆W = U ΣV ⊤, (2) where the columns of U lie in the residual output space (for o proj and down proj , U ∈ Rdmodel ×r ). We use two complementary alignment measures across layers: (i) the similarity of the leading output direction u1 (Figure 1a), and (ii) the overlap of the top-m output subspaces (Figure 1b). Concretely, letting U (m) ∈ Rdmodel ×m denote the first m
+
+columns of U , we define: 
+
+Align U (Ua, U b) = 1
+
+m (U (m) 
+
+> a
+
+)⊤U (m)
+
+> b
+> 2
+> F
+
+∈ [0 , 1] , (3) which equals the average cos 2 of principal angles be-tween the two m-dimensional subspaces. For refer-ence, the expected overlap between two random m-dimensional subspaces in Rdmodel is approximately m/d model 
+
+(e.g., 16 /4096 ≈ 0.004 for Llama-3.1-8B as in (Dubey et al., 2024)). Our analysis reveals two geometric properties of residual-writing updates, which we observe to be a general phe-nomenon across different modules (visualized for o proj 
+
+in Figure 1; see Appendix B.1 for other modules): • Layer invariance (inter-layer). Across layers, both the leading direction ( u1) and the full top-m output sub-space ( U (m)) exhibit consistently high similarity. The strong off-diagonal structure in Figures 1a–1b indicates that LoRA updates concentrate on an approximately layer-invariant manifold in the residual stream. • Module synergy (intra-layer). Within the same layer, 
+
+o proj and down proj share a strongly aligned out-put subspace (Figure 1c), substantially exceeding the random-subspace baseline ( m/d model ≈ 0.004 ). This suggests that attention and FFN blocks coordinate up-dates to shared residual features. 
+
+Implication. These phenomena provide a geometric mo-tivation for our method. LoRA updates in residual-writing modules do not wander arbitrarily; instead, they target a shared and stable low-rank manifold in the residual stream. Consequently, we opt to edit strictly the spectrum (Σ) while preserving the empirically stable singular subspaces (in par-ticular, the output scaffold U ). This allows us to modulate update intensity along valid residual directions without dis-rupting the geometric coherence established during training. 
+
+3.3. Sensitivity Estimation via Gradient Projections 
+
+To estimate the importance of each spectral component, we use a small calibration dataset D and loss function L. Let 
+
+G = ∂L 
+
+> ∂∆W
+
+denote the gradient of the loss with respect to the accumulated update matrix. The sensitivity of the 3Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 0 35 
+
+> layer
+> 0
+> 35
+> layer
+> self_attn.o_proj | u1 abs-cos
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+
+(a) Principal direction similarity (|u⊤ 
+
+> 1
+
+u1|). 0 35 
+
+> layer
+> 0
+> 35
+> layer
+> self_attn.o_proj | top-m U-subspace
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+
+(b) Top-m output-subspace overlap (Align U , Eq. 3). 0 5 10 15 20 25 30 35  
+
+> layer
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> |cos(u1_o_proj, u1_down_proj)|
+> Intra-layer u1 similarity: o_proj vs down_proj
+
+(c) Intra-layer synergy: o proj vs down proj .
+
+Figure 1. Geometric structure of LoRA updates in residual-writing modules. We analyze LoRA updates of Qwen3-8B finetuned on the Alpaca dataset and visualize the alignment of the o proj module in the shared residual output space. (a) The leading output direction (u1) exhibits consistently high similarity across layers. (b) The full top-4 output subspace U (4) (with rank r = 16 ) is also highly stable across layers, indicating a shared update manifold in the residual stream. (c) Within each layer, o proj and down proj are strongly aligned relative to a random-subspace baseline ( m/d model ). 
+
+k-th singular component is derived from the directional derivative along the unit matrix ukv⊤ 
+
+> k
+
+:
+
+gk = ⟨G, u kv⊤ 
+
+> k
+
+⟩ = u⊤ 
+
+> k
+
+Gv k. (4) We aggregate the scalar sensitivity magnitude sk = |gk|
+
+over calibration examples. Intuitively, a large sk indicates that perturbing σk would strongly affect the task loss. 
+
+3.4. Singular Value Reweighting (Spectral Editing) 
+
+We edit only the spectrum of ∆W while keeping the singular subspaces fixed. Let ∆W = U ΣV ⊤ with singular values 
+
+{σk}rk=1 . We produce edited singular values via a per-component scaling, 
+
+σ′ 
+
+> k
+
+= αkσk. (5) The scaling αk is derived from a sensitivity profile {gk}rk=1 
+
+computed on a small calibration set. For magnitude-based strategies, we use sk = |gk| and apply a simple within-module normalization (default: mean-absolute normaliza-tion), yielding normalized magnitudes {xk}.
+
+1. Hard Selection ( abs select ). We rank xk within each module and form a core set and a noise set. The im-plementation uses rounded counts with constraints: kcore =min( r, max( ⌊rp ⌉, k min )) and knoise = min( r −kcore , ⌊rq ⌉),where p = core frac , q = noise frac , and kmin =
+
+min core k . We then apply a piecewise multiplica-tive gate: top-kcore indices receive γamp , bottom-knoise in-dices receive γsup , and all remaining indices receive γmid 
+
+(amp factor , sup factor , mid factor ). 
+
+2. Continuous Reweighting ( smooth abs ). To avoid brittle hard thresholds, we use a smooth sigmoid gate on normalized magnitudes xk:
+
+αk = γsup + ( γamp − γsup ) · sigmoid 
+
+ xk − μτ
+
+
+
+. (6) We set the center to a quantile μ ← Qc(x) with c =
+
+smooth center q (default: median). The tempera-ture adapts to the spread of magnitudes using a quan-tile range: τ = T ·  Qqhi (x) − Qqlo (x), where T =
+
+smooth temperature , qlo = noise frac , and qhi =1 − core frac . If qhi ≤ qlo , the implementation falls back to (qlo , q hi ) = (0 .25 , 0.75) . If the magnitudes are nearly degenerate (very small range), we skip shaping and set αk ≡ γmid . Optionally ( smooth align mid ), we shift μ so that the gate value at the center quantile equals a prescribed midpoint γmid .
+
+3. Random Control ( random index ). As a control, we keep (kcore , k noise ) the same as abs select , but sample indices uniformly at random and apply the same three-level scaling ( γamp /γ sup /γ mid ). This matched-random baseline keeps the spectrum change magnitude fixed while removing sensitivity-based targeting, so improvements over it reflect the benefit of sensitivity-guided selection. 
+
+4. Signed Update (grad direction ). Beyond magnitude-based gating, we support a signed update using normalized signed sensitivities ˜gk. In the default asymmet-ric setting ( asymmetric update ), we treat positive and negative parts differently: we form g+ 
+
+> k
+
+= max(˜ gk, 0) and 
+
+g− 
+
+> k
+
+= − max( −˜gk, 0) (optionally applying a power trans-form to g+ 
+
+> k
+
+), and combine them as geff  
+
+> k
+
+= ηsup g+ 
+
+> k
+
++ ηamp g−
+
+> k
+
+(eta suppress , eta enhance ). We then apply a mul-tiplicative update: 
+
+σ′ 
+
+> k
+
+= σk exp  −geff 
+
+> k
+
+ . (7) 4Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+Figure 2. Overview of Spectral Editing. We decompose the LoRA update ∆W into singular components ( U, Σ, V ⊤). We estimate a sensitivity score sk for each singular component using gradient projections on a calibration set, and then reweight the singular values in Σ
+
+(via hard selection or continuous reweighting) to amplify task-relevant directions while suppressing noise. This reconstructs an edited update ∆W ′ without altering the singular subspaces. 
+
+When asymmetric update is disabled, we revert to the standard multiplicative form with a single step size η: σ′ 
+
+> k
+
+=
+
+σk exp( −η˜gk).
+
+Reconstruction and magnitude control. We reconstruct 
+
+∆W ′ = U Σ′V ⊤. To prevent numerical issues, we clamp 
+
+σ′ 
+
+> k
+
+≥ sigma clip min (default: 0). Optionally, we pre-serve spectral energy by renormalizing σ′ to match σ un-der ℓ1 (default) or no constraint). Finally, ∆W ′ can be converted back to LoRA-compatible factors for standard inference pipelines. 
+
+3.5. Compute and Editing Overhead 
+
+Spectral Surgery edits a trained LoRA update ∆W by com-puting a thin SVD ∆W = U diag( σ) V ⊤ and rescaling only the r singular values σ ∈ Rr while keeping (U, V )
+
+fixed. Thus, the editable degrees of freedom are r scalars per edited module. If we edit the same module families M in every layer of an 
+
+L-layer transformer, the total number of edited scalars is: 
+
+#edited scalars = L |M| r. (8) In our default setting, M = {o proj , down proj }, giv-ing 2Lr edited scalars (Table 1). 
+
+Table 1. Editing overhead (editable scalars). Default setting edits 
+
+o proj and down proj in every layer, yielding 2Lr editable scalars. 
+
+Backbone #Layers L Rank r #Edited Scalars 
+
+Llama-3.1-8B 32 16 1024 Qwen3-8B 36 16 1152 
+
+## 4. Experimental Setup 
+
+4.1. Benchmarks and Tasks 
+
+We evaluate spectral editing across four capabilities. For each capability, we train a LoRA adapter on a domain corpus and evaluate on a standard downstream benchmark. • Mathematical reasoning: train on M ETA MATH (Y UET AL ., 2024), evaluate on GSM8K (C OBBE ET AL ., 2021). We report exact-match accuracy (answer-extraction based). • Code generation: train on M AGICODER (W EI ET AL ., 2023), evaluate on H UMAN EVAL . We use execution-based evaluation and report pass@1 .• Instruction following: train on A LPACA (T AORI ET AL ., 2023), evaluate on IFE VAL (Z HOU ET AL ., 2023). We report the benchmark’s strict prompt-level accuracy , which requires satisfying all verifiable con-5Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+straints in a prompt. • Commonsense reasoning: both train and evaluate on COMMONSENSE QA, reporting multiple-choice accu-racy as measure. 
+
+4.2. Models and Training Settings 
+
+We conduct experiments on two 8B-class decoder-only models: Llama-3.1-8B and Qwen3-8B. All adapters are trained with a standardized recipe to ensure fair compar-isons: AdamW optimizer, a fixed epoch budget ( E = 3 ), and task-specific maximum sequence lengths following common practice. To control computational cost across tasks, we cap the training set size at 50k examples for large corpora (MetaMath and Magicoder). Unless stated other-wise, adapters are trained on the standard set of Transformer projection modules, while editing is restricted to residual-writing projections ( o proj and down proj ), motivated by the geometric observations in Sec. 3.2. 
+
+4.3. Sensitivity Estimation and Editing 
+
+We estimate sensitivities on a small calibration set sampled from a fixed proxy calibration set. We build calibration batches via teacher forcing on prompt–answer concatena-tions: labels are masked as −100 on prompt tokens so the loss is computed only on the answer continuation (including an optional separator space and EOS). Calibration exam-ples are sampled by optional shuffling with a fixed seed and a contiguous range selection with a start offset for repro-ducibility. Unless otherwise specified, we use Ncal = 128 ex-amples and aggregate sensitivities by mean absolute value as defined in Sec. 3.4. We evaluate four edit policies ( abs select , smooth abs , random index ,
+
+grad direction ) defined in Sec. 3.4. By default, we preserve the ℓ1 mass of the singular values (nuclear-norm preservation) to prevent trivial gains from global rescaling. All policy hyperparameters are fixed across tasks and re-ported in Appendix A. 
+
+4.4. Evaluation Protocol 
+
+We perform evaluations using the LM Evaluation Harness (Gao et al., 2023). We use deterministic decoding to reduce evaluation variance (temperature T = 0 ) unless otherwise specified (Full harness configuration is in Appendix A.4.). • GSM8K: 5-shot prompting with greedy decoding; we report exact-match accuracy. • HumanEval: 0-shot prompting with execution-based scoring; we report pass@1 .• IFEval: harness default prompting and strict scoring; we report strict prompt-level accuracy. • CSQA: 0-shot likelihood-based answer selection; we report accuracy. Full hyper-parameters, library versions, and command-level configurations are provided in Appendix A. 
+
+## 5. Results and Analysis 
+
+5.1. Experimental Goals 
+
+Our experiments are designed to investigate four Research Questions ( RQ ) regarding the editability of LoRA adapters: • (RQ1) Effectiveness: Can we improve a trained LoRA adapter in a training-free manner? • (RQ2) Signal vs. Perturbation: Are the gains at-tributable to our specific sensitivity signal, or can ran-dom spectral perturbations achieve similar results? • (RQ3) Stability: How sensitive is the method to the calibration budget and energy constraints? • (RQ4) Locality: Does restricting edits to specific mod-ule families matter? Unless otherwise stated, we use calib samples=128 
+
+and preserve energy=L1 as the default setting based on our ablation studies (Table 4 and Table 3). 
+
+5.2. Main Results: Effectiveness and Signal Verification 
+
+Table 2 summarizes the overall picture across two model families and four representative tasks, directly addressing 
+
+(RQ1–RQ2) .
+
+Consistent gains in aligned settings (RQ1). Table 2 shows that spectrum-only editing can improve a trained LoRA adapter without further training, supporting (RQ1). Across eight (model, task) pairs, the best edited pol-icy improves over the unedited baseline in seven cases, with the largest gain on Llama CSQA (+0.044 with 
+
+grad direction ). Since the directions remain the same and we only reweigh their magnitudes, the results sug-gest that some useful components are under-emphasized after training and can be boosted post hoc. We also no-tice that when the calibration objective aligns with the downstream metric, spectral editing can improve an al-ready trained adapter without further training. The clear-est example in Table 2 is CSQA on Llama-3.1-8B, where 
+
+grad direction yields a ∼4.4% absolute gain over the baseline (0.784 vs. 0.740). This suggests that gradient-guided reweighting can selectively amplify useful directions already present in the learned spectrum. 
+
+Random controls separate signal from perturbation (RQ2). We treat random index as a required diagnos-tic baseline and summarize this comparison in Figure 3. 6Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+Table 2. Main Results with Recommended Settings. Editing policies on Llama-3.1-8B and Qwen3-8B under the default configuration (calib=128 , energy=L1 ). Baseline is the unedited adapter. 
+
+Model Task Baseline Random index Smooth abs Abs select Grad dir 
+
+Llama-3.1-8B 
+
+GSM8K (acc) 0.657 0.661 0.668 0.659 0.614 HumanEval (pass@1) 0.488 0.488 0.494 0.488 0.476 IFEval (score) 0.305 0.306 0.312 0.321 0.223 CSQA (acc) 0.740 0.743 0.735 0.736 0.784 
+
+Qwen3-8B 
+
+GSM8K (acc) 0.815 0.810 0.802 0.805 0.816 
+
+HumanEval (pass@1) 0.488 0.494 0.506 0.506 0.512 
+
+IFEval (score) 0.590 0.597 0.552 0.535 0.173 CSQA (acc) 0.855 0.852 0.851 0.852 0.853 0.4 0.3 0.2 0.1 0.0 
+
+> Random Index
+> 0.4
+> 0.3
+> 0.2
+> 0.1
+> 0.0
+> grad_direction
+> Llama-GSM
+> Llama-IFEval
+> Llama-CSQA
+> Qwen-IFEval Worse than
+> Random
+> Better than
+> Random
+
+Figure 3. Guided vs. random perturbations. Each point is a (model, task) pair under the default setting. The x-axis is the improvement of random index over the baseline, and the y-axis is the improvement of grad direction . Points above the diagonal indicate genuine signal beyond random perturbation; the extreme failure on Qwen-IFE VAL illustrates the alignment tax of gradient-based editing. 
+
+Each point corresponds to a (model, task) pair under the default setting, with the x-axis showing the improvement of random index over the unedited adapter and the y-axis showing the improvement of grad direction (both measured as ∆ over baseline). Points above the diagonal in-dicate that gradient-guided editing extracts a non-trivial sen-sitivity signal beyond generic perturbation, whereas points below the diagonal suggest that perturbation alone is more beneficial than the gradient-based ranking. Figure 3 shows that the benefit of gradient guidance is highly task-dependent. In an aligned setting such as Llama CSQA, 
+
+grad direction lies above the diagonal and substan-tially outperforms random index , supporting the exis-tence of a meaningful sensitivity signal beyond random spec-tral perturbation. In contrast, Qwen IFEval is a cautionary counterexample: random index is competitive and even best (0.597 vs. 0.590 baseline), while grad direction 
+
+collapses far below the diagonal. This indicates that for strictly constrained instruction-following, a large fraction of the apparent improvement can come from structured regularization effects of perturbation rather than accurate importance ranking—and that gradient-guided amplification can be harmful when the calibration objective conflicts with formatting- and constraint-sensitive evaluation. Therefore, random controls are essential for distinguishing genuine signal extraction from perturbation-driven gains. 
+
+5.3. The “Alignment Tax” of Gradient Editing 0.004 0.002 0.000 0.002 0.004 0.006 0.008  
+
+> Reward (Mean on Aligned Tasks)
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> Risk (Drop on IFEval)
+> smooth_abs
+> random_index
+> grad_direction
+> abs_select
+> smooth_abs
+> grad_direction
+> Model
+> Llama-3.1-8B
+> Qwen3-8B
+> Policy
+> abs_select
+> smooth_abs
+> random_index
+> grad_direction
+
+Figure 4. Safety trade-off of editing policies under the default setting . Reward is the mean improvement over aligned tasks (GSM8K, H UMAN EVAL , CSQA); Risk is the performance drop on the constraint-sensitive benchmark IFE VAL (clipped at 0 if a policy does not decrease IFE VAL ). Gradient-based editing reaches the high-reward regime but can incur large risk, especially on IFE VAL .
+
+Figure 4 summarizes the safety–performance trade-off of spectral editing under the default setting by mapping each 7Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+policy to its average reward on aligned tasks versus its risk on IFE VAL . The plot highlights a clear alignment tax: poli-cies that strongly exploit calibration gradients can yield high reward when objectives align, but they also expand the failure surface on strict instruction-following constraints. 
+
+Key observation. grad direction is the only policy that enters the high-reward regime, but it also incurs the largest risk. On Qwen3-8B , grad direction achieves the highest average gain on aligned tasks yet suffers a catas-trophic IFE VAL drop (risk ≈ 0.42), placing it in the ex-treme high-risk corner of Figure 4. On Llama-3.1-8B ,
+
+grad direction exhibits a different failure signature: despite a large improvement on CSQA, it becomes net-negative on the aligned-task average and still reduces IFE- 
+
+> VAL
+
+(risk ≈ 0.08), indicating that gradient amplification can simultaneously hurt general aligned performance and constraint robustness. 
+
+Interpretation. This behavior is consistent with gradient signals prioritizing directions that reduce the calibration loss, which may trade off against strict formatting and instruction constraints. In contrast, magnitude-based policies occupy the low-risk region in Figure 4: smooth abs provides modest positive reward with negligible-to-small IFE VAL 
+
+degradation (risk ≤ 0.04 on Qwen and ≈ 0 on Llama), mak-ing it a robust default. random index stays essentially risk-free and can even improve IFE VAL , but its reward is small (and can be slightly negative), aligning with the view that some gains arise from perturbation-driven regulariza-tion rather than accurate importance ranking. 
+
+5.4. Ablation Studies: Stability and Locality Energy constraints act as a stabilizer (RQ3). To isolate the role of energy preservation, we ablate 
+
+preserve energy for grad direction . Table 3 shows that removing the constraint can further worsen the already unstable behavior on IFEval, supporting the view that L1 energy preservation functions as a practical safety valve that limits over-amplification.                  
+
+> Table 3. Impact of Energy Preservation. grad direction
+> with and without energy constraints. The L1constraint mitigates extreme drift on strict instruction-following (IFEval), while leaving aligned reasoning gains largely intact.
+> grad direction Performance Model Task Baseline With L1 (Ours) No Constraint
+> Llama-3.1 CSQA 0.740 0.784 0.785
+> Qwen3 IFEval 0.590 0.173 0.017
+
+Calibration efficiency and non-monotonicity (RQ3). 
+
+We next sweep the calibration budget. Table 4 shows that in-    
+
+> Table 4. Effect of Calibration Size. Performance consistency across varying calib samples . Larger budgets can stabilize outcomes but do not ensure monotonic improvements, motivating
+> calib=128 as a practical default.
+
+Task (Model) Policy 32 64 128 256 
+
+CSQA (Llama) 
+
+grad dir 0.785 0.782 0.784 0.783 
+
+random 0.742 0.740 0.743 0.740 IFEval (Qwen) 
+
+grad dir 0.179 0.181 0.173 0.169 
+
+random 0.603 0.598 0.597 0.604                                 
+
+> Table 5. Module Selection Ablation. grad direction under different edit localities ( calib=128 ,energy=L1 ). “Residual (Ours)” denotes restricting edits to residual-writing projections (e.g., o proj and down proj in our main setup). We add “MLP Internal” ( up ,gate ) for comparison. Editing MLP internals yields high peaks on code tasks but degrades arithmetic/instruction following.
+> Model Task Baseline Attn Inputs All Modules Residual (Ours)
+> Llama CSQA 0.740 0.744 0.790 0.784 GSM8K 0.657 0.637 0.538 0.614 Qwen HumanEval 0.488 0.512 0.524 0.512 IFEval 0.590 0.499 0.071 0.173
+
+creasing calib samples improves stability in the sense of reduced volatility, but it does not guarantee monotonic gains: for both a strongly aligned case (CSQA on Llama) and a misaligned constrained case (IFEval on Qwen), the best value can appear at smaller budgets. This supports using calib=128 as a robust default that balances signal quality and compute. 
+
+Module sensitivity and locality (RQ4). Finally, we test whether restricting the edit locality matters. Table 5 com-pares (i) editing attention input projections (Q/K/V), (ii) edit-ing all modules, and (iii) restricting to residual-writing mod-ules (our default). Editing all modules can unlock higher peaks (e.g., CSQA on Llama), but it also expands the mis-alignment surface and can severely harm constrained metrics (e.g., IFEval on Qwen). In contrast, residual-writing restric-tion typically offers a better safety–performance trade-off, improving or preserving reasoning-oriented metrics while limiting extreme failures. 
+
+## 6. Conclusion 
+
+We reveal a subspace–spectrum dichotomy in trained LoRA: residual-writing modules often learn stable directions, while the spectrum can be inefficient or harmful. We propose Spec-tral Surgery, a training-free post-hoc method that preserves the learned subspace and reweights only singular values us-ing lightweight calibration sensitivities under conservative 8Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+constraints. Across two 8B backbones and four benchmarks, it yields task-dependent gains with only (O(r)) scalar edits, and random reweighting exposes spectral brittleness. Future work will improve objective-aligned sensitivity (especially for code) and extend spectrum-only refinement to decoding, safety, and multi-task settings. 
+
+## 7. Impact Statement 
+
+This paper presents work whose goal is to advance the field of Machine Learning, specifically in improving the parame-ter efficiency and interpretability of Large Language Models. Potential societal consequences include reducing the com-putational energy consumption required for model tuning (Green AI) and enhancing the transparency of model adap-tation mechanisms. We do not foresee any specific negative ethical impacts that must be highlighted here. 
+
+## References 
+
+Biderman, D., Portes, J., Ortiz, J. J. G., Paul, M., Greengard, P., Jennings, C., King, D., Havens, S., Chiley, V., Frankle, J., et al. LoRA learns less and forgets less. Transactions on Machine Learning Research , 2024. URL https: //openreview.net/forum?id=aloEru2qCG .Chen, M., Tworek, J., Jun, H., Yuan, Q., de Oliveira Pinto, H. P., Kaplan, J., Edwards, H., Burda, Y., Joseph, N., Brockman, G., et al. Evaluating large language models trained on code. arXiv preprint arXiv:2107.03374, 2021. URL https://arxiv.org/abs/2107.03374 .Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., et al. Training verifiers to solve math word problems. 
+
+arXiv preprint arXiv:2110.14168 , 2021. URL https: //arxiv.org/abs/2110.14168 .Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Yang, A., Fan, A., et al. The Llama 3 herd of models. arXiv preprint arXiv:2407.21783 , 2024. URL https:// arxiv.org/abs/2407.21783 .Eckart, C. and Young, G. The approximation of one matrix by another of lower rank. Psychome-trika , 1(3):211–218, 1936. doi: 10.1007/BF02288367. URL https://link.springer.com/article/ 10.1007/BF02288367 .Gao, L., Tow, J., Abbasi, B., Biderman, S., Black, S., DiPofi, A., Foster, C., Golding, L., Hsu, J., Le Noac’h, A., Li, H., McDonell, K., Muennighoff, N., Ociepa, C., Phang, J., Reynolds, L., Schoelkopf, H., Skowron, A., Sutawika, L., Tang, E., Thite, A., Wang, B., Wang, K., and Zou, A. A framework for few-shot language model evaluation. Zenodo (software release), 2023. URL 
+
+https://zenodo.org/records/10256836 .Hayou, S., Ghosh, N., and Yu, B. LoRA+ : Ef-ficient low rank adaptation of large models. In 
+
+Proceedings of the 41st International Conference on Machine Learning , volume 235 of Proceedings of Machine Learning Research , pp. 17783–17806, 2024. URL https://proceedings.mlr.press/ v235/hayou24a.html .Hu, E. J., Shen, Y., Wallis, P., Allen-Zhu, Z., Li, Y., Wang, S., Wang, L., Chen, W., et al. LoRA: Low-rank adaptation of large language models. In International Conference on Learning Representations , 2022. URL https:// openreview.net/forum?id=nZeVKeeFYf9 .Ilharco, G., Ribeiro, M. T., Wortsman, M., Gururangan, S., Schmidt, L., Hajishirzi, H., and Farhadi, A. Editing models with task arithmetic. In International Conference on Learning Representations , 2023. URL https:// openreview.net/forum?id=6t0Kwf8-jrj .Korotyshova, D., Shaposhnikov, B., Malakhov, A., Khokhulin, A., Surnachev, N., Ovcharenko, K., Bre-dis, G., Gorbatovski, A., Sinii, V., and Gavrilov, D. ESSA: Evolutionary strategies for scalable alignment. 
+
+arXiv preprint arXiv:2507.04453 , 2025. URL https: //arxiv.org/abs/2507.04453 .Liu, K., Zhang, Y., Cheng, N., Li, Z., Wang, S., and Xiao, J. GRASP: Replace redundant layers with adap-tive singular parameters for efficient model compres-sion. In Proceedings of the 2025 Conference on Em-pirical Methods in Natural Language Processing , pp. 26333–26348, 2025. doi: 10.18653/v1/2025.emnlp-main. 1338. URL https://aclanthology.org/2025. emnlp-main.1338/ .Meng, F., Wang, Z., and Zhang, M. PiSSA: Principal singular values and singular vectors adaptation of large language models. In Advances in Neural Information Processing Systems , volume 37, pp. 121038–121072, 2024. doi: 10.52202/079017-3846. URL https: //doi.org/10.52202/079017-3846 .Sharma, P., Ash, J. T., and Misra, D. The truth is in there: Improving reasoning in language models with layer-selective rank reduction. In International Confer-ence on Learning Representations , 2024. URL https: //openreview.net/forum?id=ozX92bu8VA .Shuttleworth, R., Andreas, J., Torralba, A., and Sharma, P. LoRA vs full fine-tuning: An illusion of equivalence. 
+
+arXiv preprint arXiv:2410.21228 , 2024. URL https: //arxiv.org/abs/2410.21228 .9Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+Si, C., Shi, Z., Wang, Y., Yang, X., Rahardja, S., and Shen, W. MAP: Revisiting weight decomposition for low-rank adaptation. arXiv preprint arXiv:2505.23094 , 2025. URL 
+
+https://arxiv.org/abs/2505.23094 .Talmor, A., Herzig, J., Lourie, N., and Berant, J. Com-monsenseQA: A question answering challenge targeting commonsense knowledge. In Proceedings of the 2019 Conference of the North American Chapter of the Associ-ation for Computational Linguistics: Human Language Technologies, Volume 1 (Long and Short Papers) , pp. 4149–4158, 2019. doi: 10.18653/v1/N19-1421. URL 
+
+https://aclanthology.org/N19-1421/ .Taori, R., Gulrajani, I., Zhang, T., Dubois, Y., Li, X., Guestrin, C., Liang, P., and Hashimoto, T. B. Stan-ford Alpaca: An instruction-following LLaMA model. GitHub repository, 2023. URL https://github. com/tatsu-lab/stanford_alpaca .Wei, Y., Wang, Z., Liu, J., Ding, Y., and Zhang, L. Magi-coder: Source code is all you need. arXiv preprint arXiv:2312.02120 , 2023. URL https://arxiv. org/abs/2312.02120 .Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., et al. Qwen3 technical report. arXiv preprint arXiv:2505.09388 , 2025a. URL 
+
+https://arxiv.org/abs/2505.09388 .Yang, Y., Li, X., Zhou, Z., Song, S. L., Wu, J., Nie, L., and Ghanem, B. CorDA: Context-oriented decom-position adaptation of large language models for task-aware parameter-efficient fine-tuning. In Advances in Neural Information Processing Systems , volume 37, pp. 71768–71791, 2024. doi: 10.52202/079017-2292. URL 
+
+https://doi.org/10.52202/079017-2292 .Yang, Y., Liu, S., Rao, C., An, B., Shen, T., Torr, P. H. S., Yang, M.-H., and Ghanem, B. Dynamic context-oriented decomposition for task-aware low-rank adaptation with less forgetting and faster convergence. arXiv preprint arXiv:2506.13187 , 2025b. URL https://arxiv. org/abs/2506.13187 .Yu, L., Jiang, W., Shi, H., Yu, J., Liu, Z., Zhang, Y., Kwok, J. T., Li, Z., Weller, A., and Liu, W. MetaMath: Bootstrap your own mathematical questions for large language mod-els. In International Conference on Learning Represen-tations , 2024. URL https://openreview.net/ forum?id=N8N0hgNDRt .Zhang, Q., Chen, M., Bukharin, A., Karampatziakis, N., He, P., Cheng, Y., Chen, W., and Zhao, T. AdaLoRA: Adap-tive budget allocation for parameter-efficient fine-tuning. In International Conference on Learning Representations ,2023. URL https://openreview.net/forum? id=lq62uWRJjiY .Zhou, J., Lu, T., Mishra, S., Brahma, S., Basu, S., Luan, Y., Zhou, D., and Hou, L. Instruction-following evaluation for large language models. arXiv preprint arXiv:2311.07911, 2023. URL https://arxiv. org/abs/2311.07911 .10 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting 
+
+## A. Implementation Details 
+
+In this section, we provide the exact specifications for the LoRA fine-tuning process to ensure reproducibility. We focus on a standardized training recipe across tasks, modifying only task-specific hyperparameters (e.g., learning rate and batch size) where necessary. 
+
+A.1. LoRA Architecture and Training Infrastructure 
+
+We fine-tune LoRA adapters on a fixed set of Transformer projection modules: q, k, v, o, gate, up, down proj . The base model weights are kept frozen. Unless otherwise stated, we use the following LoRA config-uration: • Rank ( r): 16 • Alpha ( α): 32 • Dropout: 0.05 • Bias: None Training is performed using 8-way distributed data parallelism (DDP). We do not employ quantization during the training phase. 
+
+A.2. Dataset Processing and Formatting 
+
+We utilize the Hugging Face datasets library. To ensure consistent evaluation, we limit large training corpora (MetaMath, Magicoder) to 50k examples using a deterministic shuffle-and-select strategy (fixed seed). 
+
+Formatting Logic. 
+
+• Math (MetaMathQA): Constructed as strictly supervised pairs. We filter out malformed examples where query or response fields are missing. • Code (Magicoder): We preserve the dataset’s native conversation style by concatenating: instruction + "\n" +
+
+response .• Instruction Following (Alpaca): We employ a robust formatter to handle optional input fields. If an explicit text 
+
+field is absent, we format the entry as: 
+
+Instruction + "\n\nInput: \n" + Input (if Input exists) Empty instruction or output fields result in the example being dropped. 
+
+A.3. Training Hyperparameters 
+
+We utilize the AdamW optimizer with β1 = 0 .9, β 2 = 0 .95 , and no weight decay. All runs use a cosine learning rate schedule with a 10% warmup period ( ratio = 0 .1) and a minimum LR ratio of 0.01. 
+
+Batch Size Configuration. To maintain consistent training dynamics across different hardware setups, we define a target 
+
+Global Batch Size (GBS) . The gradient accumulation steps ( Naccum ) are dynamically calculated based on the number of GPUs ( Ngpu = 8 ) and the per-device micro-batch size ( Bmicro ): 
+
+Naccum =
+
+ GBS 
+
+Ngpu × Bmicro 
+
+
+
+. (9) Table 6 details the specific hyperparameters for each task family. 11 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting                                     
+
+> Table 6. Hyperparameter configurations. ”Global BS” denotes the effective batch size after gradient accumulation. We use a fixed epoch budget of 3 for all tasks.
+> Task Family Max Len Epochs Global BS Peak LR Min LR Grad Clip Math (MetaMath) 1024 3768 1×10 −41×10 −61.0
+> Commonsense (CSQA) 2048 3256 2×10 −42×10 −61.0
+> Instruction (Alpaca) 2048 3256 2×10 −42×10 −61.0
+> Code (Magicoder) 4096 3192 2×10 −42×10 −61.0
+
+A.4. Evaluation Specifics 
+
+While Section 4 outlines the primary metrics, we provide additional configuration details here for precise reproduction: • Mathematical Reasoning: We employ a 5-shot prompt strategy with greedy decoding ( temperature=0 , top p=1 ). To ensure efficient processing, GPU memory utilization is set to 0.95. • Code Evaluation: For HumanEval (Chen et al., 2021), we utilize a zero-shot setting to assess raw code generation capabilities. We enforce a sandboxed execution environment with confirm unsafe code enabled and strict timeouts to handle potentially unsafe outputs or infinite loops. GPU memory utilization is limited to 0.90. • Instruction Following (Alpaca): We evaluate without few-shot examples, allowing for a maximum generation length of 2048 tokens. Decoding follows a greedy strategy ( temperature=0 , top p=1 ) with GPU memory utilization at 0.95. • CommonsenseQA: The model is prompted with the question and options (A–E) in a zero-shot configuration. We evaluate the likelihood of the single-token option labels, with GPU memory utilization set to 0.85. 
+
+## B. Complete Subspace-Alignment Heatmaps for All Target Modules 
+
+B.1. Full-Module Alignment Heatmap Wall 
+
+We provide a complete heatmap wall covering all seven LoRA target modules ( q/k/v/o/gate/up/down proj ) for two base models and four task families. For each (model, task, module), we visualize two alignment diagnostics: (i) principal-direction similarity ( |u⊤ 
+
+> 1
+
+u1|) and (ii) top-m output-subspace overlap ( Align U , Eq. 3). All heatmaps are computed from trained rank-r=16 adapters with m=4 (Top-4 subspace). 12 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting Module Math Code Instruction Commonsense 
+
+q proj 
+
+k proj 
+
+v proj 
+
+o proj 
+
+gate proj 
+
+up proj 
+
+down proj 
+
+Figure 5. Llama-3.1-8B: Principal-direction similarity heatmap wall ( |u⊤ 
+
+> 1
+
+u1|). Each cell shows the inter-layer similarity heatmap for a specific (task, module). 
+
+13 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting Module Math Code Instruction Commonsense 
+
+q proj 
+
+k proj 
+
+v proj 
+
+o proj 
+
+gate proj 
+
+up proj 
+
+down proj 
+
+Figure 6. Llama-3.1-8B: Top-m output-subspace overlap heatmap wall ( Align U , m=4 ). Each cell shows the inter-layer subspace-overlap heatmap for a specific (task, module). 
+
+14 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting Module Math Code Instruction Commonsense 
+
+q proj 
+
+k proj 
+
+v proj 
+
+o proj 
+
+gate proj 
+
+up proj 
+
+down proj 
+
+Figure 7. Qwen3-8B: Principal-direction similarity heatmap wall ( |u⊤ 
+
+> 1
+
+u1|). Each cell shows the inter-layer similarity heatmap for a specific (task, module). 
+
+15 Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting Module Math Code Instruction Commonsense 
+
+q proj 
+
+k proj 
+
+v proj 
+
+o proj 
+
+gate proj 
+
+up proj 
+
+down proj 
+
+Figure 8. Qwen3-8B: Top-m output-subspace overlap heatmap wall ( Align U , m=4 ). Each cell shows the inter-layer subspace-overlap heatmap for a specific (task, module). 
+
+16

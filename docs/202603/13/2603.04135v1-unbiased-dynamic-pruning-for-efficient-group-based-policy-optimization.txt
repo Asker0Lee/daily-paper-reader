@@ -1,0 +1,1250 @@
+Title: Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization
+
+URL Source: https://arxiv.org/pdf/2603.04135v1
+
+Published Time: Thu, 05 Mar 2026 02:10:18 GMT
+
+Number of Pages: 20
+
+Markdown Content:
+# Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Haodong Zhu * 1 2 Yangyang Ren * 1 2 Yanjing Li † 1 Mingbao Lin 3 Linlin Yang † 4 Xuhui Liu 5
+
+Xiantong Zhen 6 Haiguang Liu 2 Baochang Zhang 1
+
+## Abstract 
+
+Group Relative Policy Optimization (GRPO) ef-fectively scales LLM reasoning but incurs pro-hibitive computational costs due to its extensive group-based sampling requirement. While recent selective data utilization methods can mitigate this overhead, they could induce estimation bias by altering the underlying sampling distribution, compromising theoretical rigor and convergence behavior. To address this limitation, we propose Dynamic Pruning Policy Optimization (DPPO), a framework that enables dynamic pruning while preserving unbiased gradient estimation through importance sampling-based correction. By in-corporating mathematically derived rescaling fac-tors, DPPO significantly accelerates GRPO train-ing without altering the optimization objective of the full-batch baseline. Furthermore, to miti-gate the data sparsity induced by pruning, we in-troduce Dense Prompt Packing, a window-based greedy strategy that maximizes valid token den-sity and hardware utilization. Extensive experi-ments demonstrate that DPPO consistently accel-erates training across diverse models and bench-marks. For instance, on Qwen3-4B trained on MATH, DPPO achieves 2.37 × training speedup and outperforms GRPO by 3.36% in average ac-curacy across six mathematical reasoning bench-marks. 
+
+## 1. Introduction 
+
+Reinforcement learning (RL) has emerged as a pivotal paradigm for scaling language models (Jaech et al., 2024; Guo et al., 2025; Yang et al., 2025). The use of large-scale RL enables models to tackle increasingly sophisticated 
+
+> ∗
+
+Equal contribution. †Corresponding author. 
+
+> 1
+
+Beihang University 2Zhongguancun Academy 3Rakuten Singa-pore 4Communication University of China 5KAUST 6 United Imag-ing. Correspondence to: Yanjing Li <yanjingli@buaa.edu.cn >,Linlin Yang <lyang@cuc.edu.cn >.
+
+Preprint. March 5, 2026. (a)  Qwen3 -4B  (b)  Qwen3 -8B GRPO CPPO GRESO DPPO  
+
+> 70 75 80
+> Accuary (%)
+> 75 100 125
+> Training time (GPU hours) GRPO CPPO GRESO DPPO
+> 70 75 80 85
+> Accuary (%)
+> 50 75 100 125
+> Training time (GPU hours)
+
+Figure 1. Comparison of accuracy and training time on the MATH dataset for Qwen3-4B and Qwen3-8B. Bars indicate accuracy and red lines indicate training time. Our method achieves the highest accuracy while requiring the least training time. 
+
+problems, such as competition-level mathematics and pro-gramming, through deeper and longer-horizon reasoning. A representative advancement in this direction is Group Rela-tive Policy Optimization (GRPO), introduced by DeepSeek-R1 (Guo et al., 2025). In contrast to standard Proximal Policy Optimization (PPO) (Schulman et al., 2017), GRPO removes the value function critic and instead derives the baseline directly from group-level scores. Despite its effectiveness, GRPO incurs substantial computa-tional overhead. Specifically, it requires sampling a group of completions for each prompt in order to estimate intra-group advantages, causing the forward-pass cost to scale linearly with the group size. This burden is further amplified by the need to evaluate rule-based rewards and relative advantages for each completion. Moreover, to ensure training stabil-ity, GRPO computes probability ratios across the current, reference, and old policies, which significantly exacerbates the overall training cost. Together, these factors constrain the scalability and efficiency of GRPO, making training acceleration a critical research challenge. To alleviate these computational bottlenecks, recent studies have explored selective data utilization strategies, which can be broadly categorized into prompt-level selection ( e.g. ,GRESO (Zheng et al., 2025b)) and completion-level se-lection ( e.g. , CPPO (Lin et al., 2025)). While empirically effective in reducing training cost, these heuristic pruning ap-proaches suffer from a fundamental limitation: estimation bias ; that is, discarding samples deemed “low-value” alters the underlying sampling distribution at both the prompt and completion levels, causing the resulting gradient estimates to systematically deviate from the true optimization objec-1
+
+> arXiv:2603.04135v1 [cs.LG] 4 Mar 2026 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization
+
+tive (as analyzed in Sec. 4). Without appropriate theoretical correction, such bias causes suboptimal convergence and degraded policy performance, particularly in the sensitive optimization landscape of reasoning-oriented RL. To bridge this gap, we propose Dynamic Pruning Pol-icy Optimization (DPPO) , a dynamic pruning framework across both completion and prompt levels that reconciles computational efficiency with theoretical integrity. Unlike prior heuristic methods, DPPO employs a bias-corrected gradient formulation grounded in importance sampling prin-ciples. By weighting retained samples with mathematically derived rescaling factors, DPPO explicitly compensates for the distributional shift induced by dynamic pruning, ensur-ing that the expected gradient remains unbiased with respect to the full-batch baseline. Technically, DPPO implements a hierarchical, importance-aware pruning mechanism across both completion and prompt levels. At the completion level, it prunes responses with low information density to reduce backward-pass overhead, while at the prompt level, it filters redundant prompts to avoid wasteful rollouts. In addition, selective pruning inevitably introduces data spar-sity and fragmented memory access, which can undermine hardware utilization. To address this issue, we introduce 
+
+Dense Prompt Packing , a window-based greedy strategy that reorganizes variable-length sequences into compact buffers. This design maximizes valid token density, im-proves hardware saturation, and mitigates memory fragmen-tation. Through the synergy of unbiased gradient correction and system-level optimization, DPPO achieves substantial training acceleration without compromising performance, as illustrated in Figure 1. In summary, the primary contributions of this work are: • We propose DPPO, an unbiased acceleration frame-work for GRPO based on hierarchical importance sam-pling. DPPO dynamically prunes redundancy at both prompt and completion levels, overcoming the estima-tion bias inherent in prior heuristic approaches while preserving theoretical rigor. • We introduce Dense Prompt Packing, a window-based greedy strategy that mitigates pruning-induced spar-sity by efficiently organizing variable-length prompts, thereby sustaining high hardware throughput. • Extensive experiments across multiple reasoning benchmarks demonstrate that DPPO significantly ac-celerates GRPO training while matching or surpassing the performance of the full-batch GRPO baseline. 
+
+## 2. Related Works 
+
+RL Finetuning of LLMs. Reinforcement learning (RL) has emerged as a cornerstone for aligning LLMs, initially demonstrating remarkable success through Reinforcement Learning with Human Feedback (RLHF) in enhancing instruction-following capabilities and safety (Christiano et al., 2017; Ouyang et al., 2022; Bai et al., 2022; Dong et al., 2024; Dai et al., 2023). More recently, the paradigm has shifted towards Reinforcement Learning with Verifi-able Rewards (RLVR), which significantly improves reason-ing capabilities in structured domains by leveraging auto-matically verifiable signals (Jaech et al., 2024; Guo et al., 2025; Team et al., 2025; Pan et al., 2025). In terms of policy optimization, while PPO (Schulman et al., 2017) re-mains widely adopted, Group Relative Policy Optimization (GRPO) (Guo et al., 2025) has gained substantial traction by eliminating the computationally expensive value network via group-normalized advantage estimation. To further en-hance sample efficiency and stability, recent works have proposed targeted improvements to these algorithms (Liu et al., 2025b; Hu, 2025; Xiong et al., 2025). For instance, methods such as VinePPO (Kazemnejad et al., 2024) and VAPO (Yue et al., 2025) focus on refining value function optimization, whereas DAPO (Yu et al., 2025) specifically enhances GRPO through Dynamic Sampling, which filters zero-variance prompts to improve sample efficiency and training stability. Parallel efforts push the performance fron-tier across diverse model scales (Luo et al., 2025b;a; Zeng et al., 2025) and develop infrastructure for scalable RL train-ing (Sheng et al., 2025). 
+
+Data Selection for LLM. Beyond algorithmic improve-ments, data selection has become pivotal for training effi-ciency. Initial approaches focused on supervised fine-tuning, demonstrating that pruning datasets to high-quality subsets can maintain performance (Xia et al., 2024; Ivison et al., 2025; Muennighoff et al., 2025; Chen et al., 2024). In the context of RL, data selection strategies generally fall into offline and online categories. Offline methods (Ye et al., 2025; Li et al., 2025; Wang et al., 2025; Fatemi et al., 2025; Muldrew et al., 2024) filter prompts prior to training based on static criteria. While showing that small subsets suffice for algorithms like GRPO (Li et al., 2025), they often in-cur pre-assessment overhead and fail to adapt to evolving training dynamics. Consequently, the focus has shifted to online selection, where methods dynamically filter prompts based on the current policy (Yu et al., 2025; Zhang et al., 2025). Approaches such as Dynamic Sampling (Yu et al., 2025) and others (Bae et al., 2025; Liu et al., 2025a; Cui et al., 2025; Meng et al., 2025) perform per-step filtering to remove ineffective samples, or employ curriculum-based strategies (Zheng et al., 2025b; Chen et al., 2025). How-ever, these methods typically rely on heuristic pruning that alters the data distribution without theoretical correction, thereby introducing estimation bias, or incur substantial computational costs due to extra rollout evaluations. By reformulating pruning as an importance sampling process, 2Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Figure 2. Overview of our DPPO. It employs a hierarchical pruning strategy to accelerate GRPO by reducing redundancy at both the prompt level (via difficulty estimation Ht(q)) and the completion level (via advantage assessment |At|). In the left panel, a mathematically grounded rescaling mechanism is applied to retained samples to correct for estimation bias. The right panel details the end-to-end training loop, where dynamic pruning and importance-based rescaling are integrated to ensure efficient yet unbiased policy optimization. 
+
+our DPPO reweights retained samples to correct for dis-tributional shifts, achieving significant acceleration while preserving an unbiased gradient estimate. 
+
+## 3. Background: Group-Based Policy Optimization 
+
+Group Relative Policy Optimization (GRPO) (Guo et al., 2025) simplifies conventional Reinforcement Learning from Human Feedback (RLHF) pipeline by eliminating the critic model and deriving the baseline directly from group-based scores. For a given query q sampled from the dataset dis-tribution P (Q), GRPO generates a set of G completions 
+
+{o1, o 2, . . . , o G} using the behavior policy πθold (·| q). Let 
+
+ρi,t (θ) = πθ (oi,t |q,o i,<t )  
+
+> πθold (oi,t |q,o i,<t )
+
+denote the probability ratio. The policy πθ is then optimized by maximizing the objective function: 
+
+J (θ) = Eq∼P (Q),{oi}Gi=1 ∼πθold (·| q)
+
+"
+
+1
+
+G
+
+> G
+
+X
+
+> i=1
+
+1
+
+|oi|
+
+> |oi|
+
+X
+
+> t=1
+
+min 
+
+
+
+ρi,t (θ)Ai, clip (ρi,t (θ), 1 − ϵ, 1 + ϵ)Ai
+
+
+
+− βDKL (πθ ∥πref )
+
+!# 
+
+,
+
+(1) where the per-token KL divergence DKL [πθ || πref ] = ˆ ρ −
+
+log ˆ ρ − 1, with ˆρ = πref (oi,t |q, o i,<t )/π θ (oi,t |q, o i,<t ).The ϵ and β are hyperparameters, while πref denotes the reference model. The advantage Ai is estimated by normal-izing the rewards {r1, r 2, . . . , r G} within each group: 
+
+Ai = ri − mean ({r1, r 2, . . . , r G})
+
+std ({r1, r 2, . . . , r G}) . (2) 
+
+## 4. Method: Dynamic Pruning for Unbiased GRPO Acceleration 
+
+The primary computational bottleneck in Group Relative Policy Optimization (GRPO) stems from its reliance on generating multiple completions per prompt to estimate intra-group advantages. As the group size increases, this requirement causes the forward-pass cost to scale linearly, resulting in substantial computational overhead. While data pruning appears to be a natural remedy, existing selective utilization strategies (Zheng et al., 2025b; Lin et al., 2025) inevitably introduce estimation bias by altering the underly-ing sampling distribution. To address this challenge, we propose Dynamic Prun-ing Policy Optimization (DPPO) , a framework illustrated in Figure 2 that accelerates GRPO while preserving un-biased gradient estimation. DPPO achieves this through 3Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+a hierarchical dynamic pruning mechanism operating at both the prompt and completion levels, coupled with ex-plicit bias-correction via importance rescaling. Specifi-cally, we define a completion-level pruning policy Pot and a prompt-level pruning policy Pqt , where Pot (o) ∈ [0 , 1) 
+
+and Pqt (q) ∈ [0 , 1) denote the pruning probabilities for completion o and prompt q, respectively. Following these policies, we selectively prune low-value samples at both the completion and prompt levels. To ensure unbiased gradient estimation, retained samples are reweighted by rescaling factors derived via importance sampling, thereby preserv-ing the expectation of the original gradient in a principled manner. 
+
+4.1. Unbiased Gradient Estimation under Hierarchical Pruning 
+
+We analyze DPPO from a theoretical aspect and show that its hierarchical pruning strategy yields an unbiased estima-tor of the original GRPO objective. The analysis by Hu et al. (2025) shows that removing the KL divergence constraint in maximizing J (θ) does not degrade the model’s core reason-ing capabilities, as these are governed by the reward-aligned advantage term. Accordingly, we restrict our analysis to the optimization of the advantage component. Since the clipping mechanism primarily serves as a safe-guard against excessively large policy updates and remains largely inactive under appropriately chosen step sizes (En-gstrom et al., 2020), we adopt the unclipped surrogate ob-jective for the following analysis. Under the assumption that prompt q is drawn from a con-tinuous distribution P (Q) and completions o are sampled from the behavioral policy πθold (·| q), we derive the standard GRPO gradient as follows: 
+
+∇J (θ) = Eq∼P (Q)
+
+h
+
+Eo∼πθold (·| q) [Ψ( q, o )] 
+
+i
+
+=
+
+Z
+
+P (q)
+
+Z 
+
+Ψ( q, o )πθold (o|q) do 
+
+
+
+dq, 
+
+(3) where Ψ( q, o ) represents the core gradient component in-corporating importance sampling, defined as: 
+
+Ψ( q, o ) = πθ (o|q)
+
+πθold (o|q) A(q, o )∇θ log πθ (o|q). (4) Here, A(q, o ) denotes the advantage value, and the ratio    
+
+> πθ(o|q)
+> πθold (o|q)
+
+corrects for the distributional shift between the current and behavioral policies. Note that we present the gradient at the sequence level for notational simplicity. The extension to token-level formulation is straightforward and does not affect our theoretical analysis. This formulation makes explicit that GRPO optimizes an expectation over prompts and their corresponding completions sampled from the behavioral policy. 
+
+Unbiasedness at the Completion Level. Consider a fixed prompt q, the original objective is defined over the comple-tions sampled from πθold (·| q):
+
+Eo∼πθold (·| q) [Ψ( q, o )] = 
+
+Z
+
+Ψ( q, o )πθold (o|q) do. (5) After applying completion-level pruning, the retained sam-ples follow a modified distribution ˜πθold (·| q) with density: 
+
+˜πθold (o|q) = (1 − P ot (o)) πθold (o|q)
+
+Co(q) , (6) where Co(q) = R (1 − P ot (o)) πθold (o|q) do ∈ (0 , 1) is a normalization constant that ensures ˜πθold (·| q) remains a valid probability distribution. To recover the original expectation from samples drawn from ˜πθold (·| q), we apply importance sampling with the den-sity ratio: 
+
+Eo∼πθold (·| q) [Ψ( q, o )] = Eo∼˜πθold (·| q)
+
+ πθold (o|q)˜πθold (o|q) Ψ( q, o )
+
+
+
+.
+
+(7) Substituting the expression for ˜πθold (o|q), we obtain the importance sampling rescaling factor: 
+
+γ(o, q ) = πθold (o|q)˜πθold (o|q) = Co(q)1 − P ot (o) , (8) which yields an unbiased gradient estimation: 
+
+Eo∼˜πθold (·| q) [γ(o, q )Ψ( q, o )] = Eo∼πθold (·| q) [Ψ( q, o )] .
+
+(9) This shows that sampling from the pruned distribution 
+
+˜πθold (·| q) with rescaling factor γ(o, q ) yields the same ex-pected gradient as sampling from the original distribution 
+
+πθold (·| q).
+
+Unbiasedness at the Prompt Level. Define the completion-level expectation as G(q) = Eo∼˜π [γ(o, q )Ψ( q, o )] .From the completion-level analysis, we have G(q) =
+
+Eo∼πθold [Ψ( q, o )] . The full objective is Eq∼P (Q)[G(q)] .After prompt-level pruning, the retained prompts follow a modified distribution ˜P (Q) with density: 
+
+˜P (q) = (1 − P qt (q)) P (q)
+
+Cq
+
+, (10) where Cq = R (1 − P qt (q)) P (q) dq ∈ (0 , 1) is the normal-ization constant. Following the same importance sampling principle, we ob-tain the rescaling factor: 
+
+γ(q) = P (q)˜P (q) = Cq
+
+1 − P qt (q) , (11) 4Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+which yields an unbiased gradient estimation: 
+
+Eq∼ ˜P (Q)[γ(q)G(q)] = Eq∼P (Q)[G(q)] . (12) This shows that sampling from the pruned distribution ˜P (Q)
+
+with rescaling factor γ(q) yields the same expected gradient as sampling from the original distribution P (Q).
+
+Unbiasedness of Hierarchical Pruning. Composing both levels, the hierarchical pruning satisfies: 
+
+Eq∼ ˜P (Q) [γ(q)Eo∼˜π [γ(o, q )Ψ( q, o )]] = Eq∼P (Q)
+
+h
+
+Eo∼πθold [Ψ( q, o )] 
+
+i
+
+= ∇J (θ).
+
+(13) This result shows that DPPO’s hierarchical pruning, when combined with appropriate importance rescaling, yields an unbiased gradient estimator of the original GRPO objective. 
+
+4.2. Instantiating Pruning Policies in Practice 
+
+Having established unbiased gradient estimation under con-tinuous distributions, we now instantiate DPPO in the dis-crete setting in practical training. We first specify concrete pruning criteria for Pot and Pqt , and then derive the corre-sponding discrete rescaling factors γ(o, q ) and γ(q).
+
+Advantage-Aware Completion Pruning. Lin et al. (2025) observed that a completion’s contribution to policy training is related to its advantage magnitude. Based on this, we design a dynamic pruning policy Pot that targets completions with low-absolute advantage as pruning candidates. For each prompt qk in the t-th epoch, the model generates 
+
+G completions {oqk
+
+> 1,t
+
+, . . . , o qk
+
+> G,t
+
+} with corresponding advan-tages {Aqk
+
+> 1,t
+
+, . . . , A qk
+
+> G,t
+
+}. We define a prompt-specific thresh-old as the mean absolute advantage: 
+
+¯Aqk 
+
+> t
+
+= 1
+
+G
+
+> G
+
+X
+
+> i=1
+
+|Aqk
+
+> i,t
+
+|. (14) Completions below this threshold are pruned with probabil-ity ro ∈ (0 , 1) , while those above are always retained: 
+
+Pot (oqk
+
+> i,t
+
+) = 
+
+(
+
+ro, |Aqk
+
+> i,t
+
+| ≤ ¯Aqk 
+
+> t
+
+,
+
+0, |Aqk
+
+> i,t
+
+| > ¯Aqk 
+
+> t
+
+, (15) where ro ∈ [0 , 1) is a predefined hyperparameter. This mechanism ensures that low-value completions still have a chance of being retained. 
+
+History-Guided Prompt Pruning. Unlike completion-level pruning, which operates after rollout, prompt-level pruning faces a fundamental causality dilemma: assessing a prompt’s utility requires generating its completions, which incurs the very cost we aim to reduce. To resolve this, we approximate the current importance using a historical diffi-culty score Ht(qk) based on each prompt’s average absolute advantage from the previous epoch. However, this introduces a new challenge: prompts pruned in the previous epoch receive no new feedback, causing their statistics to become stale. If left unaddressed, such prompts would remain perpetually pruned, leading to biased sampling. We address this with a carry-forward mechanism: 
+
+Ht(qk) = 
+
+
+
+¯Aqk
+
+> t−1
+
+, if qk ∈ S qt−1,
+
+Ht−1(qk), if qk /∈ S qt−1,
+
+(16) where Sqt−1 denotes the set of prompts selected in epoch 
+
+t − 1. If a prompt was selected, its score is updated with fresh statistics; otherwise, we retain its most recent score. For threshold determination, we adopt a ranking-based strat-egy. Specifically, we rank prompts by their historical scores 
+
+Ht(qk) in ascending order and select the lowest 50% as pruning candidates: 
+
+Pqt (qk) = 
+
+(
+
+rq , qk ∈ B t,
+
+0, qk /∈ B t, (17) where Bt denotes the set of prompts with the lowest 50% historical scores, and rq ∈ [0 , 1) is a predefined hyper-parameter as the prompt-level pruning probability. Prompt-level pruning is skipped in the first epoch to initialize the historical statistics. 
+
+Discrete Importance Rescaling. Given the above pruning policies, we now derive the discrete rescaling factors that are applied to retained prompts and completions to ensure unbiased gradient estimation, as established in Section 4.1. Recall the continuous constants Cq and Co(q) defined in Equations 6 and 10. In the discrete setting, we have E[Cq ] =   
+
+> |S qt||Q|
+
+and E[Co(qk)] = |S ot (qk )||O| , where |Q| , |O| and |S qt |,
+
+|S ot (qk)| denote the number of prompts and completions before and after pruning, respectively. In practice, we set 
+
+Cq = |S qt ||Q| and Co(qk) = |S ot (qk )||O| . Substituting into the theoretical rescaling factors γ(q) = Cq  
+
+> 1−P qt(q)
+
+and γ(o, q ) =   
+
+> Co(q)1−P ot(o)
+
+, we obtain: 
+
+γt(qk) = |S qt ||Q| · 11 − P qt (qk) ,γt(oqk
+
+> i,t
+
+, q k) = |S ot (qk)||O| · 11 − P ot (oqk
+
+> i,t
+
+) .
+
+(18) When no pruning is applied, the rescaling factors reduce to γt(qk) = γt(oqk
+
+> i,t
+
+, q k) = 1 , which recovers the standard GRPO training. The detailed algorithm is presented in Ap-pendix A. 5Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization ……         
+
+> Sliding
+> Oringial Dataset
+> Candidate Window ( Nwin)
+> S1
+> S3 S2 S6
+> S4 S5
+> Greedy Selection Logic:
+> Find Largest in 𝐀 ≤Remaining
+> Dense Prompt Packing
+> 𝐀 𝐀 𝐀 𝐀
+> S1
+> Oringial Batch
+> S2
+> S3
+> ...
+> Packing Batch
+> S1
+> S3 S2 S6
+> S4 S5
+> Prune
+> Pruned Prompt Slide Window
+> Figure 3. Dense Prompt Packing Strategy. The left panel shows the window-based greedy algorithm for assembling variable-length prompts into compact sequences. The right panel indicates the mit-igation of pruning-induced sparsity. Unlike standard batching, our approach maximizes valid token density and hardware saturation, ensuring throughput remains consistent with the full-batch pattern.
+
+4.3. Dense Prompt Packing for Throughput Preservation 
+
+Although our DPPO well filters out redundant computa-tions, it introduces data sparsity. Specifically, filtering out low-value prompts and completions reduces the effective batch size, leading to fragmented memory access and sub-optimal GPU occupancy. To counterbalance this side effect and maximize computational throughput, we introduce a Dense Prompt Packing strategy with a window-based greedy selection mechanism, as shown in Figure 3. Our approach reorganizes the dataset initialization phase to ensure high hardware saturation. Let Lmax denote the maximum sequence length, defined by the longest sample in the dataset. We maintain a candidate pool W of size 
+
+Nwin , which is continuously replenished from the original unpruned dataset. The packing process operates iteratively: for each packing slot, we initialize a current sequence list and greedily select samples from W that fit within the re-maining space of Lmax . Once a sample is packed, it is removed from W, and a new sample is fetched from the dataset to maintain the pool size. This process repeats until the entire dataset is processed. By aggregating multiple shorter prompts into a single sequence slot, this strategy significantly amplifies the density of valid tokens per batch. This maximization of effective computational load allows the system to maintain high hardware saturation, thereby further accelerating the overall training process. 
+
+## 5. Experiments 
+
+5.1. Experimental Settings Models & Datasets. We conduct our main experiments on Qwen3-4B and Qwen3-8B, with additional experiments on Qwen2.5-7B-Instruct, Llama3.2-3B-Instruct, Qwen3-32B, and Qwen3-30B-A3B-Instruct (MoE) presented in the Ap-pendix B. For training data, we use two mathematical reason-ing datasets: GSM8K (Cobbe et al., 2021), which comprises 8.5K grade-school problems, and MATH (Hendrycks et al., 2021), which consists of 7.5K competition-level problems. 
+
+Training & Evaluation. We implement DPPO within the verl framework (Sheng et al., 2025), leveraging the vLLM library (Kwon et al., 2023) for efficient rollout generation. All models are trained on 8 NVIDIA H100 GPUs, each equipped with 80GB of SXM. Unless otherwise specified, we adhere to the default hyperparameters from the verl, with the training epochs set to 15, learning rate to 1 × 10 −6. The policy model temperature is 1, the rollout size is 5, and the maximum completion length is 1024. We use Pass@1 accu-racy as the evaluation metric. To evaluate the generalization, we train models on the MATH dataset and evaluate them on other mathematical reasoning benchmarks, including Math500 (Hendrycks et al., 2021; Lightman et al., 2023), AIME2025 (Mathematical Association of America, 2025), AIME2024 (Mathematical Association of America, 2024), AMC 2023 (Mathematical Association of America, 2023), Minerva Math (Lewkowycz et al., 2022), and Olympiad Bench (He et al., 2024). 
+
+5.2. Main Results GSM8K & Math. As shown in Table 1, DPPO consistently accelerates training while maintaining or even improving accuracy across both datasets. On GSM8K, DPPO achieves up to 2.65 × speedup on Qwen3-8B with a +0.53% accu-racy gain, and up to 2.49 × speedup on Qwen3-4B while preserving baseline performance. On the more challeng-ing MATH dataset, the efficiency-accuracy trade-off is even more favorable: for Qwen3-4B, the most aggressive pruning configuration ( rq = 0 .9, r o = 0 .9) yields a 2.37 × speedup alongside a +3.15% accuracy improvement. For Qwen3-8B, DPPO achieves up to 1.90 × speedup with a +1.70% accuracy gain. These results show that DPPO eliminates computational redundancy without compromising reasoning capabilities, and in many cases, the selective retention of high-value samples leads to improved model performance. 
+
+Out-of-Distribution Evaluation. We compare DPPO against GRPO (Guo et al., 2025) and several heuristic prun-ing baselines: GRESO (Zheng et al., 2025b) and CPPO (Lin et al., 2025). As shown in Table 2, DPPO consistently out-performs all baselines across both model scales. On Qwen3-4B, DPPO achieves an average accuracy of 36.80%, sur-passing GRPO by +3.36%, CPPO by +5.22%, and GRESO by +1.70%, while achieving a 2.37 × speedup. The im-provements are particularly pronounced on competition-level benchmarks such as AIME24 (+10.00% over GRPO) and Olympiad (+3.30% over GRPO), demonstrating the 6Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Table 1. Comparision between GRPO and DPPO on GSM8K and Math test subset for Qwen3-4B and Qwen3-8B, with DPPO evaluated under varying prompt-level ( rq ) and completion-level ( ro) pruning ratios. Blue (red) values indicate gains (drops) in accuracy relative to the GRPO baseline. Speedup is computed w.r.t. GRPO time (1.00 ×). GPU-h denotes GPU hours. 
+
+Setting Method rq ro
+
+GSM8K Dataset Math Dataset GPU-h Speedup Acc (%) GPU-h Speedup Acc (%) 
+
+Qwen3-4B GRPO 0% 0% 64.68 1.00 × 93.85 137.04 1.00 × 77.00 DPPO 50% 50% 39.28 1.65 × 93 .49 −0.36 88.32 1.55 × 78 .10 +1 .10 
+
+DPPO 0% 50% 49.47 1.31 × 94 .01 +0 .16 110.80 1.24 × 80 .02 +3 .02 
+
+DPPO 50% 0% 45.74 1.41 × 94 .24 +0 .37 102.48 1.34 × 77 .65 +0 .65 
+
+DPPO 30% 30% 45.94 1.41 × 93 .86 +0 .01 101.12 1.36 × 77 .75 +0 .75 
+
+DPPO 70% 70% 32.15 2.01 × 94 .55 +0 .70 67.61 2.03 × 79 .98 +2 .98 
+
+DPPO 90% 90% 26.00 2.49 × 94 .32 +0 .47 57.88 2.37 × 80 .15 +3 .15 
+
+Qwen3-8B GRPO 0% 0% 78.93 1.00 × 94.85 137.44 1.00 × 77.42 DPPO 50% 50% 47.00 1.68 × 95 .15 +0 .30 94.56 1.45 × 79 .10 +1 .68 
+
+DPPO 0% 50% 56.91 1.39 × 94 .62 −0.23 119.28 1.15 × 78 .62 +1 .20 
+
+DPPO 50% 0% 55.12 1.43 × 95 .08 +0 .23 113.20 1.21 × 77 .99 +0 .57 
+
+DPPO 30% 30% 53.73 1.47 × 95 .08 +0 .23 119.20 1.15 × 79 .04 +1 .62 
+
+DPPO 70% 70% 39.94 1.98 × 95 .46 +0 .61 79.44 1.73 × 80 .85 +3 .43 
+
+DPPO 90% 90% 29.76 2.65 × 95 .38 +0 .53 72.32 1.90 × 79 .12 +1 .70 
+
+Table 2. Comparison of DPPO ( rq = 0 .9, ro = 0 .9) and baseline RL methods on different mathematical benchmarks, evaluated on Qwen3-4B and Qwen3-8B in terms of accuracy and speedup (GRPO=1.00 ×). Bold indicates the best result in each column. 
+
+Model Method Speedup ↑ MATH500 AIME25 AIME24 AMC Minerva. Olympiad. Avg. ↑
+
+Qwen3-4B GRPO 1.00 × 76.20 8.33 7.50 45.78 29.41 34.72 33.44 CPPO 1.35 × 75.15 6.67 5.83 41.87 28.49 31.49 31.58 GRESO 2.31 × 76.40 10.83 10.83 47.29 30.15 37.28 35.10 DPPO 2.37 × 77.90 11.67 17.50 46.99 29.96 38.02 36.80 
+
+Qwen3-8B GRPO 1.00 × 75.80 8.33 7.50 46.08 29.32 34.27 33.55 CPPO 1.32 × 75.40 6.67 5.83 41.57 29.23 31.53 31.71 GRESO 1.88 × 76.65 10.83 10.83 47.29 29.78 37.35 35.45 DPPO 1.90 × 77.10 11.67 17.50 46.69 29.04 38.06 36.87 
+
+effectiveness of our importance sampling-based pruning strategy in enhancing complex reasoning capabilities. On the larger Qwen3-8B model, DPPO further amplifies these gains, achieving an average accuracy of 36.87% with a 1.90 × speedup over GRPO. Notably, DPPO outperforms all baselines on 4 out of 6 benchmarks, with the largest improvement observed on AIME24 (+10.00% over GRPO). These results confirm that DPPO not only accelerates train-ing but also improves generalization to out-of-distribution mathematical reasoning tasks. We also provide a case study with a concrete mathematical example in Appendix E. 
+
+Robustness Across RL Algorithms. DPPO is designed as a general-purpose framework that can be combined with diverse RL training pipelines. To validate its broad ap-plicability beyond GRPO, we evaluate DPPO in combina-tion with DAPO (Yu et al., 2025) and GSPO (Zheng et al., 2025a). DAPO is a recent RL algorithm with decoupled clipping and dynamic sampling, while GSPO is a sequence-level optimization method based on likelihood ratios. In Table 3, integrating DPPO into DAPO and GSPO yields consistent efficiency gains: On Qwen3-4B, DPPO achieves 1.98 × speedup over DAPO while maintaining accuracy (+0.01%); on Qwen3-8B, DPPO accelerates GSPO by 2.46 × with marginal accuracy difference (-0.15%). These results confirm that our importance-sampling-based pruning strategy is algorithm-agnostic. Additional experiments on DAPO, GSPO, as well as larger-scale models and different model families are provided in Appendix B.2, where DPPO achieves up to 4.87 × speedup without accuracy degradation. 7Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Table 3. Generalization of DPPO when integrated with DAPO on GSM8K for Qwen3-4B and Qwen3-8B, with prompt-level and completion-level pruning ratios set to rq = 0 .9 and ro = 0 .9.
+
+Setting Method GPU-h Speedup Acc (%) 
+
+Qwen3-4B DAPO 48.53 1.00 × 94.09 + DPPO 24.57 1.98 × 94.10 GSPO 61.40 1.00 × 93.78 + DPPO 25.07 2.45 × 94.17 Qwen3-8B DAPO 55.24 1.00 × 95.14 + DPPO 28.72 1.92 × 94.85 GSPO 66.19 1.00 × 94.85 + DPPO 26.88 2.46 × 94.70 
+
+Table 4. Ablation study on the impact of rollout numbers ( G). We report the accuracy and computational cost of Qwen3-4B on GSM8K under different group sizes with prompt-level and completion-level pruning ratios set to rq = 0 .5 and ro = 0 .5.                    
+
+> Method Rollout ( G)GPU-h Speedup Acc (%)
+> GRPO 889.76 1.00 ×94.84 DPPO 854.80 1.64 ×94.47 GRPO 16 173.36 1.00 ×94.69 DPPO 16 107.76 1.61 ×94.47
+
+5.3. Ablation Study Ablation of Rollout Size. To investigate the impact of roll-outs, we conduct experiments on GSM8K with Qwen3-4B under varying rollout sizes G ∈ { 8, 16 }, as presented in Table 4. We observe that: (1) DPPO consistently accelerates training across different rollout settings, achieving 1.64 ×
+
+speedup at G = 8 and 1.61 × speedup at G = 16 ; (2) the accuracy gap between GRPO and DPPO remains minimal (within 0.37%) regardless of rollout count, confirming that our importance-sampling-based correction effectively pre-serves gradient quality; (3) larger rollout counts provide more candidates for pruning, potentially enabling more ag-gressive sample selection while maintaining performance. These results demonstrate that DPPO is robust to the choice of rollout count and can be flexibly combined with different sampling configurations. 
+
+Ablation of Pruning Rules. To validate our pruning cri-teria, we compare our strategy against reverse strategies that prune in the opposite direction. As shown in Table 5, for completion-level pruning, our strategy (pruning low-informative samples) achieves 94.01% accuracy, outper-forming the baseline by +0.16%, while the reverse strategy yields only 93.52%. For prompt-level pruning, our strategy achieves 94.24% (+0.39%), whereas the reverse strategy results in 93.08%. These results confirm that retaining high-advantage completions and prompts are crucial for effective 
+
+Table 5. Ablation study on pruning criteria, evaluated on GSM8K with Qwen3-4B. ‘Reverse’ retains the samples that our method would prune.                              
+
+> Module Pruning Rules rqroAcc (%) Baseline (No Pruning) –––93.85
+> Completion-level Ablation
+> Ours (Prune Low) |Aqk
+> i,t | ≤ ¯Aqk
+> t00.5 94.01 Reverse (Prune High) |Aqk
+> i,t |>¯Aqk
+> t00.5 93.52
+> Prompt-level Ablation
+> Ours (Prune Low) qk∈ B t0.5 094.24 Reverse (Prune High) qk/∈ B t0.5 093.08
+
+Table 6. Ablation study on the incremental contribution of each component ( rq = 0 .5, ro = 0 .5), evaluated on GSM8K with Qwen3-8B. ‘Comp.’ and ‘Prompt’ denote Completion-level and Prompt-level pruning, respectively.                
+
+> Method Training Time (GPU hours) Speedup Acc (%)
+> Baseline 78.93 1.00 ×94.85 + Comp. Pruning 55.10 1.34 ×94.77 + Prompt Pruning 48.79 1.52 ×94.94 + Dense Packing 47.00 1.68 ×95.15
+
+learning. 
+
+Ablation Study on the Key Modules. As shown in Table 6, by discarding low-informative completions, the completion-level pruning module improves training efficiency by 1.34 ×
+
+with only -0.08% accuracy drop. By further filtering easy prompts, prompt-level pruning increases the speedup to 1.52 ×. Finally, by fully leveraging GPU parallel computing capability through dense packing, the overall training effi-ciency reaches 1.68 × with comparable performance, demon-strating the complementary benefits of all three components. 
+
+## 6. Conclusion 
+
+In this work, we presented Dynamic Pruning Policy Op-timization (DPPO), a theoretically rigorous framework to accelerate GRPO without compromising gradient estima-tion accuracy. By reformulating selective data utilization as a hierarchical importance sampling process, DPPO elim-inates redundancy at both prompt and completion levels while correcting for distributional shifts to maintain an un-biased optimization objective. Also, we addressed the prac-tical challenge of pruning-induced sparsity through a Dense Prompt Packing strategy, which ensures high valid token density and optimal hardware saturation. Extensive empiri-cal evaluations show that DPPO well reduces computational overhead while preserving model performance, establishing a new paradigm for scalable, efficient, and mathematically grounded reinforcement learning in large language models. 8Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+## Impact Statement 
+
+This paper presents work whose goal is to advance the field of machine learning, specifically improving the com-putational efficiency of reinforcement learning for large language models. There are many potential societal con-sequences of our work, none of which we feel must be specifically highlighted here. 
+
+## References 
+
+Bae, S., Hong, J., Lee, M. Y., Kim, H., Nam, J., and Kwak, D. Online difficulty filtering for reasoning oriented re-inforcement learning. arXiv preprint arXiv:2504.03380 ,2025. Bai, Y., Jones, A., Ndousse, K., Askell, A., Chen, A., Das-Sarma, N., Drain, D., Fort, S., Ganguli, D., Henighan, T., et al. Training a helpful and harmless assistant with rein-forcement learning from human feedback. arXiv preprint arXiv:2204.05862 , 2022. Chen, L., Li, S., Yan, J., Wang, H., Gunaratna, K., Yadav, V., Tang, Z., Srinivasan, V., Zhou, T., Huang, H., et al. Alpagasus: Training a better alpaca with fewer data. In 
+
+The Twelfth International Conference on Learning Repre-sentations , 2024. Chen, X., Lu, J., Kim, M., Zhang, D., Tang, J., Pich ´e, A., Gontier, N., Bengio, Y., and Kamalloo, E. Self-evolving curriculum for llm reasoning. arXiv preprint arXiv:2505.14970 , 2025. Christiano, P. F., Leike, J., Brown, T., Martic, M., Legg, S., and Amodei, D. Deep reinforcement learning from human preferences. Advances in neural information pro-cessing systems , 30, 2017. Cobbe, K., Kosaraju, V., Bavarian, M., Chen, M., Jun, H., Kaiser, L., Plappert, M., Tworek, J., Hilton, J., Nakano, R., Hesse, C., and Schulman, J. Training verifiers to solve math word problems. arXiv preprint , arXiv:2110.14168, 2021. Cui, G., Yuan, L., Wang, Z., Wang, H., Li, W., He, B., Fan, Y., Yu, T., Xu, Q., Chen, W., et al. Process re-inforcement through implicit rewards. arXiv preprint arXiv:2502.01456 , 2025. Dai, J., Pan, X., Sun, R., Ji, J., Xu, X., Liu, M., Wang, Y., and Yang, Y. Safe rlhf: Safe reinforcement learning from human feedback. arXiv preprint arXiv:2310.12773 ,2023. Dong, H., Xiong, W., Pang, B., Wang, H., Zhao, H., Zhou, Y., Jiang, N., Sahoo, D., Xiong, C., and Zhang, T. Rlhf workflow: From reward modeling to online rlhf. arXiv preprint arXiv:2405.07863 , 2024. Engstrom, L., Ilyas, A., Santurkar, S., Tsipras, D., Janoos, F., Rudolph, L., and Madry, A. Implementation matters in deep policy gradients: A case study on PPO and TRPO. 
+
+arXiv preprint arXiv:2005.12729 , 2020. Fatemi, M., Rafiee, B., Tang, M., and Talamadupula, K. Concise reasoning via reinforcement learning. arXiv preprint arXiv:2504.05185 , 2025. Guo, D., Yang, D., Zhang, H., Song, J., Zhang, R., Xu, R., Zhu, Q., Ma, S., Wang, P., Bi, X., et al. Deepseek-R1: In-centivizing reasoning capability in llms via reinforcement learning. arXiv preprint arXiv:2501.12948 , 2025. He, C., Luo, R., Bai, Y., Hu, S., Thai, Z. L., Shen, J., Hu, J., Han, X., Huang, Y., Zhang, Y., et al. Olympiadbench: A challenging benchmark for promoting agi with olympiad-level bilingual multimodal scientific problems. arXiv preprint arXiv:2402.14008 , 2024. Hendrycks, D., Burns, C., Kadavath, S., Arora, A., Basart, S., Tang, E., Song, D., and Steinhardt, J. Measuring mathematical problem solving with the MATH dataset. In NeurIPS 2021 , 2021. Hu, J. Reinforce++: A simple and efficient approach for aligning large language models. arXiv preprint arXiv:2501.03262 , 2025. Hu, J., Zhang, Y., Han, Q., Jiang, D., Zhang, X., and Shum, H. Open-reasoner-zero: An open source approach to scal-ing up reinforcement learning on the base model. arXiv preprint , arXiv:2503.24290, 2025. Ivison, H., Zhang, M., Brahman, F., Koh, P. W., and Dasigi, P. Large-scale data selection for instruction tuning. arXiv preprint arXiv:2503.01807 , 2025. Jaech, A., Kalai, A., Lerer, A., Richardson, A., El-Kishky, A., Low, A., Helyar, A., Madry, A., Beutel, A., Carney, A., and et al. Openai o1 system card. arXiv preprint ,arXiv:2412.16720, 2024. Kazemnejad, A., Aghajohari, M., Portelance, E., Sordoni, A., Reddy, S., Courville, A., and Roux, N. L. Vineppo: Unlocking rl potential for llm reasoning through refined credit assignment. arXiv preprint arXiv:2410.01679 ,2024. Kwon, W., Li, Z., Zhuang, S., Sheng, Y., Zheng, L., Yu, C. H., Gonzalez, J., Zhang, H., and Stoica, I. Efficient memory management for large language model serving with pagedattention. In SOSP 2023 , 2023. Lewkowycz, A., Andreassen, A., Dohan, D., Dyer, E., Michalewski, H., Ramasesh, V., Slone, A., Anil, C., Schlag, I., Gutman-Solo, T., et al. Solving quantitative reasoning problems with language models. Advances in 
+
+9Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Neural Information Processing Systems , 35:3843–3857, 2022. Li, X., Zou, H., and Liu, P. Limr: Less is more for rl scaling. 
+
+arXiv preprint arXiv:2502.11886 , 2025. Lightman, H., Kosaraju, V., Burda, Y., Edwards, H., Baker, B., Lee, T., Leike, J., Schulman, J., Sutskever, I., and Cobbe, K. Let’s verify step by step. arXiv preprint arXiv:2305.20050 , 2023. Lin, Z., Lin, M., Xie, Y., and Ji, R. CPPO: Accelerating the training of group relative policy optimization-based rea-soning models. arXiv preprint arXiv:2503.22342 , 2025. Liu, M., Diao, S., Lu, X., Hu, J., Dong, X., Choi, Y., Kautz, J., and Dong, Y. Prorl: Prolonged reinforcement learning expands reasoning boundaries in large language models. 
+
+arXiv preprint arXiv:2505.24864 , 2025a. Liu, Z., Chen, C., Li, W., Qi, P., Pang, T., Du, C., Lee, W. S., and Lin, M. Understanding r1-zero-like training: A critical perspective. arXiv preprint arXiv:2503.20783 ,2025b. Luo, M., Tan, S., Huang, R., Patel, A., Ariyak, A., Wu, Q., Shi, X., Xin, R., Cai, C., Weber, M., et al. Deepcoder: A fully open-source 14b coder at o3-mini level. Notion Blog , 2025a. Luo, M., Tan, S., Wong, J., Shi, X., Tang, W. Y., Roongta, M., Cai, C., Luo, J., Zhang, T., Li, L. E., et al. Deepscaler: Surpassing o1-preview with a 1.5 b model by scaling rl. 
+
+Notion Blog , 2025b. Mathematical Association of America. American mathe-matics competitions, 2023. Mathematical Association of America. American invita-tional mathematics examination, 2024. Mathematical Association of America. American invita-tional mathematics examination, 2025. Meng, F., Du, L., Liu, Z., Zhou, Z., Lu, Q., Fu, D., Shi, B., Wang, W., He, J., Zhang, K., et al. Mm-eureka: Exploring visual aha moment with rule-based large-scale reinforcement learning. arXiv preprint arXiv:2503.07365 ,2025. Muennighoff, N., Yang, Z., Shi, W., Li, X. L., Fei-Fei, L., Hajishirzi, H., Zettlemoyer, L., Liang, P., Cand `es, E., and Hashimoto, T. s1: Simple test-time scaling. arXiv preprint arXiv:2501.19393 , 2025. Muldrew, W., Hayes, P., Zhang, M., and Barber, D. Active preference learning for large language models. In Pro-ceedings of the 41st International Conference on Machine Learning , pp. 36577–36590, 2024. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al. Training language models to follow instructions with human feedback. Advances in neural information processing systems , 35:27730–27744, 2022. Pan, J., Zhang, J., Wang, X., Yuan, L., Peng, H., and Suhr, A. Tinyzero. https://github.com/Jiayi-Pan/TinyZero, 2025. Accessed: 2025-01-24. Schulman, J., Wolski, F., Dhariwal, P., Radford, A., and Klimov, O. Proximal policy optimization algorithms. 
+
+arXiv preprint , arXiv:1707.06347, 2017. Sheng, G., Zhang, C., Ye, Z., Wu, X., Zhang, W., Zhang, R., Peng, Y., Lin, H., and Wu, C. Hybridflow: A flexible and efficient RLHF framework. In EuroSys 2025 , 2025. Team, K., Du, A., Gao, B., Xing, B., Jiang, C., Chen, C., Li, C., Xiao, C., Du, C., Liao, C., Tang, C., Wang, C., Zhang, D., Yuan, E., Lu, E., et al. Kimi k1. 5: Scal-ing reinforcement learning with llms. arXiv preprint arXiv:2501.12599 , 2025. Wang, Y., Yang, Q., Zeng, Z., Ren, L., Liu, L., Peng, B., Cheng, H., He, X., Wang, K., Gao, J., et al. Reinforce-ment learning for reasoning in large language models with one training example. arXiv preprint arXiv:2504.20571 ,2025. Xia, M., Malladi, S., Gururangan, S., Arora, S., and Chen, D. Less: selecting influential data for targeted instruction tuning. In Proceedings of the 41st International Confer-ence on Machine Learning , pp. 54104–54132, 2024. Xiong, W., Yao, J., Xu, Y., Pang, B., Wang, L., Sahoo, D., Li, J., Jiang, N., Zhang, T., Xiong, C., et al. A minimalist approach to llm reasoning: from rejection sampling to reinforce. arXiv preprint arXiv:2504.11343 , 2025. Yang, A., Li, A., Yang, B., Zhang, B., Hui, B., Zheng, B., Yu, B., Gao, C., Huang, C., Lv, C., Zheng, C., Liu, D., and et al. Qwen3 technical report. arXiv preprint ,arXiv:2505.09388, 2025. Ye, Y., Huang, Z., Xiao, Y., Chern, E., Xia, S., and Liu, P. Limo: Less is more for reasoning. arXiv preprint arXiv:2502.03387 , 2025. Yu, Q., Zhang, Z., Zhu, R., Yuan, Y., Zuo, X., Yue, Y., Fan, T., Liu, G., Liu, L., Liu, X., et al. DAPO: An open-source llm reinforcement learning system at scale. arXiv preprint arXiv:2503.14476 , 2025. Yue, Y., Yuan, Y., Yu, Q., Zuo, X., Zhu, R., Xu, W., Chen, J., Wang, C., Fan, T., Du, Z., et al. VAPO: Efficient and reliable reinforcement learning for advanced reasoning tasks. arXiv preprint arXiv:2504.05118 , 2025. 10 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Zeng, W., Huang, Y., Liu, Q., Liu, W., He, K., Ma, Z., and He, J. Simplerl-zoo: Investigating and taming zero reinforcement learning for open base models in the wild. 
+
+arXiv preprint arXiv:2503.18892 , 2025. Zhang, X., Wang, J., Cheng, Z., Zhuang, W., Lin, Z., Zhang, M., Wang, S., Cui, Y., Wang, C., Peng, J., Jiang, S., Kuang, S., Yin, S., Wen, C., Zhang, H., Chen, B., and Yu, B. Srpo: A cross-domain implementation of large-scale reinforcement learning on llm. arXiv preprint arXiv:2504.14286 , 2025. Zheng, C., Liu, S., Li, M., Chen, X.-H., Yu, B., Gao, C., Dang, K., Liu, Y., Men, R., Yang, A., et al. Group sequence policy optimization. arXiv preprint arXiv:2507.18071 , 2025a. Zheng, H., Zhou, Y., Bartoldson, B. R., Kailkhura, B., Lai, F., Zhao, J., and Chen, B. Act only when it pays: Efficient reinforcement learning for LLM reasoning via selective rollouts. arXiv preprint , arXiv:2506.02177, 2025b. 11 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+## Appendix A. Algorithm 
+
+We provide the algorithm for our Dynamic Pruning Policy Optimization (DPPO) in Algorithm 1. During dataset initialization, we apply Dense Prompt Packing to aggregate multiple prompts into compact sequences, maximizing GPU utilization throughout training. This effectively increases the number of prompts per batch without additional memory overhead, equivalent to enlarging the batch size in a length-aware manner. For prompt-level pruning, we perform filtering at the beginning of each batch based on historical statistics Ht(qk) collected from the previous epoch, which avoids the causality dilemma where assessing a prompt’s value would require generating completions first. Since no historical information is available initially, prompt-level pruning is skipped during the first epoch. For completion-level pruning, we compute a per-prompt threshold ¯Aqk 
+
+> t
+
+as the mean absolute advantage, and deterministically prune a fraction ro of completions with |Aqk
+
+> i,t
+
+| ≤ ¯Aqk 
+
+> t
+
+. While rq and ro denote per-sample pruning probabilities, we implement this deterministically by pruning the corresponding fraction of each candidate set, reducing variance while preserving the expected pruning rate. The retained samples are then reweighted using importance sampling factors γt(qk) and γt(oqk
+
+> i,t
+
+, q k) to ensure unbiased gradient estimation. 
+
+Algorithm 1 Dynamic Pruning Policy Optimization (DPPO) 
+
+Require: Initial model πθinit ; dataset D with prompts Q; group size G; pruning rates ro, r q ∈ [0 , 1) ; max sequence length 
+
+Lmax ; window size Nwin 
+
+1: Initialize πθ ← πθinit , πref ← πθ , H0(qk) ← 0 for all qk ∈ Q 
+
+2: # Dense Prompt Packing (Dataset Initialization) 
+
+3: Pack prompts in D into sequences of length ≤ Lmax via window-based greedy selection with candidate pool W of size 
+
+Nwin 
+
+4: for epoch t = 1 , . . . , T do 
+
+5: πθold ← πθ
+
+6: for each batch P from D do 
+
+7: # Prompt-Level Pruning (skip if t = 1 )
+
+8: Let Bt ← bottom 50% of prompts in P ranked by Ht−1(qk)
+
+9: Prune ⌊rq · |B t|⌋ prompts from Bt; let Sqt be all retained prompts in P (Eq. 17) 
+
+10: # Rollout 
+
+11: for each retained prompt qk ∈ S qt do 
+
+12: Sample G completions {oqk
+
+> 1,t
+
+, . . . , o qk
+
+> G,t
+
+} from πθold (·| qk)
+
+13: Compute advantages {Aqk
+
+> i,t
+
+}Gi=1 
+
+14: end for 
+
+15: # Completion-Level Pruning 
+
+16: for each prompt qk ∈ S qt do 
+
+17: Compute threshold ¯Aqk 
+
+> t
+
+← 1
+
+> G
+
+PGi=1 |Aqk
+
+> i,t
+
+| (Eq. 14) 
+
+18: Let Cqk 
+
+> t
+
+= {oqk 
+
+> i,t
+
+: |Aqk
+
+> i,t
+
+| ≤ ¯Aqk 
+
+> t
+
+} be the pruning candidates 
+
+19: Prune ⌊ro · |C qk 
+
+> t
+
+|⌋ completions from Cqk 
+
+> t
+
+; let Sot (qk) be the retained completions (Eq. 15) 
+
+20: Update historical score Ht(qk) ← ¯Aqk 
+
+> t
+
+(Eq. 16) 
+
+21: end for 
+
+22: # Policy Update with Importance Rescaling 
+
+23: Update πθ using reweighted gradients with factors γt(qk) · γt(oqk
+
+> i,t
+
+, q k) (Eq. 18) 
+
+24: end for 
+
+25: end for Ensure: πθ
+
+## B. Experiments 
+
+B.1. Experiments settings 
+
+To evaluate generalization on out-of-distribution datasets, we adopt the following evaluation protocol: for each prompt, we sample 4 completions with temperature 0.7 and maximum response length of 1024, consistent with training. We use Pass@1 12 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization                                                                               
+
+> Table 7. Comparison between DAPO and DPPO on GSM8K for Qwen3-4B and Qwen3-8B, with DPPO evaluated under varying prompt-level ( rq) and completion-level ( ro) pruning ratios. Accuracy changes relative to DAPO baseline are shown in superscript (blue for improvement, red for decline).
+> Setting Method rqroGPU-h Speedup Acc (%)
+> Qwen3-4B DAPO 0% 0% 48.53 1.00 ×94.09 + DPPO 50% 50% 32.43 1.50 ×94 .02 −0.07
+> + DPPO 0% 50% 42.90 1.13 ×94 .24 +0 .15
+> + DPPO 50% 0% 42.45 1.14 ×94 .24 +0 .15
+> + DPPO 30% 30% 37.27 1.30 ×94 .70 +0 .61
+> + DPPO 70% 70% 31.74 1.53 ×94 .70 +0 .61
+> + DPPO 90% 90% 24.57 1.98 ×94 .10 +0 .01
+> Qwen3-8B DAPO 0% 0% 55.24 1.00 ×95.14 + DPPO 50% 50% 40.15 1.38 ×95 .38 +0 .24
+> + DPPO 0% 50% 44.70 1.24 ×95 .15 +0 .01
+> + DPPO 50% 0% 44.14 1.25 ×95 .15 +0 .01
+> + DPPO 30% 30% 44.34 1.25 ×95 .23 +0 .09
+> + DPPO 70% 70% 32.93 1.68 ×94 .55 −0.59
+> + DPPO 90% 90% 28.72 1.92 ×94 .85 −0.29
+
+accuracy as the evaluation metric. 
+
+B.2. More Experiments Comparison on DAPO. As shown in Table 7, augmenting DAPO with DPPO consistently accelerates GSM8K training with competitive accuracy. For Qwen3-4B, DPPO reaches 1.98 × speedup at rq = ro = 0 .9 while preserving performance (+0.01%), and improves accuracy by up to +0.61% under moderate pruning ( rq = ro = 0 .3 or 0.7) with 1.30 ×–1.53 ×
+
+speedup. For Qwen3-8B, DPPO achieves up to +0.24% accuracy improvement at rq = ro = 0 .5 with 1.38 × speedup, and reaches 1.92 × speedup at rq = ro = 0 .9 with only a marginal accuracy drop (-0.29%). Overall, DPPO serves as a plug-and-play efficiency booster for DAPO, substantially reducing GPU-hours with a favorable efficiency–accuracy trade-off. 
+
+Comparison on GSPO. Table 8 shows that DPPO can be seamlessly integrated into GSPO to substantially reduce training cost on GSM8K while keeping accuracy stable. For Qwen3-4B, DPPO provides consistent speedups ranging from 1.30 × to 2.45 ×, and the best-performing configuration improves accuracy by +0.39%. For Qwen3-8B, the gains are more pronounced: DPPO reaches up to 2.46 × speedup, and moderate-to-high pruning yields simultaneous improvements in efficiency and accuracy, peaking at +0.37% with a 2.21 × speedup. Even under the most aggressive setting, the accuracy change remains small (-0.15%), indicating strong robustness of the pruning strategy. Overall, DPPO strengthens GSPO with a favorable cost–performance profile, suggesting that selectively focusing updates on informative samples can remove redundant computation without hurting downstream reasoning quality. 
+
+Comparison across Different Models. Table 9 verifies that DPPO is broadly compatible with different RL optimizers on MATH using Qwen2.5-7B-Instruct and Llama3.2-3B-Instruct. When integrated into GRPO, DPPO provides consistent acceleration up to 2.08 × while keeping accuracy stable, and even improves performance by as much as +0.63%. Notably, strong pruning remains effective: at rq = ro = 0 .9, DPPO attains a 2.08 × speedup together with a +0.49% gain, indicating that a large portion of computation can be removed without hurting reasoning quality. When plugged into DAPO, DPPO achieves 1.14 ×–1.63 × speedup and yields accuracy improvements across all settings, reaching up to +1.09%. Overall, these results demonstrate the versatility of DPPO as a plug-and-play pruning strategy that consistently reduces training cost while preserving or improving performance across different models and RL algorithms. 
+
+Scaling to Larger Models. Table 10 demonstrates that DPPO scales effectively to larger models, delivering consistent efficiency gains alongside notable accuracy improvements on the MATH dataset. For Qwen3-32B, DPPO achieves speedups ranging from 1.23 × to 2.57 × while improving accuracy across all pruning configurations, with gains from +0.37% to +4.19%. Notably, aggressive pruning does not degrade performance: at rq = ro = 0 .7, DPPO attains a 2.02 × speedup with the largest accuracy gain of +4.19%, and even at rq = ro = 0 .9, it maintains a +3.30% improvement with 2.57 ×
+
+13 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Table 8. Comparison between GSPO and DPPO on GSM8K for Qwen3-4B and Qwen3-8B, with DPPO evaluated under varying prompt-level ( rq ) and completion-level ( ro) pruning ratios. Accuracy changes relative to GSPO baseline are shown in superscript (blue for improvement, red for decline). 
+
+Setting Method rq ro GPU-h Speedup Acc (%) 
+
+Qwen3-4B GSPO 0% 0% 61.40 1.00 × 93.78 + DPPO 50% 50% 35.85 1.71 × 93 .49 −0.29 
+
++ DPPO 0% 50% 47.09 1.30 × 94 .17 +0 .39 
+
++ DPPO 50% 0% 44.64 1.38 × 94 .17 +0 .39 
+
++ DPPO 30% 30% 42.85 1.43 × 94 .17 +0 .39 
+
++ DPPO 70% 70% 27.84 2.21 × 93 .94 +0 .16 
+
++ DPPO 90% 90% 25.06 2.45 × 94 .17 +0 .39 
+
+Qwen3-8B GSPO 0% 0% 66.19 1.00 × 94.85 + DPPO 50% 50% 36.65 1.81 × 94 .85 +0 .00 
+
++ DPPO 0% 50% 46.01 1.44 × 95 .00 +0 .15 
+
++ DPPO 50% 0% 49.36 1.34 × 94 .85 +0 .00 
+
++ DPPO 30% 30% 45.37 1.46 × 95 .08 +0 .23 
+
++ DPPO 70% 70% 29.98 2.21 × 95 .22 +0 .37 
+
++ DPPO 90% 90% 26.88 2.46 × 94 .70 −0.15 
+
+Table 9. Robustness across RL algorithms. We integrate DPPO into GRPO and DAPO on the MATH dataset using Qwen2.5-7B-Instruct and Llama3.2-3B-Instruct . Accuracy changes relative to each baseline are shown in superscript (blue for improvement, red for decline). 
+
+Setting Method rq ro GPU-h Speedup Acc (%) 
+
+Qwen2.5-7B-Instruct GRPO 0% 0% 58.39 1.00 × 71.84 + DPPO 50% 50% 37.31 1.56 × 71 .97 +0 .13 
+
++ DPPO 0% 50% 41.31 1.41 × 72 .47 +0 .63 
+
++ DPPO 50% 0% 42.84 1.36 × 71 .76 −0.08 
+
++ DPPO 30% 30% 42.60 1.37 × 72 .07 +0 .23 
+
++ DPPO 70% 70% 32.35 1.80 × 71 .56 −0.28 
+
++ DPPO 90% 90% 28.11 2.08 × 72 .33 +0 .49 
+
+Llama3.2-3B-Instruct GRPO 0% 0% 41.86 1.00 × 49.38 + DPPO 50% 50% 30.02 1.40 × 49 .14 −0.24 
+
++ DPPO 0% 50% 33.30 1.26 × 49 .72 +0 .34 
+
++ DPPO 50% 0% 37.30 1.12 × 49 .38 +0 .00 
+
++ DPPO 30% 30% 33.29 1.26 × 50 .22 +0 .84 
+
++ DPPO 70% 70% 27.73 1.53 × 49 .38 +0 .00 
+
++ DPPO 90% 90% 27.21 1.54 × 48 .96 −0.42 
+
+Qwen2.5-7B-Instruct DAPO 0% 0% 45.95 1.00 × 71.18 + DPPO 50% 50% 35.64 1.29 × 71 .89 +0 .71 
+
++ DPPO 0% 50% 40.47 1.14 × 72 .27 +1 .09 
+
++ DPPO 50% 0% 40.07 1.15 × 71 .87 +0 .69 
+
++ DPPO 30% 30% 38.99 1.18 × 72 .21 +1 .03 
+
++ DPPO 70% 70% 30.89 1.49 × 71 .64 +0 .46 
+
++ DPPO 90% 90% 28.25 1.63 × 71 .40 +0 .22 
+
+speedup. Similar trends are observed for Qwen3-30B-A3B-Instruct, a Mixture-of-Experts model, where DPPO yields even larger speedups due to the inherent sparsity of MoE architectures. At rq = ro = 0 .7, DPPO achieves a 3.45 × speedup while reaching 85.56% accuracy (+3.39%), and at rq = ro = 0 .9, it attains a 4.87 × speedup with +3.35% accuracy gain. These consistent results across both dense and MoE architectures suggest that larger models exhibit greater computational redundancy during RL training, which DPPO effectively exploits through selective sample retention. 14 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Table 10. Robustness across larger model on Math dataset. Accuracy changes relative to each baseline are shown in superscript (blue for improvement, red for decline). 
+
+Setting Method rq ro GPU-h Speedup Acc (%) 
+
+Qwen3-32B GRPO 0% 0% 204.08 1.00 × 80.43 + DPPO 50% 50% 127.92 1.60 × 82 .55 +2 .12 
+
++ DPPO 0% 50% 166.08 1.23 × 81 .95 +1 .52 
+
++ DPPO 50% 0% 159.84 1.28 × 80 .80 +0 .37 
+
++ DPPO 30% 30% 157.28 1.30 × 81 .25 +0 .82 
+
++ DPPO 70% 70% 101.20 2.02 × 84 .62 +4 .19 
+
++ DPPO 90% 90% 79.31 2.57 × 83 .73 +3 .30 
+
+Qwen3-30B -A3B-Instruct GRPO 0% 0% 413.76 1.00 × 82.17 + DPPO 50% 50% 179.52 2.30 × 84 .94 +2 .77 
+
++ DPPO 0% 50% 225.84 1.83 × 84 .71 +2 .54 
+
++ DPPO 50% 0% 247.20 1.67 × 83 .73 +1 .56 
+
++ DPPO 30% 30% 234.72 1.76 × 84 .60 +2 .43 
+
++ DPPO 70% 70% 120.07 3.45 × 85 .56 +3 .39 
+
++ DPPO 90% 90% 84.96 4.87 × 85 .52 +3 .35 
+
+## C. Stability and Convergence 
+
+We plot the policy gradient (PG) loss, KL divergence, and reward curves in Figure 4 for Qwen3-4B and Qwen3-8B trained on the MATH dataset. 
+
+PG Loss. DPPO exhibits fluctuation patterns comparable to GRPO across most pruning configurations, suggesting that hierarchical pruning with importance rescaling preserves stable optimization dynamics. At higher pruning rates (rq = 0 .9, r o = 0 .9), slightly increased variance is observed, which aligns with our theoretical expectation: aggressive pruning yields larger rescaling factors, amplifying gradient variance while maintaining unbiased estimation. We provide a detailed variance analysis in Section D. 
+
+Reward. We observe that higher pruning ratios lead to lower mean training reward. This can be explained by our pruning strategy: samples with low absolute advantage are pruning candidates, and these are precisely the samples where all completions receive similar rewards (either consistently high or consistently low). By pruning them, we retain samples where the model exhibits high uncertainty completions with diverse reward outcomes. These retained samples naturally have lower mean reward but provide richer contrastive signals for policy learning. The result is a model that achieves lower training reward but better generalization, as it focuses on learning from the most informative samples rather than reinforcing already-mastered patterns. 
+
+KL Divergence. The KL divergence curves reveal that DPPO maintains substantially lower KL divergence compared to GRPO throughout training. This indicates that our pruning strategy, by focusing on high-uncertainty samples, enables more efficient policy updates while staying closer to the reference policy. Combined with the reward analysis above, this further explains DPPO’s strong generalization capability, as corroborated by our out-of-distribution evaluation results in Table 2. 
+
+## D. Variance Analysis 
+
+We analyze the variance of DPPO’s gradient estimator under hierarchical pruning. 
+
+D.1. Completion-Level Variance 
+
+For a fixed prompt q, let Go = Ψ( q, o ) and G(q) = 1
+
+> |O|
+
+P 
+
+> o∈O
+
+Go. Recall from Section 4.1 that the rescaling factor is 
+
+γ(o, q ) = Co(q)1−P ot (o) .The covariance of the rescaled gradient is: 
+
+Cov[ γG o] = Eo∼˜π [( γG o)( γG o)⊤] − Eo∼˜π [γG o]Eo∼˜π [γG o]⊤ = Co(q)
+
+|O| 
+
+X
+
+> o∈O
+
+GoG⊤
+
+> o
+
+1 − P ot (o) − G(q)G(q)⊤. (19) 15 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Figure 4. Training dynamics of GRPO and DPPO variants on MATH dataset with Qwen3-4B (left) and Qwen3-8B (right). 
+
+The diagonal terms give the variance: 
+
+Var[ γG o] = Co(q)
+
+|O| 
+
+X
+
+> o∈O
+
+G2
+
+> o
+
+1 − P ot (o) − G(q)2 = |S ot ||O| 2
+
+X
+
+> o∈O
+
+G2
+
+> o
+
+1 − P ot (o) − G(q)2. (20) Using the identity 11−x = 1 + x 
+
+> 1−x
+
+:
+
+X
+
+> o∈O
+
+G2
+
+> o
+
+1 − P ot (o) = |O| EO [G2
+
+> o
+
+] + X
+
+> o∈O
+
+Pot (o)G2
+
+> o
+
+1 − P ot (o) . (21) In DPPO’s score-based pruning, Pot (o) = 0 for high-score completions (large |A(q, o )|), while low-score completions are pruned with a uniform probability ro (cf. Eq. (15) ). Under the condition that low-score samples have smaller gradient, we 16 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+have: 
+
+Eo|P ot (o)̸=0 
+
+ G2
+
+> o
+
+1 − P ot (o)
+
+
+
+≤ EO [G2
+
+> o
+
+], (22) then the second term in (21) can be bounded as: 
+
+X
+
+> o∈O
+
+Pot (o)G2
+
+> o
+
+1 − P ot (o) ≤ X
+
+> o∈O
+
+Pot (o) · EO [G2
+
+> o
+
+] = ( |O| − |S ot |)EO [G2
+
+> o
+
+]. (23) Substituting (23) into (21): 
+
+X
+
+> o∈O
+
+G2
+
+> o
+
+1 − P ot (o) ≤ |O| EO [G2
+
+> o
+
+] + ( |O| − |S ot |)EO [G2
+
+> o
+
+] = (2 |O| − |S ot |)EO [G2
+
+> o
+
+]. (24) Substituting into (20): 
+
+Var[ γG o] ≤ |S ot ||O| 2 (2 |O| − |S ot |)EO [G2
+
+> o
+
+] − G(q)2 = |S ot |(2 |O| − |S ot |)
+
+|O| 2 EO [G2
+
+> o
+
+] − G(q)2. (25) Note that |S ot |(2 |O|−|S ot |) 
+
+> |O| 2
+
+= 2|S ot ||O| − |S ot |2 
+
+> |O| 2
+
+= 1 −
+
+
+
+1 − |S ot ||O| 
+
+2
+
+≤ 1.Therefore: 
+
+Var[ γG o] ≤ EO [G2
+
+> o
+
+] − G(q)2 = Var O [Go]. (26) i.e., the completion-level variance does not increase. 
+
+D.2. Prompt-Level Variance 
+
+We now analyze the variance over prompts, where G(q) = Eo[Ψ( q, o )] and ¯G = Eq [G(q)] denotes the grand mean. With 
+
+Cq = |S qt ||Q| , by the same analysis: 
+
+Var[ γ(q)G(q)] = |S qt ||Q| 2
+
+X
+
+> q∈Q
+
+G(q)2
+
+1 − P qt (q) − ¯G2. (27) Similarly, 
+
+Eq|P qt (q)̸=0 
+
+ G(q)2
+
+1 − P qt (q)
+
+
+
+≤ EQ[G(q)2], (28) we obtain: 
+
+Var[ γ(q)G(q)] ≤ Var Q[G(q)] . (29) 
+
+D.3. Total Variance 
+
+The total variance of ˆG = γ(q)γ(o, q )Ψ( q, o ) decomposes via the law of total variance: 
+
+Var[ ˆG] = Var q [γ(q)G(q)] 
+
+| {z }
+
+> Term I
+
++ Eq∼ ˜P [γ(q)2Var o[γ(o, q )Ψ]] 
+
+| {z }
+
+> Term II
+
+. (30) 
+
+Term I: From (29), Var q [γ(q)G(q)] ≤ Var Q[G(q)] .
+
+Term II: From (26), Var o[γ(o, q )Ψ] ≤ Var O [Ψ] . For Eq∼ ˜P [γ(q)2]:
+
+Eq∼ ˜P [γ(q)2] = Cq
+
+|Q| 
+
+X
+
+> q
+
+11 − P qt (q) = |S qt ||Q| 2
+
+X
+
+> q
+
+11 − P qt (q) . (31) 17 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Under score-based pruning with low-score prompts (fraction β) pruned with probability rq :
+
+Eq∼ ˜P [γ(q)2] = (1 − βr q ) [1 − (1 − β)rq ]1 − rq
+
+. (32) 
+
+Theorem D.1 (Total Variance Bound ). Under DPPO’s hierarchical pruning mechanism, the gradient estimator variance is bounded by: 
+
+Var[ ˆG] ≤ Var Q[G(q)] + (1 − βr q ) [1 − (1 − β)rq ]1 − rq
+
+· Eq [Var O [Ψ]] . (33) 
+
+For moderate pruning rates (e.g., rq , r o ≤ 0.7 with β = 0 .5), (1 −βr q )[1 −(1 −β)rq ]1−rq ≤ 1.42 , and the total variance remains well-controlled. For aggressive pruning (e.g., rq = ro = 0 .9), this factor increases to approximately 3.025 , leading to noticeably higher variance as confirmed in our experiments (Figure 4). 
+
+The above analysis provides insight into the design of dynamic pruning methods with rescaling. Conditions (22) and (28) suggest an important criterion for variance-controlled pruning: pruning decisions should preferentially target samples whose rescaled gradient contributions do not exceed the population average, ensuring that variance remains bounded while achieving computational savings. 
+
+## E. Case Study 
+
+Case Study. To provide qualitative insights into how DPPO improves reasoning quality, we present a case study in Table 11. It shows a representative MATH example with completions generated by four RL variants: GRPO, GRESO, CPPO, and DPPO. This problem requires finding the maximum value of x1(x2 + x3 + · · · + x101 ) subject to the constraint 
+
+P101  
+
+> i=1
+
+x2 
+
+> i
+
+= 1 , which demands careful application of the Cauchy-Schwarz inequality with proper accounting of the 100 terms involved. While all methods correctly identify Cauchy-Schwarz as the key technique, GRPO, GRESO, and CPPO fail to properly account for the number of variables, arriving at the incorrect answer 12 . In contrast, DPPO (ours) with aggressive pruning rates ( rq = 0 .9, ro = 0 .9) is the only method that correctly recognizes the 100-term structure and computes the right answer of 5 (✓). This qualitative difference aligns with our quantitative analysis in Section C: by preferentially retaining samples with high absolute advantage during training, DPPO focuses on challenging problems where the model exhibits high uncertainty. This emphasis on “learning frontier” samples enables the model to develop more robust reasoning capabilities for complex, multi-step problems—precisely the type of problem illustrated in this example. In addition to improved accuracy, DPPO achieves up to 2.37 ×
+
+## speedup on the MATH setting, demonstrating that our pruning-based optimization can simultaneously accelerate training and enhance reasoning quality. 
+
+18 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+Table 11. Comparisons of completions generated by four methods on questions sampled from the test set of MATH dataset. All responses are produced using the MATH-trained Qwen3-8B model. ✓ and ✗ denote correct and incorrect responses, respectively. 
+
+Question: 
+
+Let x1, x 2, . . . , x 101 be positive real numbers such that x21 + x22 + · · · + x2101 = 1 . Find the maximum value of 
+
+x1x2 + x1x3 + · · · + x1x101 .
+
+Let’s think step by step and output the final answer within box. 
+
+Ground Truth: 5 GRPO Response ✗:
+
+<think> Okay, so I need to find the maximum value of the sum x1x2 + x1x3 + · · · + x1x101 , given that the sum of the squares of all the xi’s is 1. Hmm, let me think. First, the expression we need to maximize is the sum of all products of x1 with each of the other variables. So that’s like x1 multiplied by (x2 + x3 + · · · + x101 ). Let me write that down: Sum = x1(x2 + x3 + · · · + x101 ). Let me denote S = x2 + x3 + · · · + x101 . Then the sum becomes x1S. So maybe I can use some inequality here. Since we have a constraint on the sum of squares, maybe Cauchy–Schwarz or AM–QM or something? Wait, Cauchy–Schwarz might be useful here. Let me recall that for vectors a and b, (a · b)2 ≤ (a · a)( b · b). But here, maybe I can think of x1 and S as part of some vectors? Alternatively, maybe I can use the Cauchy–Schwarz inequality on x1 and the vector (x2, x 3, . . . , x 101 ). Let me try that. The sum x1S is the dot product of (x1, 0, 0, . . . , 0) and (x2, x 3, . . . , x 101 ). Then by Cauchy–Schwarz: 
+
+x1S ≤ px21 + 0 + · · · + 0 px22 + x23 + · · · + x2101 = x1
+
+p1 − x21. So then the sum is ≤ x1
+
+p1 − x21. Now, to maximize this expression with respect to x1, let me set f (x) = x√1 − x2. To find its maximum, take derivative: 
+
+f ′(x) = √1 − x2 + x · 12√1−x2 · (−2x) = 1−2x2 
+
+> √1−x2
+
+. Set derivative to zero: 1 − 2x2 = 0 ⇒ x2 = 12 ⇒ x = 1√2 .Therefore, the maximum value is 1√2
+
+q
+
+1 − 12 = 1√2 · 1√2 = 12 . So the maximum sum is 12 . Therefore, the answer is  
+
+> 12
+
+. Wait, but let me check if this is correct. Because when we apply Cauchy–Schwarz, we have that the maximum of 
+
+x1S is 12 , given that x21 +  sum of squares of others  = 1 . So yes, that seems right. Therefore, the maximum value is  
+
+> 12
+
+. Final Answer 12 </think> 
+
+GRESO Response ✗:
+
+<think> Okay, so I need to find the maximum value of the sum x1x2 +x1x3 +· · · +x1x101 given that the sum of the squares of all the variables is 1. Let me think about how to approach this. First, the problem is about maximizing a sum of products of variables, given a constraint on their squares. This seems like a problem where the Cauchy–Schwarz inequality or Lagrange multipliers might be useful. Since all variables are positive, maybe Cauchy–Schwarz is the way to go. Let me write down the expression I need to maximize. The sum is x1(x2 + x3 + · · · + x101 ). Let me denote S = x2 + x3 + · · · + x101 . Then the expression becomes x1S. So I need to maximize x1S, given that 
+
+x21 + x22 + · · · + x2101 = 1 . Hmm. Maybe I can use the Cauchy–Schwarz inequality on x1 and S. Let me recall that for any vectors a and b, (a · b) ≤ ∥ a∥ ∥ b∥. If I take a = ( x1, 0, . . . , 0) and b = (0 , x 2, x 3, . . . , x 101 ), then their dot product is x1S. The norm of a is x1, and the norm of b is px22 + · · · + x2101 . Therefore, x1S ≤ x1
+
+px22 + · · · + x2101 .But then, the right-hand side is x1
+
+p1 − x21. So we consider the maximum of x1
+
+p1 − x21. Let f (x) = x√1 − x2.Taking derivative: f ′(x) = √1 − x2 + x · 12√1−x2 · (−2x) = √1 − x2 − x2 
+
+> √1−x2
+
+= 1−2x2 
+
+> √1−x2
+
+. Setting to zero gives 1 − 2x2 = 0 ⇒ x = 1√2 . Then maximum value is 
+
+ 1√2
+
+ q 
+
+1 − 12 =
+
+ 1√2
+
+  1√2
+
+
+
+= 12 . Therefore, the maximum value is 12 . But wait, is this tight? Because we have equality in Cauchy–Schwarz when vectors are proportional. So for equality, we need (x1, 0, . . . , 0) and (0 , x 2, . . . , x 101 ) to be proportional, which would mean that x2 = x3 = · · · = x101 . Let me check. If all x2 to x101 are equal, denote them as y. Then the sum of squares is x21 + 100 y2 = 1 . The expression to maximize is x1 · 100 y. From the earlier result, maximum of x1 · 100 y is 
+
+100 · 12 = 50 ? Wait, no. Earlier we found that x1
+
+p1 − x21 has maximum 12 , but here p1 − x21 = p100 y2 = 10 y.Therefore, x1 · 10 y ≤ 12 . Therefore, the maximum of x1 · 10 y is 12 . Therefore, the total sum x1(x2 + · · · + x101 )
+
+is 100 x1y, so 100 x1y ≤ 12 . Therefore, maximum value is 12 . Therefore, the answer is 12 . Final Answer 12
+
+</think> 
+
+19 Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization 
+
+CPPO Response ✗:
+
+<think> Okay, so I need to find the maximum value of the sum x1x2 + x1x3 + · · · + x1x101 , given that the sum of the squares of all the xi’s is 1. Let me think about how to approach this. First, the problem is about maximizing a sum of products involving x1 with each of the other variables. The constraint is on the sum of squares. This seems like an optimization problem with a constraint, so maybe I can use Lagrange multipliers? Or perhaps there’s a way to apply the Cauchy–Schwarz inequality or some other inequality? Let me write down what I need to maximize: S = x1x2 + x1x3 + · · · + x1x101 . So that’s x1 multiplied by the sum of x2 through x101 . Let me denote that sum as T = x2 + x3 + · · · + x101 . Then S = x1T . So the problem becomes maximizing x1T , given that 
+
+x21 + x22 + · · · + x2101 = 1 . Hmm. Maybe I can express T in terms of the other variables? Or maybe use Cauchy– Schwarz on T ? Alternatively, think of S as x1
+
+P101  
+
+> i=2
+
+xi
+
+
+
+. Let me consider variables x2, x 3, . . . , x 101 . Let me denote them as y1, y 2, . . . , y 100 , so that T = y1 + y2 + · · · + y100 . Then the constraint becomes x21 + y21 + y22 + · · · + y2100 = 1 .So we need to maximize x1(y1 + · · · + y100 ) with the constraint x21 + P y2 
+
+> i
+
+= 1 . This seems like a standard problem. Maybe use Cauchy–Schwarz on the terms x1 and the sum of yi? Wait, let me think. Let me consider vectors. Suppose I have two vectors: one is (x1, y 1, y 2, . . . , y 100 ) and another... Hmm, maybe not. Alternatively, think of the sum x1(y1 + · · · + y100 ) as the dot product of (x1, 0, 0, . . . , 0) and (y1, y 2, . . . , y 100 ). But I don’t know if that helps directly. Alternatively, use Cauchy–Schwarz on the terms x1 and the sum of yi. Let me recall that for any vectors u and v, |u · v| ≤ ∥ u∥ ∥ v∥. If I take u = ( x1, 0, 0, . . . , 0) and v = ( y1, y 2, . . . , y 100 ), then their dot product is x1(y1 + · · · + y100 ) = S. The norm of u is px21 = x1. The norm of v is py21 + · · · + y2100 . Therefore, by Cauchy–Schwarz: S ≤ x1
+
+py21 + · · · + y2100 . But the constraint is x21 + y21 + · · · + y2100 = 1 . Let me denote that sum of squares of yi as Q. Then Q = 1 − x21. Therefore: S ≤ x1
+
+p1 − x21. So now, the problem reduces to maximizing x1
+
+p1 − x21 over x1 > 0. Let me set f (x) = x√1 − x2. To find its maximum, take derivative: 
+
+f ′(x) = √1 − x2 + x
+
+ 12√1−x2
+
+
+
+(−2x) = √1 − x2 − x2 
+
+> √1−x2
+
+= (1 −x2)−x2 
+
+> √1−x2
+
+= 1−2x2 
+
+> √1−x2
+
+. Set derivative equal to zero: 
+
+1 − 2x2 = 0 ⇒ x2 = 12 ⇒ x = 1√2 . Therefore, maximum value is f
+
+ 1√2
+
+
+
+=
+
+ 1√2
+
+ q 
+
+1 − 12 =
+
+ 1√2
+
+  1√2
+
+
+
+= 12 .Therefore, the answer is 12 . Final Answer 12 </think> 
+
+DPPO Response (Ours) ✓:
+
+<think> Okay, so I need to find the maximum value of the sum x1x2 + x1x3 + · · · + x1x101 , given that the sum of the squares of x1 to x101 is 1. All the xi are positive real numbers. Hmm, let me think about how to approach this. First, the expression we need to maximize is the sum of all products of x1 with each of the other variables. So that’s x1 multiplied by (x2 + x3 + · · · + x101 ). Let me denote S = x2 + x3 + · · · + x101 . Then the expression becomes x1 · S. Now, we know from the given condition that x21 + x22 + · · · + x2101 = 1 . So maybe I can relate S
+
+and x1 using some inequality. Since all variables are positive, perhaps Cauchy-Schwarz inequality could be useful here. By Cauchy-Schwarz, (x22 + x23 + · · · + x2101 )(1 2 + 1 2 + · · · + 1 2) ≥ (x2 + x3 + · · · + x101 )2. There are 100 
+
+terms in the sum for x22 to x2101 , so that’s 100 terms. Therefore, (P101  
+
+> i=2
+
+x2 
+
+> i
+
+) · 100 ≥ S2. Hence, S2 ≤ 100 ∗ (1 − x21).Therefore, S ≤ 10 ∗ p1 − x21. So our expression x1 ∗ S ≤ x1 ∗ 10 ∗ p(1 − x21). Now, we need to maximize this expression with respect to x1. Let me set f (x) = 10 x ∗ p(1 − x2). To find its maximum, take derivative: 
+
+f ′(x) = 10 ∗ p(1 − x2) + 10 x ∗ (1 /(2 ∗ p(1 − x2))) ∗ (−2x) = 10 ∗ p(1 − x2) − 10 x2/p(1 − x2) = [10(1 − x2) −
+
+10 x2]/p(1 − x2) = 10(1 − 2x2)/p(1 − x2). Set derivative equal to zero: 1 − 2x2 = 0 ⇒ x2 = 1 /2 ⇒ x = 1 /√2.Since x is positive. So maximum value is 10 ∗ (1 /√2) ∗ p(1 − 1/2) = 10 ∗ (1 /√2) ∗ (1 /√2) = 10 ∗ (1 /2) = 5 .Therefore, the maximum value is 5. So the answer is 5 . Final Answer 5 </think> 
+
+20

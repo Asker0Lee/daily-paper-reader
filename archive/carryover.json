@@ -1,45 +1,8 @@
 {
-  "generated_at": "2026-03-11T19:40:06.037417+00:00",
-  "updated_date": "20260311",
+  "generated_at": "2026-03-13T19:25:12.084362+00:00",
+  "updated_date": "20260313",
   "carryover_days": 9,
   "items": [
-    {
-      "id": "2603.07135v1",
-      "title": "The Model Knows Which Tokens Matter: Automatic Token Selection via Noise Gating",
-      "abstract": "Visual tokens dominate inference cost in vision-language models (VLMs), yet many carry redundant information. Existing pruning methods alleviate this but typically rely on attention magnitude or similarity scores. We reformulate visual token pruning as capacity constrained communication: given a fixed budget K, the model must allocate limited bandwidth to maximally preserve visual information. We propose AutoSelect, which attaches a lightweight Scorer and Denoiser to a frozen VLM and trains with only the standard next token prediction loss, without auxiliary objectives or extra annotations. During training, a variance preserving noise gate modulates each token's information flow according to its predicted importance so that gradients propagate through all tokens; a diagonal attention Denoiser then recovers the perturbed representations. At inference, only the Scorer and a hard top-K selection remain, adding negligible latency. On ten VLM benchmarks, AutoSelect retains 96.5% of full model accuracy while accelerating LLM prefill by 2.85x with only 0.69 ms overhead, and transfers to different VLM backbones without architecture-specific tuning. Code is available at https://github.com/MedHK23/AutoSelect.",
-      "authors": [
-        "Landi He",
-        "Xiaoyu Yang",
-        "Lijian Xu"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-07T09:57:35+00:00",
-      "link": "https://arxiv.org/pdf/2603.07135v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Visual token pruning for vision-language models",
-      "llm_evidence_cn": "视觉语言模型的视觉Token剪枝",
-      "llm_evidence": "视觉语言模型的视觉Token剪枝",
-      "canonical_evidence": "视觉语言模型的视觉Token剪枝",
-      "llm_tldr_en": "Proposes AutoSelect for automatic visual token pruning in VLMs using a noise gating mechanism.",
-      "llm_tldr_cn": "提出AutoSelect，利用噪声门控机制实现VLM的自动视觉Token剪枝。",
-      "llm_tldr": "提出AutoSelect，利用噪声门控机制实现VLM的自动视觉Token剪枝。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Structured and unstructured pruning for large language models",
-      "matched_requirement_id": "req-7",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.07135v1",
-      "carry_days": 1
-    },
     {
       "id": "2603.09222v1",
       "title": "LooComp: Leverage Leave-One-Out Strategy to Encoder-only Transformer for Efficient Query-aware Context Compression",
@@ -59,17 +22,16 @@
       "link": "https://arxiv.org/pdf/2603.09222v1",
       "tags": [
         "keyword:LLM CP",
-        "query:GAIRES",
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "query-aware context compression and pruning for LLMs",
-      "llm_evidence_cn": "针对LLM的查询感知上下文压缩与剪枝",
-      "llm_evidence": "针对LLM的查询感知上下文压缩与剪枝",
-      "canonical_evidence": "针对LLM的查询感知上下文压缩与剪枝",
-      "llm_tldr_en": "Proposes a context pruning framework to reduce LLM input size and improve inference efficiency.",
-      "llm_tldr_cn": "提出一种查询驱动的上下文剪枝框架，通过压缩输入内容提升LLM推理效率并降低成本。",
-      "llm_tldr": "提出一种查询驱动的上下文剪枝框架，通过压缩输入内容提升LLM推理效率并降低成本。",
+      "llm_evidence_en": "Query-aware context compression for efficient LLM reader cost",
+      "llm_evidence_cn": "查询感知的上下文压缩以降低LLM阅读成本",
+      "llm_evidence": "查询感知的上下文压缩以降低LLM阅读成本",
+      "canonical_evidence": "查询感知的上下文压缩以降低LLM阅读成本",
+      "llm_tldr_en": "Uses a leave-one-out strategy for query-driven context pruning to improve RAG efficiency.",
+      "llm_tldr_cn": "采用留一法策略进行查询驱动的上下文剪枝，提高RAG系统的效率。",
+      "llm_tldr": "采用留一法策略进行查询驱动的上下文剪枝，提高RAG系统的效率。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -78,91 +40,6 @@
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
       "paper_id": "2603.09222v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.04135v1",
-      "title": "Unbiased Dynamic Pruning for Efficient Group-Based Policy Optimization",
-      "abstract": "Group Relative Policy Optimization (GRPO) effectively scales LLM reasoning but incurs prohibitive computational costs due to its extensive group-based sampling requirement. While recent selective data utilization methods can mitigate this overhead, they could induce estimation bias by altering the underlying sampling distribution, compromising theoretical rigor and convergence behavior. To address this limitation, we propose Dynamic Pruning Policy Optimization (DPPO), a framework that enables dynamic pruning while preserving unbiased gradient estimation through importance sampling-based correction. By incorporating mathematically derived rescaling factors, DPPO significantly accelerates GRPO training without altering the optimization objective of the full-batch baseline. Furthermore, to mitigate the data sparsity induced by pruning, we introduce Dense Prompt Packing, a window-based greedy strategy that maximizes valid token density and hardware utilization. Extensive experiments demonstrate that DPPO consistently accelerates training across diverse models and benchmarks. For instance, on Qwen3-4B trained on MATH, DPPO achieves 2.37$\\times$ training speedup and outperforms GRPO by 3.36% in average accuracy across six mathematical reasoning benchmarks.",
-      "authors": [
-        "Haodong Zhu",
-        "Yangyang Ren",
-        "Yanjing Li",
-        "Mingbao Lin",
-        "Linlin Yang",
-        "Xuhui Liu",
-        "Xiantong Zhen",
-        "Haiguang Liu",
-        "Baochang Zhang"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-03-04T14:48:53+00:00",
-      "link": "https://arxiv.org/pdf/2603.04135v1",
-      "tags": [
-        "keyword:GAIRES",
-        "keyword:LLM CP",
-        "query:GAIRES",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "dynamic pruning for efficient policy optimization",
-      "llm_evidence_cn": "用于高效策略优化的动态剪枝",
-      "llm_evidence": "用于高效策略优化的动态剪枝",
-      "canonical_evidence": "用于高效策略优化的动态剪枝",
-      "llm_tldr_en": "Proposes dynamic pruning to accelerate LLM training while maintaining unbiased gradient estimation.",
-      "llm_tldr_cn": "提出动态剪枝技术以加速大模型训练，同时保持无偏梯度估计。",
-      "llm_tldr": "提出动态剪枝技术以加速大模型训练，同时保持无偏梯度估计。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Structured and unstructured pruning for large language models",
-      "matched_requirement_id": "req-7",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.04135v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.07770v1",
-      "title": "ArcLight: A Lightweight LLM Inference Architecture for Many-Core CPUs",
-      "abstract": "Although existing frameworks for large language model (LLM) inference on CPUs are mature, they fail to fully exploit the computation potential of many-core CPU platforms. Many-core CPUs are widely deployed in web servers and high-end networking devices, and are typically organized into multiple NUMA nodes that group cores and memory. Current frameworks largely overlook the substantial overhead of cross-NUMA memory access, limiting inference scalability and intelligence enabling on such platforms. To address this limitation, we build ArcLight, a lightweight LLM inference architecture designed from the ground up for many-core CPUs. ArcLight integrates efficient memory management and thread scheduling, and introduces finely controlled tensor parallelism to mitigate the cross-node memory access wall. Experimental results show that ArcLight significantly surpasses the performance ceiling of mainstream frameworks, achieving up to 46% higher inference throughput. Moreover, ArcLight maintains compatibility with arbitrary CPU devices. ArcLight is publicly available at https://github.com/OpenBMB/ArcLight.",
-      "authors": [
-        "Yuzhuang Xu",
-        "Xu Han",
-        "Yuxuan Li",
-        "Wanxiang Che"
-      ],
-      "primary_category": "cs.DC",
-      "categories": [
-        "cs.DC",
-        "cs.CL"
-      ],
-      "published": "2026-03-08T19:20:25+00:00",
-      "link": "https://arxiv.org/pdf/2603.07770v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Lightweight LLM inference architecture for CPUs",
-      "llm_evidence_cn": "针对CPU的轻量级LLM推理架构",
-      "llm_evidence": "针对CPU的轻量级LLM推理架构",
-      "canonical_evidence": "针对CPU的轻量级LLM推理架构",
-      "llm_tldr_en": "Develops ArcLight to optimize LLM inference scalability on many-core CPU platforms.",
-      "llm_tldr_cn": "开发了ArcLight，以优化多核CPU平台上的LLM推理可扩展性。",
-      "llm_tldr": "开发了ArcLight，以优化多核CPU平台上的LLM推理可扩展性。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Efficient inference for large language models via compression",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.07770v1",
       "carry_days": 1
     },
     {
@@ -186,13 +63,13 @@
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Accelerates inference via early exit framework for spoken language models",
-      "llm_evidence_cn": "通过语音语言模型的早期退出框架加速推理",
-      "llm_evidence": "通过语音语言模型的早期退出框架加速推理",
-      "canonical_evidence": "通过语音语言模型的早期退出框架加速推理",
-      "llm_tldr_en": "Proposes SPAR-K, an early exit framework to accelerate inference for interleaved spoken language models.",
-      "llm_tldr_cn": "提出了SPAR-K早期退出框架，旨在加速交错式语音语言模型的推理过程。",
-      "llm_tldr": "提出了SPAR-K早期退出框架，旨在加速交错式语音语言模型的推理过程。",
+      "llm_evidence_en": "early exit framework to accelerate SLM inference",
+      "llm_evidence_cn": "加速SLM推理的早停框架",
+      "llm_evidence": "加速SLM推理的早停框架",
+      "canonical_evidence": "加速SLM推理的早停框架",
+      "llm_tldr_en": "Accelerates Spoken Language Models using a modality-aware early exit strategy to reduce decoding depth.",
+      "llm_tldr_cn": "采用模态感知早停策略加速口语大模型推理，减少解码深度。",
+      "llm_tldr": "采用模态感知早停策略加速口语大模型推理，减少解码深度。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -246,7 +123,7 @@
       "matched_requirement_id": "req-19",
       "selection_source": "carryover_cache",
       "paper_id": "2603.04474v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.06814v1",
@@ -286,7 +163,7 @@
       "matched_requirement_id": "req-23",
       "selection_source": "carryover_cache",
       "paper_id": "2603.06814v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.05396v1",
@@ -325,7 +202,7 @@
       "matched_requirement_id": "req-14",
       "selection_source": "carryover_cache",
       "paper_id": "2603.05396v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.04759v1",
@@ -344,100 +221,17 @@
       "published": "2026-03-05T03:16:16+00:00",
       "link": "https://arxiv.org/pdf/2603.04759v1",
       "tags": [
-        "keyword:GAIRES",
         "keyword:LLM CP",
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "Multi-grained context compression for LLM window extension",
-      "llm_evidence_cn": "用于大模型窗口扩展的多粒度上下文压缩",
-      "llm_evidence": "用于大模型窗口扩展的多粒度上下文压缩",
-      "canonical_evidence": "用于大模型窗口扩展的多粒度上下文压缩",
-      "llm_tldr_en": "Introduces a framework that uses context compression to extend the context window of LLMs efficiently.",
-      "llm_tldr_cn": "引入了一种利用上下文压缩技术有效扩展大语言模型上下文窗口的框架。",
-      "llm_tldr": "引入了一种利用上下文压缩技术有效扩展大语言模型上下文窗口的框架。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Large language model compression techniques",
-      "matched_requirement_id": "req-5",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.04759v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.09216v1",
-      "title": "PIM-SHERPA: Software Method for On-device LLM Inference by Resolving PIM Memory Attribute and Layout Inconsistencies",
-      "abstract": "On-device deployments of large language models (LLMs) are rapidly proliferating across mobile and edge platforms. LLM inference comprises a compute-intensive prefill phase and a memory bandwidth-intensive decode phase, and the decode phase has been widely recognized as well-suited to processing-in-memory (PIM) in both academia and industry. However, practical PIM-enabled systems face two obstacles between these phases, a memory attribute inconsistency in which prefill favors placing weights in a cacheable region for reuse whereas decode requires weights in a non-cacheable region to reliably trigger PIM, and a weight layout inconsistency between host-friendly and PIM-aware layouts. To address these problems, we introduce \\textit{PIM-SHERPA}, a software-only method for efficient on-device LLM inference by resolving PIM memory attribute and layout inconsistencies. PIM-SHERPA provides two approaches, DRAM double buffering (DDB), which keeps a single PIM-aware weights in the non-cacheable region while prefetching the swizzled weights of the next layer into small cacheable buffers, and online weight rearrangement with swizzled memory copy (OWR), which performs the on-demand swizzled memory copy immediately before GEMM. Compared to a baseline PIM emulation system, PIM-SHERPA achieves approximately 47.8 - 49.7\\% memory capacity savings while maintaining comparable performance to the theoretical maximum on the Llama 3.2 model. To the best of our knowledge, this is the first work to identify the memory attribute inconsistency and propose effective solutions on product-level PIM-enabled systems.",
-      "authors": [
-        "Sunjung Lee",
-        "Sanghoon Cha",
-        "Hyeonsu Kim",
-        "Seungwoo Seo",
-        "Yuhwan Ro",
-        "Sukhan Lee",
-        "Byeongho Kim",
-        "Yongjun Park",
-        "Kyomin Sohn",
-        "Seungwon Lee",
-        "Jaehoon Yu"
-      ],
-      "primary_category": "cs.DC",
-      "categories": [
-        "cs.DC"
-      ],
-      "published": "2026-03-10T05:39:03+00:00",
-      "link": "https://arxiv.org/pdf/2603.09216v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Software method for on-device LLM inference and memory layout",
-      "llm_evidence_cn": "设备端LLM推理及内存布局的软件方法",
-      "llm_evidence": "设备端LLM推理及内存布局的软件方法",
-      "canonical_evidence": "设备端LLM推理及内存布局的软件方法",
-      "llm_tldr_en": "Addresses memory attribute and layout inconsistencies to optimize PIM-based LLM inference on edge devices.",
-      "llm_tldr_cn": "解决了内存属性和布局不一致问题，以优化边缘设备上基于PIM的LLM推理。",
-      "llm_tldr": "解决了内存属性和布局不一致问题，以优化边缘设备上基于PIM的LLM推理。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Survey of hardware friendly model compression for LLMs",
-      "matched_requirement_id": "req-13",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.09216v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.08462v1",
-      "title": "Reasoning as Compression: Unifying Budget Forcing via the Conditional Information Bottleneck",
-      "abstract": "Chain-of-Thought (CoT) prompting improves LLM accuracy on complex tasks but often increases token usage and inference cost. Existing \"Budget Forcing\" methods reducing cost via fine-tuning with heuristic length penalties, suppress both essential reasoning and redundant filler. We recast efficient reasoning as a lossy compression problem under the Information Bottleneck (IB) principle, and identify a key theoretical gap when applying naive IB to transformers: attention violates the Markov property between prompt, reasoning trace, and response. To resolve this issue, we model CoT generation under the Conditional Information Bottleneck (CIB) principle, where the reasoning trace Z acts as a computational bridge that contains only the information about the response Y that is not directly accessible from the prompt X. This yields a general Reinforcement Learning objective: maximize task reward while compressing completions under a prior over reasoning traces, subsuming common heuristics (e.g., length penalties) as special cases (e.g., uniform priors). In contrast to naive token-counting-based approaches, we introduce a semantic prior that measures token cost by surprisal under a language model prior. Empirically, our CIB objective prunes cognitive bloat while preserving fluency and logic, improving accuracy at moderate compression and enabling aggressive compression with minimal accuracy drop.",
-      "authors": [
-        "Fabio Valerio Massoli",
-        "Andrey Kuzmin",
-        "Arash Behboodi"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG"
-      ],
-      "published": "2026-03-09T14:56:57+00:00",
-      "link": "https://arxiv.org/pdf/2603.08462v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "efficient reasoning as lossy compression to reduce inference cost",
-      "llm_evidence_cn": "将高效推理视为有损压缩以降低推理成本",
-      "llm_evidence": "将高效推理视为有损压缩以降低推理成本",
-      "canonical_evidence": "将高效推理视为有损压缩以降低推理成本",
-      "llm_tldr_en": "Unifies reasoning and compression via Information Bottleneck to reduce LLM token usage and cost.",
-      "llm_tldr_cn": "通过信息瓶颈理论将推理与压缩统一，旨在减少LLM的Token使用和推理成本。",
-      "llm_tldr": "通过信息瓶颈理论将推理与压缩统一，旨在减少LLM的Token使用和推理成本。",
+      "llm_evidence_en": "Multi-grained context compression for LLM context window extension",
+      "llm_evidence_cn": "用于LLM上下文窗口扩展的多粒度上下文压缩",
+      "llm_evidence": "用于LLM上下文窗口扩展的多粒度上下文压缩",
+      "canonical_evidence": "用于LLM上下文窗口扩展的多粒度上下文压缩",
+      "llm_tldr_en": "Proposes a framework using context compression to extend LLM context windows efficiently.",
+      "llm_tldr_cn": "提出一种利用上下文压缩来高效扩展大语言模型上下文窗口的框架。",
+      "llm_tldr": "提出一种利用上下文压缩来高效扩展大语言模型上下文窗口的框架。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -445,7 +239,7 @@
       "matched_query_text": "Efficient inference for large language models via compression",
       "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.08462v1",
+      "paper_id": "2603.04759v1",
       "carry_days": 1
     },
     {
@@ -487,50 +281,7 @@
       "matched_requirement_id": "req-20",
       "selection_source": "carryover_cache",
       "paper_id": "2603.08322v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.09527v1",
-      "title": "Efficiently Aligning Draft Models via Parameter- and Data-Efficient Adaptation",
-      "abstract": "Speculative decoding accelerates LLM inference but suffers from performance degradation when target models are fine-tuned for specific domains. A naive solution is to retrain draft models for every target model, which is costly and inefficient. To address this, we introduce a parameter- and data-efficient framework named Efficient Draft Adaptation, abbreviated as EDA, for efficiently adapting draft models. EDA introduces three innovations: (1) a decoupled architecture that utilizes shared and private components to model the shared and target-specific output distributions separately, enabling parameter-efficient adaptation by updating only the lightweight private component;(2) a data regeneration strategy that utilizes the fine-tuned target model to regenerate training data, thereby improving the alignment between training and speculative decoding, leading to higher average acceptance length;(3) a sample selection mechanism that prioritizes high-value data for efficient adaptation. Our experiments show that EDA effectively restores speculative performance on fine-tuned models, achieving superior average acceptance lengths with significantly reduced training costs compared to full retraining. Code is available at https://github.com/Lyn-Lucy/Efficient-Draft-Adaptation.",
-      "authors": [
-        "Luxi Lin",
-        "Zhihang Lin",
-        "Zhanpeng Zeng",
-        "Yuhao Chen",
-        "Qingyu Zhang",
-        "Jixiang Luo",
-        "Xuelong Li",
-        "Rongrong Ji"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-03-10T11:35:58+00:00",
-      "link": "https://arxiv.org/pdf/2603.09527v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Efficient inference via speculative decoding and parameter-efficient adaptation",
-      "llm_evidence_cn": "通过投机采样和参数高效适配实现高效推理",
-      "llm_evidence": "通过投机采样和参数高效适配实现高效推理",
-      "canonical_evidence": "通过投机采样和参数高效适配实现高效推理",
-      "llm_tldr_en": "Introduces EDA, a framework for efficiently adapting draft models to accelerate speculative decoding in specific domains.",
-      "llm_tldr_cn": "引入EDA框架，通过参数高效的适配方法调整草稿模型，加速特定领域的投机采样推理。",
-      "llm_tldr": "引入EDA框架，通过参数高效的适配方法调整草稿模型，加速特定领域的投机采样推理。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Efficient inference for large language models via compression",
-      "matched_requirement_id": "req-11",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.09527v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.09723v1",
@@ -574,7 +325,7 @@
       "matched_requirement_id": "req-14",
       "selection_source": "carryover_cache",
       "paper_id": "2603.09723v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.04979v1",
@@ -612,81 +363,7 @@
       "matched_requirement_id": "req-13",
       "selection_source": "carryover_cache",
       "paper_id": "2603.04979v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.08100v1",
-      "title": "Adaptive MLP Pruning for Large Vision Transformers",
-      "abstract": "Large vision transformers present impressive scalability, as their performance can be well improved with increased model capacity. Nevertheless, their cumbersome parameters results in exorbitant computational and memory demands. By analyzing prevalent transformer structures, we find that multilayer perceptron (MLP) modules constitute the largest share of the model's parameters. In this paper, we propose an Adaptive MLP Pruning (AMP) method to substantially reduce the parameters of large vision transformers without obvious performance degradation. First, we adopt Taylor based method to evaluate neuron importance of MLP. However, the importance computation using one-hot cross entropy loss ignores the potential predictions on other categories, thus degrading the quality of the evaluated importance scores. To address this issue, we introduce label-free information entropy criterion to fully model the predictions of the original model for more accurate importance evaluation. Second, we rank the hidden neurons of MLP by the above importance scores and apply binary search algorithm to adaptively prune the ranked neurons according to the redundancy of different MLP modules, thereby avoiding the predefined compression ratio. Experimental results on several state-of-the-art large vision transformers, including CLIP and DINOv2, demonstrate that our method achieves roughly 40\\% parameter and FLOPs reduction in a near lossless manner. Moreover, when the models are not finetuned after pruning, our method outperforms other pruning methods by significantly large margin. The source code and trained weights are available at https://github.com/visresearch/AMP.",
-      "authors": [
-        "Chengchao Shen"
-      ],
-      "primary_category": "cs.CV",
-      "categories": [
-        "cs.CV"
-      ],
-      "published": "2026-03-09T08:42:19+00:00",
-      "link": "https://arxiv.org/pdf/2603.08100v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Adaptive MLP pruning for large vision transformers",
-      "llm_evidence_cn": "大型视觉Transformer的自适应MLP剪枝",
-      "llm_evidence": "大型视觉Transformer的自适应MLP剪枝",
-      "canonical_evidence": "大型视觉Transformer的自适应MLP剪枝",
-      "llm_tldr_en": "Proposes an Adaptive MLP Pruning method to reduce parameters in large vision transformers.",
-      "llm_tldr_cn": "提出一种自适应MLP剪枝方法，旨在减少大型视觉Transformer的参数量。",
-      "llm_tldr": "提出一种自适应MLP剪枝方法，旨在减少大型视觉Transformer的参数量。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Structured and unstructured pruning for large language models",
-      "matched_requirement_id": "req-7",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.08100v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.03995v1",
-      "title": "Spectral Surgery: Training-Free Refinement of LoRA via Gradient-Guided Singular Value Reweighting",
-      "abstract": "Low-Rank Adaptation (LoRA) improves downstream performance by restricting task updates to a low-rank parameter subspace, yet how this limited capacity is allocated within a trained adapter remains unclear. Through a geometric and empirical study across multiple tasks and backbones, we find that trained LoRA updates often exhibit an inefficient spectrum: task effects concentrate in a small subset of singular directions, while many remaining components are neutral or detrimental, motivating post-hoc refinement within the learned subspace. We propose Spectral Surgery, a training-free refinement that decomposes a LoRA update with SVD, estimates per-component sensitivity using gradients on a small calibration set, and reweights singular values under a magnitude constraint while keeping the learned directions fixed. Across Llama-3.1-8B and Qwen3-8B on four benchmarks, Spectral Surgery yields consistent gains (up to +4.4 points on CommonsenseQA and +2.4 pass@1 on HumanEval) by adjusting only $\\approx 1{,}000$ scalar coefficients. These results demonstrate that SVD-structured, low-cost parameter editing can serve as a practical route to improving trained LoRA adapters in a purely post-hoc manner.",
-      "authors": [
-        "Zailong Tian",
-        "Yanzhe Chen",
-        "Zhuoheng Han",
-        "Lizi Liao"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AI"
-      ],
-      "published": "2026-03-04T12:38:36+00:00",
-      "link": "https://arxiv.org/pdf/2603.03995v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Training-free refinement of low-rank adaptation (LoRA) parameters",
-      "llm_evidence_cn": "低秩自适应(LoRA)参数的免训练精炼",
-      "llm_evidence": "低秩自适应(LoRA)参数的免训练精炼",
-      "canonical_evidence": "低秩自适应(LoRA)参数的免训练精炼",
-      "llm_tldr_en": "Refines LoRA updates using gradient-guided singular value reweighting without additional training.",
-      "llm_tldr_cn": "通过梯度引导的奇异值重权衡，在无需训练的情况下精炼LoRA更新效果。",
-      "llm_tldr": "通过梯度引导的奇异值重权衡，在无需训练的情况下精炼LoRA更新效果。",
-      "llm_tags": [
-        "query:llm-cp"
-      ],
-      "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "State of the art methods in large language model compression",
-      "matched_requirement_id": "req-9",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.03995v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.08894v1",
@@ -725,7 +402,7 @@
       "matched_requirement_id": "req-20",
       "selection_source": "carryover_cache",
       "paper_id": "2603.08894v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.07972v1",
@@ -764,87 +441,7 @@
       "matched_requirement_id": "req-19",
       "selection_source": "carryover_cache",
       "paper_id": "2603.07972v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.03992v2",
-      "title": "Measuring AI R&D Automation",
-      "abstract": "The automation of AI R&D (AIRDA) could have significant implications, but its extent and ultimate effects remain uncertain. We need empirical data to resolve these uncertainties, but existing data (primarily capability benchmarks) may not reflect real-world automation or capture its broader consequences, such as whether AIRDA accelerates capabilities more than safety progress or whether our ability to oversee AI R&D can keep pace with its acceleration. To address these gaps, this work proposes metrics to track the extent of AIRDA and its effects on AI progress and oversight. The metrics span dimensions such as capital share of AI R&D spending, researcher time allocation, and AI subversion incidents, and could help decision makers understand the potential consequences of AIRDA, implement appropriate safety measures, and maintain awareness of the pace of AI development. We recommend that companies and third parties (e.g. non-profit research organisations) start to track these metrics, and that governments support these efforts.",
-      "authors": [
-        "Alan Chan",
-        "Ranay Padarath",
-        "Joe Kwon",
-        "Hilary Greaves",
-        "Markus Anderljung"
-      ],
-      "primary_category": "cs.CY",
-      "categories": [
-        "cs.CY",
-        "cs.AI"
-      ],
-      "published": "2026-03-04T12:36:13+00:00",
-      "link": "https://arxiv.org/pdf/2603.03992v2",
-      "tags": [
-        "keyword:GAIRES",
-        "query:GAIRES"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Measuring AI R&D automation and its effects on researcher time allocation",
-      "llm_evidence_cn": "衡量AI研发自动化及其对研究人员时间分配的影响",
-      "llm_evidence": "衡量AI研发自动化及其对研究人员时间分配的影响",
-      "canonical_evidence": "衡量AI研发自动化及其对研究人员时间分配的影响",
-      "llm_tldr_en": "Proposes metrics to track the extent of AI automation in research and development and its broader consequences.",
-      "llm_tldr_cn": "提出了追踪AI在研发中自动化程度及其广泛后果的指标。",
-      "llm_tldr": "提出了追踪AI在研发中自动化程度及其广泛后果的指标。",
-      "llm_tags": [
-        "query:gaires"
-      ],
-      "matched_query_tag": "query:gaires",
-      "matched_query_text": "impact of generative artificial intelligence on scientific research",
-      "matched_requirement_id": "req-14",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.03992v2",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.08960v1",
-      "title": "The $qs$ Inequality: Quantifying the Double Penalty of Mixture-of-Experts at Inference",
-      "abstract": "Mixture-of-Experts (MoE) models deliver high quality at low training FLOPs, but this efficiency often vanishes at inference. We identify a double penalty that structurally disadvantages MoE architectures during decoding: first, expert routing fragments microbatches and reduces weight reuse; second, massive resident expert pools reduce high-bandwidth memory (HBM) headroom for the KV cache. This phenomenon, formalized as reuse fragmentation, pushes feed-forward networks (FFNs) into a bandwidth-bound regime, especially at long context lengths.   We introduce the $qs$ inequality, a predictive criterion that identifies when MoE is structurally disadvantaged relative to a quality-matched dense model. This criterion unifies sparsity ($s$), the fraction of parameters activated per token, and the quality-equivalence factor ($q$), the size multiplier required for a dense model to match MoE performance. Our evaluation across frontier models including DeepSeek-V3, Qwen3-235B, Grok-1, and Switch-C demonstrates that this fragmentation is a general architectural phenomenon. For DeepSeek-V3 at 128k context, this results in a 4.5x throughput advantage for a quality-matched dense baseline. Crucially, massive architectures like Switch-C can become infeasible on cluster sizes where a quality-matched dense model remains viable.   Our results suggest that training-time FLOP efficiency is an incomplete proxy for inference-time performance in long-context serving. They also indicate that MoE may be best viewed as a training-time optimization, with distillation into dense models as a possible path toward inference-efficient deployment.",
-      "authors": [
-        "Vignesh Adhinarayanan",
-        "Nuwan Jayasena"
-      ],
-      "primary_category": "cs.LG",
-      "categories": [
-        "cs.LG",
-        "cs.AR",
-        "cs.DC",
-        "cs.PF"
-      ],
-      "published": "2026-03-09T21:48:04+00:00",
-      "link": "https://arxiv.org/pdf/2603.08960v1",
-      "tags": [
-        "keyword:LLM CP",
-        "query:GAIRES",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "Quantifying inference efficiency and sparsity in MoE architectures",
-      "llm_evidence_cn": "量化MoE架构中的推理效率和稀疏性",
-      "llm_evidence": "量化MoE架构中的推理效率和稀疏性",
-      "canonical_evidence": "量化MoE架构中的推理效率和稀疏性",
-      "llm_tldr_en": "Introduces the qs inequality to identify structural disadvantages of MoE models during inference compared to dense ones.",
-      "llm_tldr_cn": "引入qs不等式，以识别MoE模型在推理过程中相对于稠密模型的结构性劣势。",
-      "llm_tldr": "引入qs不等式，以识别MoE模型在推理过程中相对于稠密模型的结构性劣势。",
-      "llm_tags": [
-        "query:llm-cp:composite"
-      ],
-      "matched_query_tag": "query:llm-cp:composite",
-      "matched_query_text": "Papers central to 最新的大模型压缩领域论文检索, especially work that connects or combines: q; s; L; u; Large language model compression techniques; Post-training quantization and quantization-aware training for LLMs; Structured and unstructured pruning for large language models; Latest paper on large model compression; State of the art methods in large language model compression; Recent advances in LLM quantization and pruning research.",
-      "matched_requirement_id": "req-composite-llm-cp",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.08960v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.08903v1",
@@ -883,46 +480,7 @@
       "matched_requirement_id": "req-19",
       "selection_source": "carryover_cache",
       "paper_id": "2603.08903v1",
-      "carry_days": 1
-    },
-    {
-      "id": "2603.03780v1",
-      "title": "MACC: Multi-Agent Collaborative Competition for Scientific Exploration",
-      "abstract": "Scientific discovery still relies heavily on the manual efforts of individual researchers, leading to limited exploration, redundant trials, and reduced reproducibility. Human-participant data analysis competitions generate diverse approaches, yet fluctuations in participation and the lack of independent repetitions show that parallel exploration alone is insufficient for achieving reliable scientific inquiry. As advanced AI agents based on large language models (LLMs) increasingly perform analytical tasks, relying on a single highly capable agent is unlikely to overcome these structural limitations. Recent work has begun to explore how multiple LLM-based agents can collaborate or compete in scientific workflows-a growing trend we refer to as MA4Science. However, most existing MA4Science studies assume that all agents are controlled by a single organizational entity, limiting their ability to examine how institutional mechanisms-such as incentives, information sharing, and reproducibility-shape collective exploration among independently managed agents. To address this gap, we introduce MACC (Multi-Agent Collaborative Competition), an institutional architecture that integrates a blackboard-style shared scientific workspace with incentive mechanisms designed to encourage transparency, reproducibility, and exploration efficiency. MACC provides a testbed for studying how institutional design influences scalable and reliable multi-agent scientific exploration.",
-      "authors": [
-        "Satoshi Oyama",
-        "Yuko Sakurai",
-        "Hisashi Kashima"
-      ],
-      "primary_category": "cs.MA",
-      "categories": [
-        "cs.MA",
-        "cs.AI"
-      ],
-      "published": "2026-03-04T06:38:04+00:00",
-      "link": "https://arxiv.org/pdf/2603.03780v1",
-      "tags": [
-        "keyword:GAIRES",
-        "query:GAIRES",
-        "query:LLM CP"
-      ],
-      "llm_score": 8.0,
-      "llm_evidence_en": "multi-agent collaboration in scientific workflows",
-      "llm_evidence_cn": "科学工作流中的多智能体协作",
-      "llm_evidence": "科学工作流中的多智能体协作",
-      "canonical_evidence": "科学工作流中的多智能体协作",
-      "llm_tldr_en": "Explores multi-agent collaborative competition to overcome limitations in manual scientific exploration.",
-      "llm_tldr_cn": "探索多智能体协作竞争模式，以克服手动科学探索的局限性。",
-      "llm_tldr": "探索多智能体协作竞争模式，以克服手动科学探索的局限性。",
-      "llm_tags": [
-        "query:gaires:composite"
-      ],
-      "matched_query_tag": "query:gaires:composite",
-      "matched_query_text": "Papers central to 生成式人工智能对科研合作关系（强度、稳定性、持久性）影响的学术文献检索, especially work that connects or combines: impact of generative artificial intelligence on scientific research; changes in scientific research collaboration patterns; quantifying the strength of research partnerships with AI; stability of academic research networks in the age of AI; durability and persistence of scientific collaborations using AI tools; dynamics of scientific teams and generative AI integration; AI-mediated knowledge co-creation in academia; impact of generative AI on the strength and frequency of scientific collaborations; stability and durability of research partnerships using generative AI tools; literature review on AI driven changes in academic team dynamics and co authorship.",
-      "matched_requirement_id": "req-composite-gaires",
-      "selection_source": "carryover_cache",
-      "paper_id": "2603.03780v1",
-      "carry_days": 1
+      "carry_days": 3
     },
     {
       "id": "2603.08453v1",
@@ -944,18 +502,17 @@
       "published": "2026-03-09T14:50:35+00:00",
       "link": "https://arxiv.org/pdf/2603.08453v1",
       "tags": [
-        "keyword:GAIRES",
         "keyword:LLM CP",
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "efficient KV cache management and pruning for LLM inference",
-      "llm_evidence_cn": "大模型推理中的高效KV缓存管理与剪枝",
-      "llm_evidence": "大模型推理中的高效KV缓存管理与剪枝",
-      "canonical_evidence": "大模型推理中的高效KV缓存管理与剪枝",
-      "llm_tldr_en": "Introduces structure-aware chunking and hierarchical indexing to optimize LLM memory and inference speed.",
-      "llm_tldr_cn": "引入结构感知分块和分层索引，优化大模型的内存占用和推理速度。",
-      "llm_tldr": "引入结构感知分块和分层索引，优化大模型的内存占用和推理速度。",
+      "llm_evidence_en": "Efficient KV cache management and hierarchical indexing for LLM inference",
+      "llm_evidence_cn": "用于LLM推理的高效KV缓存管理和分层索引",
+      "llm_evidence": "用于LLM推理的高效KV缓存管理和分层索引",
+      "canonical_evidence": "用于LLM推理的高效KV缓存管理和分层索引",
+      "llm_tldr_en": "Proposes LycheeCluster for efficient long-context LLM inference using structure-aware chunking and KV indexing.",
+      "llm_tldr_cn": "提出LycheeCluster，通过结构感知分块和KV索引实现高效的长文本LLM推理。",
+      "llm_tldr": "提出LycheeCluster，通过结构感知分块和KV索引实现高效的长文本LLM推理。",
       "llm_tags": [
         "query:llm-cp"
       ],
@@ -967,45 +524,370 @@
       "carry_days": 1
     },
     {
-      "id": "2603.07506v1",
-      "title": "A Unified Framework for Knowledge Transfer in Bidirectional Model Scaling",
-      "abstract": "Transferring pre-trained knowledge from a source model to a target model of a different architectural size is a key challenge for flexible and efficient model scaling. However, current parameter-space methods treat Small-to-Large (S2L) and Large-to-Small (L2S) scaling as separate, incompatible problems, focusing on parameter synthesis and selection, respectively. This fragmented perspective has resulted in specialized tools, hindering a unified, bidirectional framework. In this paper, we propose BoT (Bidirectional knowledge Transfer), the first size-agnostic framework to unify S2L and L2S scaling. Our core insight is to treat model weights as continuous signals, where models of different sizes represent distinct discretizations of the transferable knowledge. This multi-resolution perspective directly casts S2L and L2S scaling as the signal processing operations of upsampling and downsampling, naturally leading to the adoption of the Discrete Wavelet Transform (DWT) and its Inverse (IDWT). BoT leverages the recursive nature of wavelets, using the decomposition level as a dynamic scaling factor to bridge disparate model sizes in a parameter-free and computationally efficient manner. Extensive experiments on DeiT, BERT, and GPT demonstrate significant pre-training FLOPs savings (up to 67.1% for S2L, 52.8% for L2S) and state-of-the-art performance on benchmarks like GLUE and SQuAD.",
+      "id": "2603.10877v1",
+      "title": "From Images to Words: Efficient Cross-Modal Knowledge Distillation to Language Models from Black-box Teachers",
+      "abstract": "Knowledge distillation (KD) methods are pivotal in compressing large pre-trained language models into smaller models, ensuring computational efficiency without significantly dropping performance. Traditional KD techniques assume homogeneity in modalities between the teacher (source) and the student (target) models. On the other hand, existing multimodal knowledge distillation methods require modality-specific pre-training of the teacher model, which is computationally infeasible in most cases. In this paper, we introduce ARMADA, an efficient cross-modal knowledge distillation framework designed to transfer knowledge from large vision-language models, including black-box models, to language-only models. Unlike existing KD techniques that rely on the internal structures of multimodal teachers or require computationally expensive pre-training, ARMADA leverages novel alignment techniques to distil knowledge without altering the teacher model, ensuring efficiency and scalability. We empirically validate ARMADA on twelve natural language understanding, eight complex generative reasoning and five instruction-tuning tasks, demonstrating consistent performance improvements in large models such as DeBERTa-v2-1.4B, OPT-1.3B, LLaMA-{3B, 7B, 8B}. ARMADA achieves up to 3.4% improvement on language understanding tasks and 2.6% boost in generative reasoning, all without requiring expensive multimodal pre-training or fine-tuning of the teacher model. Our findings challenge conventional knowledge distillation paradigms by demonstrating that even vision-language models, despite lacking direct textual understanding, can significantly enhance language models when distilled appropriately.",
       "authors": [
-        "Jianlu Shen",
-        "Fu Feng",
-        "Jiaze Xu",
-        "Yucheng Xie",
-        "Jiaqi Lv",
-        "Xin Geng"
+        "Ayan Sengupta",
+        "Shantanu Dixit",
+        "Md Shad Akhtar",
+        "Tanmoy Chakraborty"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-03-11T15:24:34+00:00",
+      "link": "https://arxiv.org/pdf/2603.10877v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Knowledge distillation for compressing large pre-trained models",
+      "llm_evidence_cn": "用于压缩大型预训练模型的知识蒸馏",
+      "llm_evidence": "用于压缩大型预训练模型的知识蒸馏",
+      "canonical_evidence": "用于压缩大型预训练模型的知识蒸馏",
+      "llm_tldr_en": "Introduces ARMADA for efficient cross-modal knowledge distillation from large teachers to smaller language models.",
+      "llm_tldr_cn": "引入ARMADA框架，实现从大型教师模型到小型语言模型的高效跨模态知识蒸馏。",
+      "llm_tldr": "引入ARMADA框架，实现从大型教师模型到小型语言模型的高效跨模态知识蒸馏。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.10877v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.10088v1",
+      "title": "ES-dLLM: Efficient Inference for Diffusion Large Language Models by Early-Skipping",
+      "abstract": "Diffusion large language models (dLLMs) are emerging as a promising alternative to autoregressive models (ARMs) due to their ability to capture bidirectional context and the potential for parallel generation. Despite the advantages, dLLM inference remains computationally expensive as the full input context is processed at every iteration. In this work, we analyze the generation dynamics of dLLMs and find that intermediate representations, including key, value, and hidden states, change only subtly across successive iterations. Leveraging this insight, we propose \\textbf{ES-dLLM}, a training-free inference acceleration framework for dLLM that reduces computation by skipping tokens in early layers based on the estimated importance. Token importance is computed with intermediate tensor variation and confidence scores of previous iterations. Experiments on LLaDA-8B and Dream-7B demonstrate that ES-dLLM achieves throughput of up to 226.57 and 308.51 tokens per second (TPS), respectively, on an NVIDIA H200 GPU, delivering 5.6$\\times$ to 16.8$\\times$ speedup over the vanilla implementation and up to 1.85$\\times$ over the state-of-the-art caching method, while preserving generation quality.",
+      "authors": [
+        "Zijian Zhu",
+        "Fei Ren",
+        "Zhanhong Tan",
+        "Kaisheng Ma"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-10T14:31:19+00:00",
+      "link": "https://arxiv.org/pdf/2603.10088v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Efficient inference via early-skipping tokens in early layers",
+      "llm_evidence_cn": "通过在早期层跳过标记实现高效推理",
+      "llm_evidence": "通过在早期层跳过标记实现高效推理",
+      "canonical_evidence": "通过在早期层跳过标记实现高效推理",
+      "llm_tldr_en": "ES-dLLM accelerates diffusion LLM inference by skipping redundant token computations in early layers.",
+      "llm_tldr_cn": "ES-dLLM通过在早期层跳过冗余Token计算，加速了扩散大语言模型的推理过程。",
+      "llm_tldr": "ES-dLLM通过在早期层跳过冗余Token计算，加速了扩散大语言模型的推理过程。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.10088v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.09480v2",
+      "title": "Prune Redundancy, Preserve Essence: Vision Token Compression in VLMs via Synergistic Importance-Diversity",
+      "abstract": "Vision-language models (VLMs) face significant computational inefficiencies caused by excessive generation of visual tokens. While prior work shows that a large fraction of visual tokens are redundant, existing compression methods struggle to balance importance preservation and information diversity. To address this, we propose PruneSID, a training-free Synergistic Importance-Diversity approach featuring a two-stage pipeline: (1) Principal Semantic Components Analysis (PSCA) for clustering tokens into semantically coherent groups, ensuring comprehensive concept coverage, and (2) Intra-group Non-Maximum Suppression (NMS) for pruning redundant tokens while preserving key representative tokens within each group. Additionally, PruneSID incorporates an information-aware dynamic compression ratio mechanism that optimizes token compression rates based on image complexity, enabling more effective average information preservation across diverse scenes. Extensive experiments demonstrate state-of-the-art performance, achieving 96.3% accuracy on LLaVA-1.5 with only 11.1% token retention, and 92.8% accuracy at extreme compression rates (5.6%) on LLaVA-NeXT, outperforming prior methods by 2.5% with 7.8 $\\times$ faster prefilling speed compared to the original model. Our framework generalizes across diverse VLMs and both image and video modalities, showcasing strong cross-modal versatility. Code is available at https://github.com/ZhengyaoFang/PruneSID.",
+      "authors": [
+        "Zhengyao Fang",
+        "Pengyuan Lyu",
+        "Chengquan Zhang",
+        "Guangming Lu",
+        "Jun Yu",
+        "Wenjie Pei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T10:31:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.09480v2",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Vision token compression via pruning redundant tokens",
+      "llm_evidence_cn": "通过剪枝冗余标记进行视觉标记压缩",
+      "llm_evidence": "通过剪枝冗余标记进行视觉标记压缩",
+      "canonical_evidence": "通过剪枝冗余标记进行视觉标记压缩",
+      "llm_tldr_en": "PruneSID uses a two-stage pruning approach to compress visual tokens in vision-language models.",
+      "llm_tldr_cn": "PruneSID采用两阶段剪枝方法压缩视觉语言模型中的视觉Token，减少计算开销。",
+      "llm_tldr": "PruneSID采用两阶段剪枝方法压缩视觉语言模型中的视觉Token，减少计算开销。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09480v2",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.09865v1",
+      "title": "GAST: Gradient-aligned Sparse Tuning of Large Language Models with Data-layer Selection",
+      "abstract": "Parameter-Efficient Fine-Tuning (PEFT) has become a key strategy for adapting large language models, with recent advances in sparse tuning reducing overhead by selectively updating key parameters or subsets of data. Existing approaches generally focus on two distinct paradigms: layer-selective methods aiming to fine-tune critical layers to minimize computational load, and data-selective methods aiming to select effective training subsets to boost training. However, current methods typically overlook the fact that different data points contribute varying degrees to distinct model layers, and they often discard potentially valuable information from data perceived as of low quality. To address these limitations, we propose Gradient-aligned Sparse Tuning (GAST), an innovative method that simultaneously performs selective fine-tuning at both data and layer dimensions as integral components of a unified optimization strategy. GAST specifically targets redundancy in information by employing a layer-sparse strategy that adaptively selects the most impactful data points for each layer, providing a more comprehensive and sophisticated solution than approaches restricted to a single dimension. Experiments demonstrate that GAST consistently outperforms baseline methods, establishing a promising direction for future research in PEFT strategies.",
+      "authors": [
+        "Kai Yao",
+        "Zhenghan Song",
+        "Kaixin Wu",
+        "Mingjie Zhong",
+        "Danzhao Cheng",
+        "Zhaorui Tan",
+        "Yixin Ji",
+        "Penglei Gao"
       ],
       "primary_category": "cs.LG",
       "categories": [
         "cs.LG"
       ],
-      "published": "2026-03-08T07:23:16+00:00",
-      "link": "https://arxiv.org/pdf/2603.07506v1",
+      "published": "2026-03-10T16:28:48+00:00",
+      "link": "https://arxiv.org/pdf/2603.09865v1",
       "tags": [
-        "keyword:GAIRES",
         "keyword:LLM CP",
-        "query:GAIRES",
         "query:LLM CP"
       ],
       "llm_score": 8.0,
-      "llm_evidence_en": "knowledge transfer in bidirectional model scaling",
-      "llm_evidence_cn": "双向模型缩放中的知识迁移",
-      "llm_evidence": "双向模型缩放中的知识迁移",
-      "canonical_evidence": "双向模型缩放中的知识迁移",
-      "llm_tldr_en": "A unified framework for transferring knowledge between models of different sizes, aiding compression.",
-      "llm_tldr_cn": "一种在不同尺寸模型间迁移知识的统一框架，有助于模型压缩与缩放。",
-      "llm_tldr": "一种在不同尺寸模型间迁移知识的统一框架，有助于模型压缩与缩放。",
+      "llm_evidence_en": "Sparse tuning of LLMs to minimize computational load",
+      "llm_evidence_cn": "大语言模型的稀疏微调以最小化计算负载",
+      "llm_evidence": "大语言模型的稀疏微调以最小化计算负载",
+      "canonical_evidence": "大语言模型的稀疏微调以最小化计算负载",
+      "llm_tldr_en": "Proposes a gradient-aligned sparse tuning method to adapt LLMs with reduced overhead.",
+      "llm_tldr_cn": "提出一种梯度对齐的稀疏微调方法，以较低开销实现大语言模型的适配。",
+      "llm_tldr": "提出一种梯度对齐的稀疏微调方法，以较低开销实现大语言模型的适配。",
+      "llm_tags": [
+        "query:llm-cp:composite"
+      ],
+      "matched_query_tag": "query:llm-cp:composite",
+      "matched_query_text": "Papers central to 最新的大模型压缩领域论文检索, especially work that connects or combines: q; s; L; u; Large language model compression techniques; Post-training quantization and quantization-aware training for LLMs; Structured and unstructured pruning for large language models; Latest paper on large model compression; State of the art methods in large language model compression; Recent advances in LLM quantization and pruning research.",
+      "matched_requirement_id": "req-composite-llm-cp",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09865v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.10353v1",
+      "title": "S-HPLB: Efficient LLM Attention Serving via Sparsity-Aware Head Parallelism Load Balance",
+      "abstract": "With the increasing volumes of Large Language Models (LLMs) and the expanding context lengths, attention computation has become a key performance bottleneck in LLM serving. For fast attention computation, recent practices often parallelize the attention heads on multiple GPUs, and also widely adopt attention sparsification to reduce the computation amount -- which selectively computes a subset of attention pairs under a preset sparsity budget. In this paper, we notice that attention heads of an LLM model often exhibit heterogeneous-yet-stable sparsity elasticities, which motivates us to enforce head-adaptive sparsity budgets to attain better efficiency while preserving high inference quality. Yet, from the system aspect, with heterogeneous sparsity levels, attention computation time on different heads would be inconsistent, yielding cross-GPU resource bubbles under head-parallel deployment. To further minimize such bubbles, we propose a novel attention deployment strategy called Sparsity-aware Head-Parallel Load Balance (S-HPLB). Experiments on long-context benchmark show that, S-HPLB can achieve a $2.88\\times$ improvement in average attention computation latency without quality degradation.",
+      "authors": [
+        "Di Liu",
+        "Yifei Liu",
+        "Chen Chen",
+        "Zhibin Yu",
+        "Xiaoyi Fan",
+        "Quan Chen",
+        "Minyi Guo"
+      ],
+      "primary_category": "cs.DC",
+      "categories": [
+        "cs.DC"
+      ],
+      "published": "2026-03-11T03:03:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.10353v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Attention sparsification and head-adaptive sparsity budgets",
+      "llm_evidence_cn": "注意力稀疏化与多头自适应稀疏预算",
+      "llm_evidence": "注意力稀疏化与多头自适应稀疏预算",
+      "canonical_evidence": "注意力稀疏化与多头自适应稀疏预算",
+      "llm_tldr_en": "Improves LLM serving efficiency through head-parallelism load balancing and adaptive attention sparsity.",
+      "llm_tldr_cn": "通过多头并行负载均衡和自适应注意力稀疏化提高大模型推理服务效率。",
+      "llm_tldr": "通过多头并行负载均衡和自适应注意力稀疏化提高大模型推理服务效率。",
       "llm_tags": [
         "query:llm-cp"
       ],
       "matched_query_tag": "query:llm-cp",
-      "matched_query_text": "Large language model compression techniques",
-      "matched_requirement_id": "req-5",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
       "selection_source": "carryover_cache",
-      "paper_id": "2603.07506v1",
+      "paper_id": "2603.10353v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.09480v1",
+      "title": "Prune Redundancy, Preserve Essence: Vision Token Compression in VLMs via Synergistic Importance-Diversity",
+      "abstract": "Vision-language models (VLMs) face significant computational inefficiencies caused by excessive generation of visual tokens. While prior work shows that a large fraction of visual tokens are redundant, existing compression methods struggle to balance importance preservation and information diversity. To address this, we propose PruneSID, a training-free Synergistic Importance-Diversity approach featuring a two-stage pipeline: (1) Principal Semantic Components Analysis (PSCA) for clustering tokens into semantically coherent groups, ensuring comprehensive concept coverage, and (2) Intra-group Non-Maximum Suppression (NMS) for pruning redundant tokens while preserving key representative tokens within each group. Additionally, PruneSID incorporates an information-aware dynamic compression ratio mechanism that optimizes token compression rates based on image complexity, enabling more effective average information preservation across diverse scenes. Extensive experiments demonstrate state-of-the-art performance, achieving 96.3% accuracy on LLaVA-1.5 with only 11.1% token retention, and 92.8% accuracy at extreme compression rates (5.6%) on LLaVA-NeXT, outperforming prior methods by 2.5% with 7.8 $\\times$ faster prefilling speed compared to the original model. Our framework generalizes across diverse VLMs and both image and video modalities, showcasing strong cross-modal versatility. Code is available at https://github.com/ZhengyaoFang/PruneSID}{https://github.com/ZhengyaoFang/PruneSID.",
+      "authors": [
+        "Zhengyao Fang",
+        "Pengyuan Lyu",
+        "Chengquan Zhang",
+        "Guangming Lu",
+        "Jun Yu",
+        "Wenjie Pei"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-10T10:31:58+00:00",
+      "link": "https://arxiv.org/pdf/2603.09480v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Pruning redundant vision tokens in VLMs",
+      "llm_evidence_cn": "剪枝视觉语言模型中的冗余视觉标记",
+      "llm_evidence": "剪枝视觉语言模型中的冗余视觉标记",
+      "canonical_evidence": "剪枝视觉语言模型中的冗余视觉标记",
+      "llm_tldr_en": "Develops PruneSID for training-free vision token compression in VLMs via importance-diversity pruning.",
+      "llm_tldr_cn": "开发 PruneSID，通过重要性-多样性剪枝实现视觉语言模型的免训练标记压缩。",
+      "llm_tldr": "开发 PruneSID，通过重要性-多样性剪枝实现视觉语言模型的免训练标记压缩。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.09480v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.10899v1",
+      "title": "LookaheadKV: Fast and Accurate KV Cache Eviction by Glimpsing into the Future without Generation",
+      "abstract": "Transformer-based large language models (LLMs) rely on key-value (KV) caching to avoid redundant computation during autoregressive inference. While this mechanism greatly improves efficiency, the cache size grows linearly with the input sequence length, quickly becoming a bottleneck for long-context tasks. Existing solutions mitigate this problem by evicting prompt KV that are deemed unimportant, guided by estimated importance scores. Notably, a recent line of work proposes to improve eviction quality by \"glimpsing into the future\", in which a draft generator produces a surrogate future response approximating the target model's true response, and this surrogate is subsequently used to estimate the importance of cached KV more accurately. However, these approaches rely on computationally expensive draft generation, which introduces substantial prefilling overhead and limits their practicality in real-world deployment. To address this challenge, we propose LookaheadKV, a lightweight eviction framework that leverages the strength of surrogate future response without requiring explicit draft generation. LookaheadKV augments transformer layers with parameter-efficient modules trained to predict true importance scores with high accuracy. Our design ensures negligible runtime overhead comparable to existing inexpensive heuristics, while achieving accuracy superior to more costly approximation methods. Extensive experiments on long-context understanding benchmarks, across a wide range of models, demonstrate that our method not only outperforms recent competitive baselines in various long-context understanding tasks, but also reduces the eviction cost by up to 14.5x, leading to significantly faster time-to-first-token. Our code is available at https://github.com/SamsungLabs/LookaheadKV.",
+      "authors": [
+        "Jinwoo Ahn",
+        "Ingyu Seong",
+        "Akhil Kedia",
+        "Junhan Kim",
+        "Hyemi Jang",
+        "Kangwook Lee",
+        "Yongkweon Jeon"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-03-11T15:44:32+00:00",
+      "link": "https://arxiv.org/pdf/2603.10899v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "KV cache eviction for efficient LLM inference",
+      "llm_evidence_cn": "用于高效LLM推理的KV缓存逐出",
+      "llm_evidence": "用于高效LLM推理的KV缓存逐出",
+      "canonical_evidence": "用于高效LLM推理的KV缓存逐出",
+      "llm_tldr_en": "Improves LLM inference efficiency by using a draft generator to guide KV cache eviction.",
+      "llm_tldr_cn": "通过草稿生成器引导KV缓存逐出，提升大语言模型的推理效率。",
+      "llm_tldr": "通过草稿生成器引导KV缓存逐出，提升大语言模型的推理效率。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.10899v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.11320v1",
+      "title": "UniCompress: Token Compression for Unified Vision-Language Understanding and Generation",
+      "abstract": "Unified models aim to support both understanding and generation by encoding images into discrete tokens and processing them alongside text within a single autoregressive framework. This unified design offers architectural simplicity and cross-modal synergy, which facilitates shared parameterization, consistent training objectives, and seamless transfer between modalities. However, the large number of visual tokens required by such models introduces substantial computation and memory overhead, and this inefficiency directly hinders deployment in resource constrained scenarios such as embodied AI systems. In this work, we propose a unified token compression algorithm UniCompress that significantly reduces visual token count while preserving performance on both image understanding and generation tasks. Our method introduces a plug-in compression and decompression mechanism guided with learnable global meta tokens. The framework is lightweight and modular, enabling efficient integration into existing models without full retraining. Experimental results show that our approach reduces image tokens by up to 4 times, achieves substantial gains in inference latency and training cost, and incurs only minimal performance degradation, which demonstrates the promise of token-efficient unified modeling for real world multimodal applications.",
+      "authors": [
+        "Ziyao Wang",
+        "Chen Chen",
+        "Jingtao Li",
+        "Weiming Zhuang",
+        "Jiabo Huang",
+        "Ang Li",
+        "Lingjuan Lyu"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-03-11T21:27:15+00:00",
+      "link": "https://arxiv.org/pdf/2603.11320v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Token compression for unified vision-language models",
+      "llm_evidence_cn": "统一视觉语言模型的Token压缩",
+      "llm_evidence": "统一视觉语言模型的Token压缩",
+      "canonical_evidence": "统一视觉语言模型的Token压缩",
+      "llm_tldr_en": "Proposes UniCompress to reduce visual token count in unified models for efficient deployment.",
+      "llm_tldr_cn": "提出UniCompress算法，减少统一模型中的视觉Token数量以实现高效部署。",
+      "llm_tldr": "提出UniCompress算法，减少统一模型中的视觉Token数量以实现高效部署。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Efficient inference for large language models via compression",
+      "matched_requirement_id": "req-11",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.11320v1",
+      "carry_days": 1
+    },
+    {
+      "id": "2603.11625v1",
+      "title": "MedPruner: Training-Free Hierarchical Token Pruning for Efficient 3D Medical Image Understanding in Vision-Language Models",
+      "abstract": "While specialized Medical Vision-Language Models (VLMs) have achieved remarkable success in interpreting 2D and 3D medical modalities, their deployment for 3D volumetric data remains constrained by significant computational inefficiencies. Current architectures typically suffer from massive anatomical redundancy due to the direct concatenation of consecutive 2D slices and lack the flexibility to handle heterogeneous information densities across different slices using fixed pruning ratios. To address these challenges, we propose MedPruner, a training-free and model-agnostic hierarchical token pruning framework specifically designed for efficient 3D medical image understanding. MedPruner introduces a two-stage mechanism: an Inter-slice Anchor-based Filtering module to eliminate slice-level temporal redundancy, followed by a Dynamic Information Nucleus Selection strategy that achieves adaptive token-level compression by quantifying cumulative attention weights. Extensive experiments on three 3D medical benchmarks and across three diverse medical VLMs reveal massive token redundancy in existing architectures. Notably, MedPruner enables models such as MedGemma to maintain or even exceed their original performance while retaining fewer than 5% of visual tokens, thereby drastically reducing computational overhead and validating the necessity of dynamic token selection for practical clinical deployment. Our code will be released.",
+      "authors": [
+        "Shengyuan Liu",
+        "Zanting Ye",
+        "Yunrui Lin",
+        "Chen Hu",
+        "Wanting Geng",
+        "Xu Han",
+        "Bulat Ibragimov",
+        "Yefeng Zheng",
+        "Yixuan Yuan"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-03-12T07:37:00+00:00",
+      "link": "https://arxiv.org/pdf/2603.11625v1",
+      "tags": [
+        "keyword:LLM CP",
+        "query:LLM CP"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "Training-free hierarchical token pruning for VLMs",
+      "llm_evidence_cn": "视觉语言模型的免训练分层Token剪枝",
+      "llm_evidence": "视觉语言模型的免训练分层Token剪枝",
+      "canonical_evidence": "视觉语言模型的免训练分层Token剪枝",
+      "llm_tldr_en": "Develops a training-free token pruning framework for efficient 3D medical image understanding.",
+      "llm_tldr_cn": "开发了一种免训练的Token剪枝框架，用于高效的3D医学图像理解。",
+      "llm_tldr": "开发了一种免训练的Token剪枝框架，用于高效的3D医学图像理解。",
+      "llm_tags": [
+        "query:llm-cp"
+      ],
+      "matched_query_tag": "query:llm-cp",
+      "matched_query_text": "Structured and unstructured pruning for large language models",
+      "matched_requirement_id": "req-7",
+      "selection_source": "carryover_cache",
+      "paper_id": "2603.11625v1",
       "carry_days": 1
     }
   ]
